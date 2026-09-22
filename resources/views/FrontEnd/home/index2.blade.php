@@ -3,6 +3,10 @@
     Home
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/hero.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/hero.css')) }}">
+@endpush
+
 @section('content')
     <style>
         /* Modern Design Variables */
@@ -25,335 +29,6 @@
             margin: 0 auto;
             padding: 0 12px;
         }
-
-        .site-category-icon {
-            width: 22px;
-            height: 22px;
-            margin-right: 12px;
-            object-fit: contain;
-            filter: grayscale(100%);
-            transition: var(--transition);
-        }
-
-        .category-link:hover .site-category-icon {
-            filter: grayscale(0%);
-        }
-
-        /* Hero Section - Modern Design */
-        .hero-section {
-            padding: 15px 0;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 300px;
-            background: linear-gradient(135deg, #921A40 0%, var(--accent) 100%);
-            opacity: 0.03;
-            z-index: 0;
-        }
-
-        .hero-section-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Modern Categories Panel */
-        .categories-panel {
-            background: #ffffff;
-            border-radius: var(--border-radius);
-            padding: 0;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-
-            height: fit-content;
-        }
-
-        .categories-header {
-            background: #921A40;
-            padding: 10px 15px;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .categories-header i {
-            font-size: 1.1rem;
-        }
-
-        .category-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 400px;
-        }
-
-        .category-menu::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .category-menu::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        .category-menu::-webkit-scrollbar-thumb {
-            background: #921A40;
-            border-radius: 3px;
-        }
-
-        .category-item {
-            position: relative;
-            border-bottom: 1px solid #f0f0f0;
-            transition: var(--transition);
-        }
-
-        .category-item:last-child {
-            border-bottom: none;
-        }
-
-        .category-item:hover {
-            background: rgba(216, 63, 38, 0.05);
-        }
-
-        .category-link {
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .category-link:hover {
-            color: #921A40;
-            transform: translateX(5px);
-        }
-
-        .category-icon {
-            width: 22px;
-            height: 22px;
-            margin-right: 12px;
-            object-fit: contain;
-            filter: grayscale(100%);
-            transition: var(--transition);
-        }
-
-        .category-link:hover .category-icon {
-            filter: grayscale(0%);
-        }
-
-        .category-arrow {
-            margin-left: auto;
-            font-size: 12px;
-            color: var(--gray);
-            transition: var(--transition);
-        }
-
-        .category-item:hover .category-arrow {
-            color: #921A40;
-            transform: translateX(3px);
-        }
-
-        /* Subcategories Dropdown - Modern */
-        .subcategories {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            width: 280px;
-            background: #ffffff;
-            border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius);
-            box-shadow: 5px 5px 25px rgba(0, 0, 0, 0.1);
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition);
-            z-index: 100;
-            border: 1px solid #f0f0f0;
-            padding: 10px 0;
-        }
-
-        .category-item:hover .subcategories {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .subcategory-item {
-            padding: 10px 20px;
-            transition: var(--transition);
-        }
-
-        .subcategory-item:hover {
-            background: rgba(216, 63, 38, 0.05);
-        }
-
-        .subcategory-link {
-            color: var(--dark);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .subcategory-link:hover {
-            color: #921A40;
-            transform: translateX(5px);
-        }
-
-        /* Modern Main Slider */
-        .main-slider {
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .main-slider img {
-            width: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .main-slider .carousel-item:hover img {
-            transform: scale(1.02);
-        }
-
-        .carousel-control-prev,
-        .carousel-control-next {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: var(--transition);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .carousel-control-prev {
-            left: 20px;
-        }
-
-        .carousel-control-next {
-            right: 20px;
-        }
-
-        .main-slider:hover .carousel-control-prev,
-        .main-slider:hover .carousel-control-next {
-            opacity: 1;
-        }
-
-        .carousel-control-prev-icon,
-        .carousel-control-next-icon {
-            filter: invert(25%) sepia(90%) saturate(4000%) hue-rotate(350deg) brightness(90%) contrast(95%);
-        }
-
-        /* Side Banners - Modern */
-        .side-banners {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .promo-banner {
-            position: relative;
-            background-color: var(--secondary);
-            border-radius: var(--border-radius);
-            height: calc(50% - 10px);
-            overflow: hidden;
-            transition: var(--transition);
-        }
-
-        .promo-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
-            z-index: 1;
-        }
-
-        .promo-banner:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .promo-banner:nth-child(2) {
-            background: linear-gradient(135deg, #921A40 0%, var(--accent) 100%);
-        }
-
-        .promo-content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-
-
-        .promo-banner::after {
-            content: '';
-            position: absolute;
-            bottom: -30px;
-            left: -30px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-        }
-
-        .promo-title {
-            color: #fff;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .promo-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .promo-btn {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: #fff;
-            padding: 2px 20px;
-            border-radius: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-            transition: var(--transition);
-            align-self: flex-start;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .promo-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-
 
         /* Section Headers */
         .section-header {
@@ -587,62 +262,19 @@
         }
 
         /* Responsive Design */
-        @media (max-width: 1200px) {
-            .hero-section-grid {
-                grid-template-columns: 250px 1fr 280px;
-            }
-
-            .main-slider img {
-                height: 400px;
-            }
-        }
-
-        @media (max-width: 991px) {
-            .hero-section-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .categories-panel {
-                display: none;
-            }
-
-            .main-slider img {
-                height: 350px;
-            }
-
-            .side-banners {
+@media (max-width: 991px) {
+.side-banners {
                 flex-direction: row;
             }
 
-            .promo-banner {
-                height: 200px;
-            }
-
-            .category-grid {
+    .category-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
                 gap: 15px;
             }
         }
 
         @media (max-width: 768px) {
-            .hero-section {
-                padding: 20px 0;
-            }
-
-            .main-slider img {
-                height: 250px;
-            }
-
-            .side-banners {
-                flex-direction: column;
-            }
-
-            .promo-banner {
-                height: 150px;
-            }
-
-            .section-title {
+.section-title {
                 font-size: 1.6rem;
             }
 
@@ -657,11 +289,7 @@
         }
 
         @media (max-width: 576px) {
-            .main-slider img {
-                height: 200px;
-            }
-
-            .carousel-control-prev,
+    .carousel-control-prev,
             .carousel-control-next {
                 width: 40px;
                 height: 40px;
@@ -1008,13 +636,12 @@
         }
     </style>
 
-    <!-- Modern Hero Section -->
-    <section class="hero-section">
+
+    <section class="rf-hero-section">
         <div class="custom_container">
-            <div class="hero-section-grid">
-                <!-- Modern Categories Panel -->
-                <div class="categories-panel">
-                    <div class="categories-header">
+            <div class="rf-hero-section-grid">
+                <div class="rf-categories-panel">
+                    <div class="rf-categories-header">
                         <i class="fas fa-bars"></i>
                         <span>
                             @if(session()->get('language') == 'bangla')
@@ -1025,13 +652,16 @@
                         </span>
                     </div>
 
-                    <ul class="category-menu" style="height:100%">
+                    <ul class="rf-category-menu">
                         @foreach($categories as $category)
                             @if($category->type == 1)
-                                <li class="category-item" style="height:100%">
-                                    <a href="{{route('product.category', $category->slug)}}" class="category-link"
-                                        style="height:100%">
-                                        <img src="{{asset($category->icon)}}" class="site-category-icon" alt="" style="height:100%">
+                                <li class="rf-category-item">
+                                    <a href="{{route('product.category', $category->slug)}}" class="rf-category-link">
+                                        @if($category->icon)
+                                            <img src="{{ asset($category->icon) }}" class="rf-site-category-icon" alt="">
+                                        @else
+                                            <i class="fas fa-th-large rf-category-placeholder" aria-hidden="true"></i>
+                                        @endif
                                         <span>
                                             @if(session()->get('language') == 'bangla')
                                                 {{$category->name_bn}}
@@ -1041,15 +671,15 @@
                                         </span>
                                         @php $subcategories = findChildCategory($category->id) @endphp
                                         @if(count($subcategories) > 0)
-                                            <i class="fas fa-chevron-right category-arrow"></i>
+                                            <i class="fas fa-chevron-right rf-category-arrow"></i>
                                         @endif
                                     </a>
 
                                     @if(count($subcategories) > 0)
-                                        <div class="subcategories">
+                                        <div class="rf-subcategories">
                                             @foreach($subcategories as $subcategory)
-                                                <div class="subcategory-item">
-                                                    <a href="{{route('product.category', $subcategory->slug)}}" class="subcategory-link">
+                                                <div class="rf-subcategory-item">
+                                                    <a href="{{route('product.category', $subcategory->slug)}}" class="rf-subcategory-link">
                                                         @if(session()->get('language') == 'bangla')
                                                             {{$subcategory->name_bn}}
                                                         @else
@@ -1065,45 +695,44 @@
                         @endforeach
                     </ul>
                 </div>
-
-                <!-- Modern Main Slider -->
-                <div class="main-slider">
-                    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" style="height:100%">
-                        <div class="carousel-inner" style="height:100%">
-                            @foreach ($sliders as $index => $slider)
-                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}" style="height:100%">
-                                    <img src="{{ asset($slider->slider_img) }}" alt="Slider Image" style="height:100%">
+                <div class="rf-main-slider">
+                    <div id="mainCarousel" class="carousel slide" data-bs-interval="false">
+                        <div class="carousel-inner">
+                            @forelse ($sliders as $index => $slider)
+                                <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                                    <img src="{{ asset($slider->slider_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন কালেকশন' : 'Roh Fashion collection' }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="rf-slider-empty"><span>ROH FASHION</span><h2>{{ session('language') == 'bangla' ? 'খুঁজে নিন আপনার পছন্দের স্টাইল' : 'Find your everyday favourite.' }}</h2><a href="{{ route('category_list.index') }}">{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Discover the collection' }}</a></div>
+                            @endforelse
                         </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel"
+                        @if($sliders->count() > 1)
+                        <button aria-label="Previous slide" class="carousel-control-prev" type="button" data-bs-target="#mainCarousel"
                             data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon"></span>
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
                         </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel"
+                        <button aria-label="Next slide" class="carousel-control-next" type="button" data-bs-target="#mainCarousel"
                             data-bs-slide="next">
-                            <span class="carousel-control-next-icon"></span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
                         </button>
+                        @endif
                     </div>
                 </div>
 
 
-                <div class="side-banners">
+                <div class="rf-side-banners">
                     @foreach ($home_banners->take(2) as $index => $banner)
-                        <div class="promo-banner"
-                            style="background-image: url('{{ asset($banner->banner_img) }}'); background-size: cover; background-position: center;">
-                            <div class="promo-content"
-                                style="position: relative; z-index: 2; background: rgba(0,0,0,0.4); padding: 20px; border-radius: var(--border-radius);">
-                                <h4 class="promo-title">Special Offer {{ $index + 1 }}</h4>
-                                <p class="promo-text">Discover amazing deals on our premium products</p>
-                                <a href="{{ $banner->url ?? '#' }}" class="promo-btn">Shop Now</a>
-                            </div>
-                        </div>
+                        <a class="rf-promo-banner" href="{{ $banner->url ?: route('category_list.index') }}" aria-label="{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Explore collection' }}">
+                            <img class="rf-promo-image" src="{{ asset($banner->banner_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন অফার' : 'Roh Fashion offer' }}" loading="lazy">
+                            <span class="rf-promo-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                        </a>
                     @endforeach
                 </div>
             </div>
         </div>
     </section>
+
+
 
     <!-- Modern Verified Section -->
     <section class="verified-section">

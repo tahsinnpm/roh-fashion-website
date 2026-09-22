@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
     @include('FrontEnd.include.style')
-    <script src="{{ asset('FrontEnd/assect/js/header.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/header.js')) }}" defer></script>
+    @stack('styles')
 
 
 
