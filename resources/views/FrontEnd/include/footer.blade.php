@@ -23,7 +23,7 @@
                     <img id="my-img" src="{{asset(get_setting('site_logo')->value)}}" alt="logo" class="main-img"
                           style="width: 200px;">
                 </a>
-                <!-- <a class="navbar-brand" href="#">N<span>O</span>ND<span>Ô</span>N</a> -->
+                
                 <p class="mt-2">{{get_setting('short_description')->value}}</p>
                 <p class="mb-1"><i class="fa fa-map-marker-alt me-3"></i>{{get_setting('business_address')->value}}</p>
                 <p class="mb-1"><i class="fa fa-phone-alt me-2"></i>{{get_setting('phone')->value}}</p>
@@ -47,11 +47,11 @@
                     @if(Auth::user() && Auth::user()->role == 3)Your Account @else Log in @endif
                     @endif
                 </a>
-                <!--@if(session()->get('language') == 'bangla')-->
-                <!--<a class="btn btn-link" href="{{route('page.contact')}}">যোগাযোগ করুন</a>-->
-                <!--@else-->
-                <!--<a class="btn btn-link" href="{{route('page.contact')}}">Contact Us</a>-->
-                <!--@endif-->
+                
+                
+                
+                
+                
                     <a class="btn btn-link" href="{{route('seller.apply')}}">@if(session()->get('language') == 'bangla')
                             সেল করুন
                         @else
@@ -140,17 +140,17 @@
                 @else
                 <h4 class="mb-3">Download</h4>
                 @endif
-                <!--@if(session()->get('language') == 'bangla')-->
-                <!--<p>ইজি টু লাইফ-->
-                <!--</p>-->
-                <!--@else-->
-                <!--<p>Easy To Life</p>-->
-                <!--@endif-->
+                
+                
+                
+                
+                
+                
                 <div class="app-section d-flex">
-                    <!--<div>-->
-                    <!--    <a href="#"><img class="btn bg-light payment-img" src="{{asset('FrontEnd')}}/assect/img/resources/payment.png"-->
-                    <!--                     alt=""></a>-->
-                    <!--</div>-->
+                    
+                    
+                    
+                    
                     <div class="">
                         <a href="#"><img class="bg-light w-50 btn " src="{{asset('FrontEnd')}}/assect/img/resources/play.png"
                                          alt=""></a>
@@ -185,8 +185,8 @@
                 </div>
                 <div class="col-md-2 text-center text-md-end">
                     <div class="footer-menu">
-                        {{--                        <a href="#">Ad's Choice</a>--}}
-                        {{--                        <a href="#">Cookies</a>--}}
+                        
+                        
                         <a href="{{route('page.help')}}">Help</a>
                         <a href="{{route('page.faq')}}">FAQs</a>
                     </div>

@@ -22,116 +22,51 @@ class CartController extends Controller
         return view('FrontEnd.cart.index',compact('categories'));
     }
     /* ============ Start AddToCart Methoed ============ */
-      public function AddToCart(Request $request, $id){
-//        dd($request->all());
-        $options = json_decode(stripslashes($request->get('options')));
-
-        //dd($request);
-        $attribute_ids = array();
-        $attribute_names = array();
-        $attribute_values = array();
-        $product = Product::findOrFail($id);
-        //dd($product);
-        $carts = Cart::content();
-
-        if(!$product->is_varient){
-            $prev_cart_qty = 0;
-            foreach($carts as $cart){
-                if($cart->id == $id) {
-                    $prev_cart_qty += $cart->qty;
-                }
-            }
-
-            $qty = $prev_cart_qty + $request->quantity;
-
-            if($qty > $product->stock_qty){
-                return response()->json(['error'=> 'Not enough stock']);
-            }
-        }else{
-            $prev_cart_qty = 0;
-            foreach($carts as $cart){
-                if($cart->id == $id) {
-                    if($cart->options->varient == $request->product_varient){
-                        $prev_cart_qty += $cart->qty;
-                    }
-                }
-            }
-
-            $qty = $prev_cart_qty + $request->quantity;
+    public function AddToCart(Request $request, $id)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1', 'product_varient' => 'nullable|string']);
+        $product = Product::where('status', 1)->findOrFail($id);
+        $quantity = (int) $request->quantity;
+        if ($quantity < max(1, (int) $product->minimum_buy_qty)) {
+            return response()->json(['error' => 'Minimum quantity is '.$product->minimum_buy_qty], 422);
+        }
+        $options = ['image' => $product->product_thumbnail, 'slug' => $product->slug, 'is_varient' => (int) $product->is_varient];
+        $price = $product->storefrontPrice();
+        $available = (int) $product->stock_qty;
+        if ($product->is_varient) {
             $stock = ProductStock::where('product_id', $id)->where('varient', $request->product_varient)->first();
-
-            if ($stock){
-                if($qty > $stock->qty){
-                    return response()->json(['error'=> 'Not enough stock']);
-                }
+            if (!$stock) {
+                return response()->json(['error' => 'Please select an available combination.'], 422);
             }
-        }
-
-        if($product->is_varient){
-            foreach($options as $option){
-                if($option->name == 'attribute_ids[]'){
-                    $item = $option->value;
-                    array_push($attribute_ids, $item);
-                }else if($option->name == 'attribute_names[]'){
-                    $item = $option->value;
-                    array_push($attribute_names, $item);
-                }else if($option->name == 'attribute_options[]'){
-                    $item = $option->value;
-                    array_push($attribute_values, $item);
-                }
+            $submitted = json_decode($request->input('options', '[]'), true);
+            if (!is_array($submitted)) {
+                return response()->json(['error' => 'Please select all options.'], 422);
             }
+            $values = collect($submitted)->where('name', 'attribute_options[]')->pluck('value')->all();
+            $definitions = json_decode($product->attribute_values ?: '[]') ?: [];
+            if (count($values) !== count($definitions) || implode('-', $values) !== $stock->varient) {
+                return response()->json(['error' => 'Please select all options.'], 422);
+            }
+            $ids = []; $names = [];
+            foreach ($definitions as $index => $definition) {
+                if (!in_array($values[$index], $definition->values, true)) {
+                    return response()->json(['error' => 'Invalid product option.'], 422);
+                }
+                $ids[] = $definition->attribute_id;
+                $names[] = optional(\App\Models\Attribute::find($definition->attribute_id))->name;
+            }
+            $options += ['varient' => $stock->varient, 'attribute_ids' => $ids, 'attribute_names' => $names, 'attribute_values' => $values];
+            $price = $product->storefrontPrice($stock->price);
+            $available = (int) $stock->qty;
         }
-
-        // if($request->product_price){
-        //     $price = $request->product_price;
-        // }else{
-        //     if($product->discount_price > 0){
-        //         if($product->discount_type == 1){
-        //             $price = $product->regular_price - $product->discount_price;
-        //         }else{
-        //             $price = $product->regular_price - ($product->discount_price * $product->regular_price / 100);
-        //         }
-        //     }else{
-        //         $price = $product->regular_price;
-        //     }
-        // }
-          $data = calculateDiscount($product->id);
-    	if($product->is_varient){
-
-            Cart::add([
-                'id' => $id,
-                'name' => $request->product_name,
-                'qty' => $request->quantity,
-                'price' => $request->product_price,
-                'weight' => 1,
-                'options' => [
-                    'image' => $product->product_thumbnail,
-                    'slug' => $product->slug,
-                    'is_varient' => 1,
-                    'varient' => $request->product_varient,
-                    'attribute_ids' => $attribute_ids,
-                    'attribute_names' => $attribute_names,
-                    'attribute_values' => $attribute_values,
-                ],
-            ]);
-
-            return response()->json(['success'=> 'Successfully Added on Your Cart']);
-        }else{
-            Cart::add([
-                'id' => $id,
-                'name' => $request->product_name,
-                'qty' => $request->quantity,
-                'price' => $data['discount'],
-                'weight' => 1,
-                'options' => [
-                    'image' => $product->product_thumbnail,
-                    'slug' => $product->slug,
-                    'is_varient' => 0,
-                ],
-            ]);
-
-		    return response()->json(['success'=> 'Successfully Added on Your Cart']);
+        $existing = Cart::content()->filter(function ($item) use ($id, $product, $request) {
+            return $item->id == $id && (!$product->is_varient || $item->options->varient === $request->product_varient);
+        })->sum('qty');
+        if ($existing + $quantity > $available) {
+            return response()->json(['error' => 'Not enough stock.'], 422);
         }
+        Cart::add(['id' => $product->id, 'name' => $product->name_en, 'qty' => $quantity, 'price' => $price, 'weight' => 1, 'options' => $options]);
+        return response()->json(['success' => 'Added to your cart', 'cartQty' => Cart::count()]);
     }
     /* ============ End AddToCart Methoed =========== */
 

@@ -2,6 +2,9 @@
 <!-- Jquery -->
 <script src="{{ asset('FrontEnd') }}/assect/js/jquery-3.7.1.js"></script>
 
+<!-- Slick Slider JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
 <!-- Owl Carousel -->
 <script src="{{ asset('FrontEnd') }}/assect/js/owl.carousel.min.js"></script>
 <script src="{{ asset('FrontEnd') }}/assets/js/select2.min.js"></script>

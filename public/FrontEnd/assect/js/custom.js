@@ -112,52 +112,60 @@ $(document).ready(function () {
     }
 });
 $(document).ready(function () {
-    $(".featured-slider").slick({
-        slidesToShow: 5,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 3000,
-        arrows: true,
-        dots: false,
-        responsive: [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: 4,
-                },
-            },
-            {
-                breakpoint: 992,
-                settings: {
-                    slidesToShow: 3,
-                },
-            },
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 2,
-                },
-            },
-            {
-                breakpoint: 576,
-                settings: {
-                    slidesToShow: 1,
-                },
-            },
-        ],
-    });
+    if (typeof jQuery != "undefined" && typeof jQuery.fn.slick != "undefined") {
+        if ($(".featured-slider").length && !$(".featured-slider").hasClass("slick-initialized")) {
+            $(".featured-slider").slick({
+                slidesToShow: 5,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                arrows: true,
+                dots: false,
+                prevArrow: '<button type="button" class="slick-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>',
+                nextArrow: '<button type="button" class="slick-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>',
+                responsive: [
+                    {
+                        breakpoint: 1200,
+                        settings: {
+                            slidesToShow: 4,
+                        },
+                    },
+                    {
+                        breakpoint: 992,
+                        settings: {
+                            slidesToShow: 3,
+                        },
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 2,
+                        },
+                    },
+                    {
+                        breakpoint: 576,
+                        settings: {
+                            slidesToShow: 2,
+                        },
+                    },
+                ],
+            });
 
-    // Progress bar animation
-    var $slider = $(".featured-slider");
-    var $progressBar = $(".slider-progress-bar");
+            // Progress bar animation
+            var $slider = $(".featured-slider");
+            var $progressBar = $(".slider-progress-bar");
 
-    $slider.on(
-        "beforeChange",
-        function (event, slick, currentSlide, nextSlide) {
-            var calc = ((nextSlide + 1) / slick.slideCount) * 100;
-            $progressBar.css("width", calc + "%");
+            if ($progressBar.length) {
+                $slider.on(
+                    "beforeChange",
+                    function (event, slick, currentSlide, nextSlide) {
+                        var calc = ((nextSlide + 1) / slick.slideCount) * 100;
+                        $progressBar.css("width", calc + "%");
+                    }
+                );
+            }
         }
-    );
+    }
 });
 
 

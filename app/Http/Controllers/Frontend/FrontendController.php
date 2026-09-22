@@ -40,109 +40,21 @@ class FrontendController extends Controller
     /*=================== Start Index Methoed ===================*/
     public function index(Request $request)
     {
-
-
-        //Product All Status Active
-        // $products = Product::where('status',1)->orderBy('id','DESC')->get();
-
-        $products = Product::where('status', 1)->where('is_featured', 1)->orderBy('id', 'DESC')->get();
-     
-
-        // Search Start
-        $sort_search = null;
-        if ($request->has('search')) {
-            $sort_search = $request->search;
-            $products = $products->where('name_en', 'like', '%' . $sort_search . '%');
-            // dd($products);
-        } else {
-            $products = Product::where('status', 1)->where('is_featured', 1)->orderBy('id', 'DESC')->get();
-        }
-        // $products = $products->paginate(15);
-        // Search Start
-
-        // Header Category Start
-        $categories = Category::orderBy('name_en', 'ASC')->where('status', '=', 1)->where('parent_id', 0)->limit(11)->get();
-        // Header Category End
-
-        // Category Featured all
-        $featured_category = Category::orderBy('name_en', 'DESC')->where('is_featured', '=', 1)->where('status', '=', 1)->limit(15)->get();
-
-        //Slider
-        $sliders = Slider::where('status', 1)->orderBy('id', 'DESC')->limit(10)->get();
-        // Product Top Selling
-        $product_top_sellings = Product::where('status', 1)->orderBy('id', 'ASC')->limit(9)->get();
-        //Product Trending
-        $product_trendings = Product::where('status', 1)->orderBy('id', 'DESC')->limit(18)->get();
-        foreach ($product_trendings as $product) {
-            $reviews = Review::where('product_id', $product->id)
-                ->where('status', 1)
-                ->where('verified_purchase', 1)
-                ->get();
-            $product->rating_count = $product->reviews->count();
-            $average_rating = $reviews->count() > 0 ? $reviews->avg('rating') : 0;
-            $product->average_rating = round($average_rating, 1); // you can choose 1 or 2 decimals
-        }
-        //Product Recently Added
-        $product_recently_adds = Product::where('status', 1)->latest()->skip(2)->limit(9)->get();
-
-        //featured_products
-        $product_featured = Product::where('status', 1)->where('is_featured', 1)->latest()->limit(9)->get();
-        foreach ($product_featured as $product) {
-                $reviews = Review::where('product_id', $product->id)
-                    ->where('status', 1)
-                    ->where('verified_purchase', 1)
-                    ->get();
-                $product->rating_count = $product->reviews->count();
-                $average_rating = $reviews->count() > 0 ? $reviews->avg('rating') : 0;
-                $product->average_rating = round($average_rating, 1); // you can choose 1 or 2 decimals
-            }
-
-        $product_top_rates = Product::where('status', 1)->orderBy('regular_price')->limit(9)->get();
-        // Home Banner
-        $home_banners = Banner::where('status', 1)->where('position', 1)->orderBy('id', 'DESC')->get();
-        $middle_banners = Banner::where('status', 1)->where('position', 2)->orderBy('id', 'DESC')->get();
-        // Daily Best Sells
-        //dd(date('Y-m-d'));
-        $todays_sale = OrderDetail::where('created_at', 'like', '%' . date('Y-m-d') . '%')->get();
-        //$todays_sale  = DB::table('order_details')->select('*')->where('created_at', 'like', '%'.date('Y-m-d').'%')->get();
-        $todays_sale = $todays_sale->unique('product_id');
-        //dd($todays_sale);
-
-        // today_best_sales
-        // $today_best_sales  = Product::where('status',1)->where('is_deals',1)->latest()->get();
-        // dd($today_best_sales);
-
-        //Home2 featured category
-        $home2_featured_categories = Category::orderBy('name_en', 'DESC')->where('is_featured', '=', 1)->where('status', '=', 1)->get();
-        // Hot deals product
-        $hot_deals = Product::where('status', 1)->where('is_deals', 1)->latest()->take(9)->get();
-
-        $campaign_products = CampaingProduct::all();
-
-        //        $home_view = 'FrontEnd.home.index';
-        $home_view = 'FrontEnd.home.index2';
-
-        // $campaign = \App\Models\Campaing::where('status', 1)->where('is_featured', 1)->first();
-        // $start_diff=date_diff(date_create($campaign->flash_start), date_create(date('d-m-Y H:i:s')));
-        // $end_diff=date_diff(date_create(date('d-m-Y H:i:s')), date_create($campaign->flash_end));
-        // dd($end_diff);
-        // if($campaign && $start_diff->invert == 0 && $end_diff->invert == 0){
-        //     dd($campaign);
-        // }
-        //dd($hot_deals);
-
-        //dd($featured_category);
-
+        $categories = Category::with('categories')->where('status', 1)->where('parent_id', 0)->orderBy('name_en')->limit(11)->get();
+        $featured_category = Category::where('status', 1)->where('is_featured', 1)->orderByDesc('name_en')->limit(15)->get();
+        $sliders = Slider::where('status', 1)->latest('id')->limit(10)->get();
+        $product_trendings = Product::with('stocks')->where('status', 1)->latest('id')->limit(8)->get();
+        $product_featured = Product::with('stocks')->where('status', 1)->where('is_featured', 1)->latest()->limit(8)->get();
+        $home_banners = Banner::where('status', 1)->where('position', 1)->latest('id')->limit(2)->get();
         $brands = Brand::where('status', 1)->get();
+        $campaign = Campaing::with('campaing_products.product.stocks')->where('status', 1)->where('is_featured', 1)->latest('id')->first();
+        $campaignStart = $campaign ? Carbon::parse($campaign->flash_start)->timestamp * 1000 : 0;
+        $campaignEnd = $campaign ? Carbon::parse($campaign->flash_end)->timestamp * 1000 : 0;
+        $start_diff2 = $campaign ? date_diff(date_create($campaign->flash_start), date_create(date('d-m-Y H:i:s'))) : null;
+        $end_diff2 = $campaign ? date_diff(date_create(date('d-m-Y H:i:s')), date_create($campaign->flash_end)) : null;
 
-        return view($home_view, compact('brands', 'categories', 'sliders', 'product_featured', 'featured_category', 'products', 'product_top_sellings', 'product_trendings', 'product_recently_adds', 'product_top_rates', 'home_banners', 'sort_search', 'todays_sale', 'home2_featured_categories', 'hot_deals', 'middle_banners'));
-    } // end method
-
-    // public function shopgrid(){
-    //     $products = Product::where('status',1)->orderBy('id','DESC')->get();
-
-    //     return view('FrontEnd.shopgrid.index', compact('products'));
-    // }
+        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'brands', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
+    }
 
     public function index2(Request $request)
     {
@@ -199,10 +111,10 @@ class FrontendController extends Controller
 
     public function loadMoreProducts(Request $request)
     {
-        $count = $request->input('count', 12); // Number of products to load (default is 12)
-        $offset = $request->input('offset', 0); // Offset for pagination
+        $count = min(24, max(1, (int) $request->input('count', 12))); // Number of products to load (default is 12)
+        $offset = max(0, (int) $request->input('offset', 0)); // Offset for pagination
 
-        $products = Product::where('status', 1)
+        $products = Product::with('stocks')->where('status', 1)
             ->orderBy('id', 'desc')
             ->skip($offset)
             ->limit($count)
@@ -210,7 +122,7 @@ class FrontendController extends Controller
 
         $nextOffset = $offset + $count;
 
-        return response()->json(['products' => $products, 'nextOffset' => $nextOffset]);
+        return response()->json(['products' => $products, 'nextOffset' => $nextOffset, 'html' => view('FrontEnd.partials.product-cards', compact('products'))->render()]);
     }
     public function productDetails($slug)
     {
@@ -386,25 +298,25 @@ class FrontendController extends Controller
     /* ================= Start ProductViewAjax Method ================= */
     public function ProductViewAjax($id)
     {
-
-        $product = Product::with('category', 'brand')->findOrFail($id);
-        //dd($product);
-        $attribute_values = json_decode($product->attribute_values);
-
-        $attributes = new Collection;
-        foreach ($attribute_values as $key => $attribute_value) {
-            $attr = Attribute::select('id', 'name')->where('id', $attribute_value->attribute_id)->first();
-            // $attribute->name = $attr->name;
-            // $attribute->id = $attr->id;
-            $attr->values = $attribute_value->values;
-            $attributes->add($attr);
+        $product = Product::with('category', 'brand', 'stocks', 'multi_imgs')->where('status', 1)->findOrFail($id);
+        $attributes = collect();
+        foreach (json_decode($product->attribute_values ?: '[]') ?: [] as $value) {
+            $attribute = Attribute::select('id', 'name')->find($value->attribute_id);
+            if ($attribute) {
+                $attribute->values = $value->values;
+                $attributes->push($attribute);
+            }
         }
-
-
-        return response()->json(array(
+        return response()->json([
             'product' => $product,
             'attributes' => $attributes,
-        ));
+            'price' => $product->storefrontPrice(),
+            'details_url' => route('product.details', $product->slug),
+            'description' => strip_tags(session('language') === 'bangla' ? ($product->short_description_bn ?: $product->short_description_en) : $product->short_description_en),
+            'variants' => $product->stocks->map(function ($stock) use ($product) {
+                return ['varient' => $stock->varient, 'qty' => $stock->qty, 'price' => $product->storefrontPrice($stock->price), 'image' => $stock->image];
+            }),
+        ]);
     }
     /* ================= END PRODUCT VIEW WITH MODAL METHOD =================== */
 

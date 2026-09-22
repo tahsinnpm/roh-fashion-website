@@ -1,0 +1,70 @@
+.rf-product, .rf-quick { --product-pink: #f95490; --product-ink: #302630; color: var(--product-ink); font-family: 'Poppins', sans-serif; line-height: 1.5; }
+.rf-product *, .rf-quick * { box-sizing: border-box; border-radius: 0; }
+.rf-product { height: 100%; display: flex; flex-direction: column; background: #fff; border: 1px solid #eee5e9; }
+.flash-sale .owl-stage { display: flex; }
+.flash-sale .owl-item { display: flex; float: none; }
+.rf-flash-slide { display: flex; width: 100%; }
+.rf-flash-slide > .rf-product { width: 100%; }
+.rf-product a, .rf-quick a { color: inherit; text-decoration: none; }
+.rf-product__visual { position: relative; overflow: hidden; background: #faf7f8; }
+.rf-product__image { display: block; aspect-ratio: 4 / 5; }
+.rf-product__image img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .25s; }
+.rf-product:hover .rf-product__image img { transform: scale(1.025); }
+.rf-product__badge { position: absolute; top: 12px; left: 12px; padding: 5px 8px; background: var(--product-ink); color: #fff; font-size: 11px; font-weight: 500; }
+.rf-product__preview { position: absolute; bottom: 12px; right: 12px; width: 36px; height: 36px; background: #fff; color: var(--product-ink); border: 1px solid #eadfe4; cursor: pointer; }
+.rf-product__preview:hover { background: var(--product-pink); }
+.rf-product__body { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.rf-product h3 { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.5; min-height: 42px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rf-product h3 a:hover { color: #a92154; }
+.rf-product__price { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.rf-product__price strong { font-size: 18px; font-weight: 600; }
+.rf-product__price del { font-size: 12px; color: #8c7d84; }
+.rf-product__add { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; min-height: 42px; margin-top: auto; padding: 10px 12px; border: 1px solid var(--product-pink); background: var(--product-pink); color: var(--product-ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.rf-product__add:hover:not(:disabled) { background: var(--product-ink); border-color: var(--product-ink); color: #fff; }
+.rf-product__add:disabled { cursor: not-allowed; background: #f4f0f2; border-color: #e8e0e4; color: #887c82; }
+.rf-product__add[aria-busy='true'] { opacity: .65; cursor: wait; }
+.rf-product__actions { display: grid; gap: 8px; margin-top: auto; }
+.rf-product__actions .rf-product__add { margin: 0; }
+.rf-product__buy { width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #302630; background: #fff; color: #302630; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.rf-product__buy:hover:not(:disabled) { background: #302630; color: #fff; }
+.rf-product__buy:disabled { border-color: #e8e0e4; color: #887c82; background: #f4f0f2; cursor: not-allowed; }
+.rf-product :is(a, button):focus-visible, .rf-quick :is(a, button, select, input):focus-visible { outline: 2px solid #a92154; outline-offset: 3px; }
+.rf-quick { border: 0; padding: 30px; width: min(900px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; background: #fff; overflow-y: auto; }
+.rf-quick::backdrop { background: #21182099; }
+body:has(#rf-product-dialog[open]) { overflow: hidden; }
+.rf-quick [hidden], .rf-cart-notice[hidden] { display: none; }
+.rf-quick__close { position: absolute; top: 8px; right: 10px; width: 34px; height: 34px; padding: 0; background: #fff; border: 1px solid #e8e0e4; font-size: 26px; line-height: 1; cursor: pointer; z-index: 1; }
+.rf-quick__layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.rf-quick__visual > img { width: 100%; height: 390px; object-fit: contain; background: #faf7f8; }
+.rf-quick__gallery { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; }
+.rf-quick__gallery button { flex-shrink: 0; width: 56px; height: 66px; padding: 2px; border: 1px solid #eadfe4; background: #fff; cursor: pointer; }
+.rf-quick__gallery img { width: 100%; height: 100%; object-fit: contain; }
+.rf-quick__form { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; margin: 0; }
+.rf-quick__eyebrow { font-size: 10px; letter-spacing: 2px; color: #a92154; }
+.rf-quick h2 { font-size: 23px; font-weight: 500; line-height: 1.3; margin: 0; }
+.rf-quick__price { font-size: 24px; font-weight: 600; }
+.rf-quick p { margin: 0; font-size: 12px; }
+.rf-quick__description { color: #74616b; max-height: 100px; overflow-y: auto; }
+.rf-quick__attributes { display: grid; gap: 12px; }
+.rf-quick label { display: block; font-size: 12px; font-weight: 500; }
+.rf-quick select, .rf-quick input { display: block; border: 1px solid #daccd3; padding: 10px; min-height: 42px; background: #fff; color: var(--product-ink); font: inherit; font-size: 16px; }
+.rf-quick select { width: 100%; margin-top: 6px; }
+.rf-quick input { width: 90px; }
+.rf-quick .rf-product__add { margin-top: 0; justify-content: center; }
+.rf-quick__error { color: #b42337; }
+.rf-quick__details { font-size: 12px; padding: 8px 0; text-decoration: underline !important; text-underline-offset: 4px; }
+.rf-quick__status { padding: 36px 10px; }
+.rf-cart-notice { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1100; max-width: calc(100% - 32px); padding: 12px 20px; background: #302630; color: #fff; font-size: 13px; box-shadow: 0 4px 24px #30263022; }
+#latest-products-container { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 991px) { #latest-products-container { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 575px) {
+    #latest-products-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .rf-product__body { padding: 10px; gap: 10px; }
+    .rf-product h3 { font-size: 12px; min-height: 36px; }
+    .rf-product__price strong { font-size: 16px; }
+    .rf-product__add { font-size: 11px; padding-inline: 8px; }
+    .rf-quick { padding: 34px 16px 20px; }
+    .rf-quick__layout { grid-template-columns: 1fr; gap: 12px; }
+    .rf-quick__visual > img { height: 230px; }
+}
+@media (prefers-reduced-motion: reduce) { .rf-product__image img { transition: none; } }

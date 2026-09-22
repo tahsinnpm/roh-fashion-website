@@ -10,6 +10,19 @@ class Product extends Model
     use HasFactory;
     protected $guarded = ['id'];
 
+    public function storefrontPrice($base = null)
+    {
+        $base = (float) ($base ?? $this->regular_price);
+        $discount = max(0, (float) $this->discount_price);
+        if ((int) $this->discount_type === 1) {
+            return max(0, $base - $discount);
+        }
+        if ((int) $this->discount_type === 2) {
+            return max(0, round($base - $base * $discount / 100));
+        }
+        return $base;
+    }
+
     public function productPrices()
     {
         return $this->hasMany(ProductPrice::class);
