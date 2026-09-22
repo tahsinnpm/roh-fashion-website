@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Affiliate Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f6fb;
+            min-height: 100vh;
+            color: #222;
+        }
+        .container-wrapper {
+            max-width: 1100px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+        .sidebar {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(44, 62, 80, 0.06);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            color: #6c757d;
+            background: none;
+            border: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+            width: 100%;
+        }
+        .sidebar-item.active, .sidebar-item:hover {
+            background: #ffe6e1; /* lighter shade for #DC452C */
+            color: #DC452C;
+        }
+        .sidebar-item i {
+            font-size: 1.2rem;
+        }
+        .logout-item {
+            color: #e74c3c !important;
+        }
+        .logout-item:hover {
+            background: #e74c3c !important;
+            color: #fff !important;
+        }
+        .mobile-header {
+            display: none;
+        }
+        .mobile-toggle {
+            background: #DC452C;
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .mobile-toggle:hover, .mobile-toggle:focus {
+            background: #b33622;
+            color: #fff;
+        }
+        @media (max-width: 991.98px) {
+            .container-wrapper { margin: 1rem; }
+            .profile-card { padding: 1.2rem; }
+            .profile-name { font-size: 1.5rem; }
+            .sidebar { 
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                gap: 0;
+                padding: 1rem 0.5rem;
+            }
+            .sidebar-item span {
+                display: none;
+            }
+            .sidebar-item i {
+                font-size: 1.5rem;
+            }
+            .mobile-header {
+                display: block;
+                background: #fff;
+                border-radius: 12px;
+                padding: 0.7rem 1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+            }
+        }
+        @media (max-width: 576px) {
+            .profile-card { padding: 0.7rem; }
+            .profile-avatar { width: 90px; height: 90px; }
+            .profile-name { font-size: 1.1rem; }
+        }
+        .profile-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 16px rgba(44, 62, 80, 0.07);
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .avatar-container {
+            margin-bottom: 1.2rem;
+        }
+        .profile-avatar {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid #eafaf7;
+            object-fit: cover;
+            box-shadow: 0 4px 16px rgba(44, 62, 80, 0.08);
+        }
+        .profile-name {
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 0.2rem;
+        }
+        .profile-info-list {
+            margin: 2rem auto 0 auto;
+            max-width: 400px;
+            text-align: left;
+        }
+        .profile-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 1.08rem;
+            color: #333;
+            margin-bottom: 1.1rem;
+        }
+        .edit-profile-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            background: #DC452C;
+            color: #fff;
+            border-radius: 30px;
+            padding: 0.7rem 2.1rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="container-fluid py-4">
+            <div class="row g-4">
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <div class="mobile-header d-lg-none">
+                        <button id="sidebarToggleBtn" class="mobile-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#affiliateSidebar" aria-expanded="false" aria-controls="affiliateSidebar">
+                            <i class="bi bi-grid-3x3"></i> Menu
+                        </button>
+                    </div>
+                    <div class="collapse d-lg-block" id="affiliateSidebar">
+                        <div class="sidebar">
+                            <a href="#" class="sidebar-item">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="#profile" class="sidebar-item active">
+                                <i class="bi bi-person-circle"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="orders.html" class="sidebar-item">
+                                <i class="bi bi-cart3"></i>
+                                <span>Orders</span>
+                            </a>
+                            <a href="#" class="sidebar-item logout-item">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <div class="profile-card p-0" style="overflow:hidden;">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-4 text-center py-4" style="background:#f8f9fa;">
+                                <div class="avatar-container mb-2">
+                                    <img src="https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg"
+                                         alt="Profile Avatar" class="profile-avatar" style="box-shadow:none;border:4px solid #fff;">
+                                </div>
+                                <div class="profile-name mb-1">Sakib Sheikh</div>
+                                <a href="update-profile.html" class="edit-profile-link mt-3 w-75">
+                                    <i class="bi bi-pencil-fill me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                            <div class="col-md-8 py-4 px-4">
+                                <div class="row profile-info-list" style="max-width:none;margin:0;">
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-envelope text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Email</div>
+                                                <div>sakib.sheikh@email.com</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-telephone text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Phone</div>
+                                                <div>+1 234 567 8901</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-geo-alt text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Address</div>
+                                                <div>Hossain Market, Uttar Badda.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-calendar-event text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Joined</div>
+                                                <div>JUN 2025</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Add more info fields here if needed -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle icon/text change
+        document.addEventListener('DOMContentLoaded', function () {
+            var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+            var sidebar = document.getElementById('affiliateSidebar');
+            var bsCollapse = null;
+
+            if (sidebarToggleBtn && sidebar) {
+                sidebar.addEventListener('show.bs.collapse', function () {
+                    sidebarToggleBtn.innerHTML = '<i class="bi bi-x-lg"></i> Close';
+                });
+                sidebar.addEventListener('hide.bs.collapse', function () {
+                    sidebarToggleBtn.innerHTML = '<i class="bi bi-grid-3x3"></i> Menu';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

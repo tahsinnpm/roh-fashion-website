@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Affiliate Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    
+</head>
+<body>
+    <div class="container">
+        <div class="container-fluid py-4">
+            <div class="row g-4">
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <div class="mobile-header d-lg-none">
+                        <button id="sidebarToggleBtn" class="mobile-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#affiliateSidebar" aria-expanded="false" aria-controls="affiliateSidebar">
+                            <i class="bi bi-grid-3x3"></i> Menu
+                        </button>
+                    </div>
+                    <div class="collapse d-lg-block" id="affiliateSidebar">
+                        <div class="sidebar">
+                            <a href="#" class="sidebar-item">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="#profile" class="sidebar-item active">
+                                <i class="bi bi-person-circle"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="orders.html" class="sidebar-item">
+                                <i class="bi bi-cart3"></i>
+                                <span>Orders</span>
+                            </a>
+                            <a href="#" class="sidebar-item logout-item">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <div class="profile-card p-0" style="overflow:hidden;">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-4 text-center py-4" style="background:#f8f9fa;">
+                                <div class="avatar-container mb-2">
+                                    <img src="https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg"
+                                         alt="Profile Avatar" class="profile-avatar" style="box-shadow:none;border:4px solid #fff;">
+                                </div>
+                                <div class="profile-name mb-1">Sakib Sheikh</div>
+                                <a href="update-profile.html" class="edit-profile-link mt-3 w-75">
+                                    <i class="bi bi-pencil-fill me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                            <div class="col-md-8 py-4 px-4">
+                                <div class="row profile-info-list" style="max-width:none;margin:0;">
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-envelope text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Email</div>
+                                                <div>sakib.sheikh@email.com</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-telephone text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Phone</div>
+                                                <div>+1 234 567 8901</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-geo-alt text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Address</div>
+                                                <div>Hossain Market, Uttar Badda.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <div class="profile-info-item">
+                                            <i class="bi bi-calendar-event text-success"></i>
+                                            <div>
+                                                <div class="fw-bold small text-muted">Joined</div>
+                                                <div>JUN 2025</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Add more info fields here if needed -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle icon/text change
+        document.addEventListener('DOMContentLoaded', function () {
+            var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+            var sidebar = document.getElementById('affiliateSidebar');
+            var bsCollapse = null;
+
+            if (sidebarToggleBtn && sidebar) {
+                sidebar.addEventListener('show.bs.collapse', function () {
+                    sidebarToggleBtn.innerHTML = '<i class="bi bi-x-lg"></i> Close';
+                });
+                sidebar.addEventListener('hide.bs.collapse', function () {
+                    sidebarToggleBtn.innerHTML = '<i class="bi bi-grid-3x3"></i> Menu';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
