@@ -1,4 +1,4 @@
-﻿.roh-header {
+.roh-header {
     --roh-pink: #f95490;
     --roh-ink: #302630;
     --roh-line: #eee5ea;
@@ -7,8 +7,7 @@
     z-index: 1000;
     background: #fff;
     color: var(--roh-ink);
-    border-bottom: 1px solid var(--roh-line);
-    font-family: "Poppins", sans-serif;
+    font-family: var(--font, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     line-height: 1.5;
 }
 

@@ -123,13 +123,26 @@
 
     document.addEventListener('click', async (event) => {
         const preview = event.target.closest('[data-product-preview]');
+        const wishlist = event.target.closest('[data-product-wishlist]');
         const button = event.target.closest('[data-product-add], [data-product-buy]');
+
         if (preview) return open(preview.dataset.productPreview, preview);
+        if (wishlist) {
+            const icon = wishlist.querySelector('i');
+            if (icon) {
+                const active = icon.classList.toggle('fa-solid');
+                icon.classList.toggle('fa-regular', !active);
+                wishlist.style.color = active ? '#e11d48' : '';
+            }
+            announce(label('Saved to your wishlist', 'পছন্দের তালিকায় রাখা হয়েছে'));
+            return;
+        }
         if (!button || button.disabled) return;
         const buy = button.hasAttribute('data-product-buy');
         const id = button.dataset.productBuy || button.dataset.productAdd;
         if (button.dataset.variant === '1') return open(id, button, buy);
-        const actions = button.closest('.rf-product__actions').querySelectorAll('button');
+        const card = button.closest('.rf-product') || button.parentElement;
+        const actions = card ? card.querySelectorAll('[data-product-add], [data-product-buy]') : [button];
         actions.forEach((action) => { action.disabled = true; });
         button.setAttribute('aria-busy', 'true');
         try {
