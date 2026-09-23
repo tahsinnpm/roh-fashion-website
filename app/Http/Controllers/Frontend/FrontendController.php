@@ -46,14 +46,13 @@ class FrontendController extends Controller
         $product_trendings = Product::with('stocks')->where('status', 1)->latest('id')->limit(8)->get();
         $product_featured = Product::with('stocks')->where('status', 1)->where('is_featured', 1)->latest()->limit(8)->get();
         $home_banners = Banner::where('status', 1)->where('position', 1)->latest('id')->limit(2)->get();
-        $brands = Brand::where('status', 1)->get();
         $campaign = Campaing::with('campaing_products.product.stocks')->where('status', 1)->where('is_featured', 1)->latest('id')->first();
         $campaignStart = $campaign ? Carbon::parse($campaign->flash_start)->timestamp * 1000 : 0;
         $campaignEnd = $campaign ? Carbon::parse($campaign->flash_end)->timestamp * 1000 : 0;
         $start_diff2 = $campaign ? date_diff(date_create($campaign->flash_start), date_create(date('d-m-Y H:i:s'))) : null;
         $end_diff2 = $campaign ? date_diff(date_create(date('d-m-Y H:i:s')), date_create($campaign->flash_end)) : null;
 
-        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'brands', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
+        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
     }
 
     public function index2(Request $request)

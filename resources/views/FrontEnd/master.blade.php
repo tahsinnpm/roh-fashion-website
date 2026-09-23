@@ -17,6 +17,7 @@
     @include('FrontEnd.include.style')
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/products.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/products.css')) }}">
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/mobile-navigation.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/mobile-navigation.css')) }}">
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/quick-checkout.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/quick-checkout.css')) }}">
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/cart-sidebar.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/cart-sidebar.css')) }}">
 
@@ -38,6 +39,7 @@
     <x-product-quick-view />
     <x-cart-sidebar />
     <x-quick-checkout />
+    <x-mobile-navigation />
     @if(request()->routeIs('home'))
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
     @else
@@ -46,6 +48,7 @@
     <script src="{{ asset('FrontEnd/assect/js/products.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/products.js')) }}" defer></script>
     <script src="{{ asset('FrontEnd/assect/js/cart-sidebar.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/cart-sidebar.js')) }}" defer></script>
     @stack('js')
+    <script src="{{ asset('FrontEnd/assect/js/mobile-navigation.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/mobile-navigation.js')) }}" defer></script>
     <script src="{{ asset('FrontEnd/assect/js/quick-checkout.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/quick-checkout.js')) }}" defer></script>
 </body>
 

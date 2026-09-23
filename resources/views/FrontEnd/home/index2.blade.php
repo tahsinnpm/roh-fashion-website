@@ -116,7 +116,7 @@ Home
             <p>{{ session('language') === 'bangla' ? 'পছন্দের পণ্য, আরও দারুণ দামে।' : 'Your favourites. Even better prices.' }}</p>
         </div>
         <div class="rf-flash-countdown">
-            <span class="rf-flash-timer-label">{{ session('language') === 'bangla' ? 'অফার শেষ হতে বাকি' : 'OFFER ENDS IN' }}</span>
+            <span class="rf-flash-timer-label" style="white-space: nowrap;">{{ session('language') === 'bangla' ? 'অফার শেষ হতে বাকি' : 'OFFER ENDS IN' }}</span>
             <div class="rf-flash-clock" data-countdown-start="{{ $campaignStart }}" data-countdown-end="{{ $campaignEnd }}" role="timer" aria-label="{{ session('language') === 'bangla' ? 'অফারের বাকি সময়' : 'Time remaining for this offer' }}">
                 @foreach(['days' => ['Days', 'দিন'], 'hours' => ['Hrs', 'ঘণ্টা'], 'minutes' => ['Min', 'মিনিট'], 'seconds' => ['Sec', 'সেকেন্ড']] as $unit => $labels)
                 <span class="rf-flash-time"><strong data-time="{{ $unit }}">00</strong><small>{{ session('language') === 'bangla' ? $labels[1] : $labels[0] }}</small></span>
@@ -141,7 +141,7 @@ Home
 @endif
 
 @if(isset($product_featured) && $product_featured->count() > 0)
-<section class="custom_container mb-5">
+<section class="custom_container">
     <div class="section-header">
         <h2 class="section-title">
             @if(session()->get('language') == 'bangla')
@@ -169,7 +169,7 @@ Home
 </section>
 @endif
 
-<section class="custom_container pt-4">
+<section class="custom_container pt-4 roh-category-section">
     <div class="section-header">
         <h2 class="section-title">
             @if(session()->get('language') == 'bangla')
@@ -187,53 +187,35 @@ Home
         </a>
     </div>
 
-    <div class="category-slider rf-home-rail" data-home-rail>
+    <div class="roh-category-carousel">
+    <div class="category-slider rf-home-rail" data-home-rail aria-label="Product categories">
         @foreach($featured_category as $fc)
         <div class="category-slide">
             <a href="{{ route('product.category', $fc->slug) }}" class="category-card">
+                <span class="category-label">{{ session('language') === 'bangla' ? ($fc->name_bn ?: $fc->name_en) : $fc->name_en }}</span>
                 <div class="category-icon">
-                    <img loading="lazy" decoding="async" src="{{ asset($fc->image) }}" alt="{{ $fc->name_en }}">
+                    <img loading="lazy" decoding="async" src="{{ asset($fc->image ?: 'upload/product-default.jpg') }}" alt="" width="100" height="100" onerror="this.onerror=null;this.src='{{ asset('upload/product-default.jpg') }}'">
                 </div>
                 <div class="category-content">
                     <h3 class="category-name">
                         @if(session()->get('language') == 'bangla')
-                        {{ $fc->name_bn }}
+                        {{ $fc->name_bn ?: $fc->name_en }}
                         @else
                         {{ $fc->name_en }}
                         @endif
                     </h3>
+                    <span class="category-shop">{{ session('language') === 'bangla' ? 'কেনাকাটা করুন' : 'Shop Now' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
                 </div>
             </a>
         </div>
         @endforeach
     </div>
-</section>
-
-
-
-<section class="custom_container mb-5">
-    <div class="section-header">
-        <h2 class="section-title">Popular Brands</h2>
-        <a href="{{ route('product.show') }}" class="view-all-btn">View All</a>
-    </div>
-
-    <div class="brands-slider rf-home-rail" data-home-rail>
-        @foreach($brands as $brand)
-        @if($brand->name_en != 'Non Brand')
-        <div class="brand-slide">
-            <a href="#" class="brand-card">
-                <div class="brand-image">
-                    <img loading="lazy" decoding="async" src="{{asset($brand->brand_image)}}" alt="{{ $brand->name_en }}">
-                </div>
-                <p class="brand-title">
-                    {{session()->get('language') == 'bangla' ? $brand->name_bn : $brand->name_en}}
-                </p>
-            </a>
-        </div>
-        @endif
-        @endforeach
     </div>
 </section>
+
+
+
+
 
 <section class="custom_container mb-5">
     <div class="section-header">
@@ -267,57 +249,22 @@ Home
     </div>
 </section>
 
-<section class="custom_container mb-5">
-    <div class="about-section">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="about-content">
-                    <h2 class="about-title">{{ get_setting('site_name')->value ?? '' }}</h2>
-                    <p class="about-description">
-                        Your trusted partner for hassle-free online shopping. We bring you the latest in technology, innovation, and authentic products designed to enhance your comfort.
-                    </p>
-
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-percentage"></i>
-                            </div>
-                            <h4 class="feature-title">0% EMI Available</h4>
-                            <p class="feature-text">Flexible payment options with easy installments</p>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <h4 class="feature-title">Product Warranty</h4>
-                            <p class="feature-text">Guaranteed brand authenticity and protection</p>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-undo-alt"></i>
-                            </div>
-                            <h4 class="feature-title">Easy Returns</h4>
-                            <p class="feature-text">Hassle-free 3-day return policy</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="about-cta">
-                    <h3 class="cta-title">Why Choose Us?</h3>
-                    <p class="cta-text">We're committed to providing you with the best shopping experience through quality products and excellent service.</p>
-                    <a href="#" class="cta-button">
-                        Learn More
-                        <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
-                </div>
+<section class="custom_container mb-5" aria-labelledby="roh-about-title">
+    <div class="roh-about">
+        <div class="roh-about__intro">
+            <span class="roh-about__eyebrow">ROH FASHION</span>
+            <h2 id="roh-about-title">{{ session('language') === 'bangla' ? 'প্রতিদিনের পছন্দে, নিজের ছোঁয়া।' : 'Everyday favourites. A touch of you.' }}</h2>
+        </div>
+        <div class="roh-about__content">
+            <p>{{ session('language') === 'bangla' ? 'নিজের জন্য হোক কিংবা প্রিয় কারও জন্য—রোহ ফ্যাশনে খুঁজে নিন পছন্দের বিউটি ও লাইফস্টাইল পণ্য। সময় নিয়ে দেখুন, তুলনা করুন, আর বেছে নিন আপনার ভালো লাগার জিনিসটি।' : 'For yourself or someone you love, discover beauty and lifestyle finds at Roh Fashion. Take a look around, compare your favourites, and choose what feels right for you.' }}</p>
+            <div class="roh-about__links">
+                <a class="roh-about__shop" href="{{ route('product.show') }}">{{ session('language') === 'bangla' ? 'কেনাকাটা শুরু করুন' : 'Find your favourites' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                <a class="roh-about__browse" href="{{ route('category_list.index') }}">{{ session('language') === 'bangla' ? 'ক্যাটাগরি দেখুন' : 'Browse categories' }}</a>
             </div>
         </div>
     </div>
 </section>
+
 @endsection
 
 @push('js')

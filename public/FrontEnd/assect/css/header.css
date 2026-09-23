@@ -9,6 +9,7 @@
     color: var(--roh-ink);
     font-family: var(--font, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     line-height: 1.5;
+    border-bottom: 1px solid var(--roh-line);
 }
 
 .roh-header a {

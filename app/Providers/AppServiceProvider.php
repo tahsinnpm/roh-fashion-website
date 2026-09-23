@@ -30,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Schema::defaultStringLength(191);
+        View::composer('components.mobile-navigation', function ($view) {
+            $view->with('mobileCategories', Category::where('status', 1)->orderBy('name_en')->get(['id', 'parent_id', 'name_en', 'name_bn', 'slug'])->groupBy('parent_id'));
+        });
         View::composer('FrontEnd.include.header', function ($view){
             $view->with(
                 'categories', Category::orderBy('name_en','ASC')->where('status','=',1)->limit(11)->get()
