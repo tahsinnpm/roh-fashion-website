@@ -121,6 +121,7 @@
         }
     }
 
+    const pendingCards = new WeakMap();
     document.addEventListener('click', async (event) => {
         const preview = event.target.closest('[data-product-preview]');
         const wishlist = event.target.closest('[data-product-wishlist]');
@@ -142,15 +143,25 @@
         const id = button.dataset.productBuy || button.dataset.productAdd;
         if (button.dataset.variant === '1') return open(id, button, buy);
         const card = button.closest('.rf-product') || button.parentElement;
-        const actions = card ? card.querySelectorAll('[data-product-add], [data-product-buy]') : [button];
-        actions.forEach((action) => { action.disabled = true; });
+        if (pendingCards.has(card)) {
+            if (buy) {
+                try {
+                    await pendingCards.get(card);
+                    document.dispatchEvent(new CustomEvent('checkout:open'));
+                } catch { /* The original request displays the error. */ }
+            }
+            return;
+        }
+        button.disabled = true;
         button.setAttribute('aria-busy', 'true');
+        const pending = add(id, Number(button.dataset.quantity));
+        pendingCards.set(card, pending);
         try {
-            await add(id, Number(button.dataset.quantity));
-            if (buy) window.location.assign(dialog.dataset.checkoutUrl);
+            await pending;
+            if (buy) document.dispatchEvent(new CustomEvent('checkout:open'));
         }
         catch (error) { announce(error.message); }
-        finally { actions.forEach((action) => { action.disabled = false; }); button.removeAttribute('aria-busy'); }
+        finally { pendingCards.delete(card); button.disabled = false; button.removeAttribute('aria-busy'); }
     });
 
     find('attributes').addEventListener('change', () => { find('error').textContent = ''; updateSelection(); });
@@ -169,8 +180,8 @@
         find('error').textContent = '';
         try {
             await add(model.product.id, Number(find('quantity').value), activeVariant?.varient || '', options);
-            if (checkout) window.location.assign(dialog.dataset.checkoutUrl);
             dialog.close();
+            if (checkout) document.dispatchEvent(new CustomEvent('checkout:open'));
         } catch (error) { find('error').textContent = error.message; }
         finally { submitting = false; find('submit').removeAttribute('aria-busy'); updateSelection(); }
     });

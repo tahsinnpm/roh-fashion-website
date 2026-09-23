@@ -1,4 +1,4 @@
-<dialog id="rf-product-dialog" class="rf-quick" aria-labelledby="rf-quick-title" data-base-url="{{ url('/') }}" data-checkout-url="{{ route('checkout') }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}">
+<dialog id="rf-product-dialog" class="rf-quick" aria-labelledby="rf-quick-title" data-base-url="{{ url('/') }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}">
     <button type="button" class="rf-quick__close" data-quick-close aria-label="Close">×</button>
     <p class="rf-quick__status" data-quick-status role="status"></p>
     <div class="rf-quick__layout" data-quick-content hidden>

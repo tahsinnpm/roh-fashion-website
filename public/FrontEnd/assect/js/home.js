@@ -15,7 +15,9 @@
             controls.append(button);
             return button;
         });
-        rail.after(controls);
+        const flashControls = rail.closest('.rf-flash-section')?.querySelector('[data-flash-controls]');
+        if (flashControls) flashControls.append(controls);
+        else rail.after(controls);
         const update = () => {
             const maximum = rail.scrollWidth - rail.clientWidth;
             controls.hidden = maximum < 2;
@@ -33,7 +35,11 @@
         const end = Number(timer.dataset.countdownEnd);
         const update = () => {
             const remaining = Math.max(0, Math.floor(((Date.now() < start ? start : end) - Date.now()) / 1000));
-            timer.textContent = remaining > 0 ? `${Math.floor(remaining / 86400)}d ${Math.floor(remaining / 3600) % 24}h ${Math.floor(remaining / 60) % 60}m ${remaining % 60}s` : 'Expired';
+            const values = { days: Math.floor(remaining / 86400), hours: Math.floor(remaining / 3600) % 24, minutes: Math.floor(remaining / 60) % 60, seconds: remaining % 60 };
+            Object.entries(values).forEach(([unit, value]) => {
+                const number = timer.querySelector(`[data-time="${unit}"]`);
+                if (number) number.textContent = String(value).padStart(2, '0');
+            });
             return remaining;
         };
         if (update()) {

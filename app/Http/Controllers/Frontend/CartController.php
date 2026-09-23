@@ -14,6 +14,58 @@ use App\Models\ProductStock;
 
 class CartController extends Controller
 {
+    private function sidebarLimits($item, $product)
+    {
+        $stock = !$product || !$product->status ? 0 : ($product->is_varient
+            ? (int) optional($product->stocks->firstWhere('varient', $item->options->varient))->qty
+            : (int) $product->stock_qty);
+        $others = Cart::content()->filter(function ($other) use ($item, $product) {
+            return $other->rowId !== $item->rowId && $other->id == $item->id
+                && (!$product || !$product->is_varient || $other->options->varient === $item->options->varient);
+        })->sum('qty');
+
+        return [max(1, (int) optional($product)->minimum_buy_qty), max(0, $stock - $others)];
+    }
+
+    public function sidebar()
+    {
+        $products = Product::with('stocks')->whereIn('id', Cart::content()->pluck('id'))->get()->keyBy('id');
+        $items = Cart::content()->map(function ($item) use ($products) {
+            $product = $products->get($item->id);
+            [$minimum, $maximum] = $this->sidebarLimits($item, $product);
+            return [
+                'rowId' => $item->rowId, 'name' => $item->name, 'quantity' => (int) $item->qty,
+                'unitPrice' => (float) $item->price, 'total' => (float) $item->price * $item->qty,
+                'image' => asset($item->options->image ?: 'upload/product-default.jpg'),
+                'url' => $product ? route('product.details', $product->slug) : null,
+                'variant' => $item->options->varient ?: '', 'minimum' => $minimum, 'maximum' => $maximum,
+            ];
+        })->values();
+
+        return response()->json(['items' => $items, 'cartQty' => Cart::count(), 'subtotal' => (float) Cart::subtotal(2, '.', '')]);
+    }
+
+    public function updateSidebar(Request $request, $rowId)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+        $item = Cart::content()->get($rowId);
+        abort_unless($item, 404);
+        [$minimum, $maximum] = $this->sidebarLimits($item, Product::with('stocks')->find($item->id));
+        $quantity = (int) $request->quantity;
+        if ($quantity < $minimum || $quantity > $maximum) {
+            return response()->json(['message' => $quantity < $minimum ? 'Minimum quantity is '.$minimum.'.' : 'Not enough stock for this quantity.'], 422);
+        }
+        Cart::update($rowId, $quantity);
+        return $this->sidebar();
+    }
+
+    public function removeSidebar($rowId)
+    {
+        abort_unless(Cart::content()->has($rowId), 404);
+        Cart::remove($rowId);
+        return $this->sidebar();
+    }
+
     public function index(){
         // Header Category Start
         $categories = Category::orderBy('name_en','DESC')->where('status','=',1)->limit(5)->get();

@@ -1,0 +1,64 @@
+.rf-cart {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(440px, 100%);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid #eee5e9;
+    border-radius: 0;
+    background: #fff;
+    color: #302630;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.5;
+    transform: translateX(100%);
+    transition: transform 240ms cubic-bezier(.2, .7, .2, 1);
+    overflow: hidden;
+}
+.rf-cart[open] { display: flex; flex-direction: column; }
+.rf-cart.is-open { transform: translateX(0); }
+.rf-cart::backdrop { background: #211820; opacity: 0; transition: opacity 240ms ease; }
+.rf-cart.is-open::backdrop { opacity: .45; }
+body:has(.rf-cart[open]) { overflow: hidden; }
+.rf-cart [hidden] { display: none; }
+.rf-cart * { box-sizing: border-box; border-radius: 0; }
+.rf-cart button, .rf-cart a { -webkit-tap-highlight-color: transparent; }
+.rf-cart :is(button, a):focus-visible { outline: 2px solid #a92154; outline-offset: 3px; }
+.rf-cart button { font: inherit; cursor: pointer; }
+.rf-cart a { color: inherit; text-decoration: none; }
+.rf-cart__header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 24px; border-bottom: 1px solid #eee5e9; }
+.rf-cart__eyebrow { font-size: 9px; letter-spacing: 2px; color: #a92154; }
+.rf-cart__header h2 { font-size: 19px; font-weight: 500; color: #302630; margin: 5px 0 0; }
+.rf-cart__header h2 span { display: inline-block; padding: 2px 6px; background: #fff0f5; font-size: 12px; vertical-align: middle; }
+.rf-cart__close { flex-shrink: 0; width: 36px; height: 36px; border: 1px solid #e8dce2; background: #fff; font-size: 24px !important; line-height: 1; }
+.rf-cart__body { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 24px; }
+.rf-cart__status { margin: 0; padding-block: 14px; color: #a92154; font-size: 12px; }
+.rf-cart__status:empty { display: none; }
+.rf-cart__items { list-style: none; padding: 0; margin: 0; }
+.rf-cart__item { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 14px; padding: 20px 0; border-bottom: 1px solid #eee5e9; }
+.rf-cart__image img { width: 78px; height: 100px; object-fit: contain; background: #faf7f8; }
+.rf-cart__info { min-width: 0; }
+.rf-cart__name { display: block; font-size: 13px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.rf-cart__variant { margin: 4px 0 8px; font-size: 11px; color: #84747d; }
+.rf-cart__price { display: block; font-size: 14px; margin: 8px 0; }
+.rf-cart__item-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rf-cart__quantity { display: inline-flex; align-items: center; border: 1px solid #e8dce2; }
+.rf-cart__quantity button { width: 32px; height: 32px; padding: 0; border: 0; background: #fff; color: #302630; }
+.rf-cart__quantity span { min-width: 28px; text-align: center; font-size: 12px; }
+.rf-cart__remove { border: 0; padding: 6px 0; background: transparent; color: #a92154; font-size: 11px !important; text-decoration: underline; text-underline-offset: 3px; }
+.rf-cart button:disabled { opacity: .4; cursor: not-allowed; }
+.rf-cart__footer { flex-shrink: 0; padding: 20px 24px max(20px, env(safe-area-inset-bottom)); background: #fff8fb; border-top: 1px solid #eee5e9; }
+.rf-cart__subtotal { display: flex; justify-content: space-between; gap: 16px; font-size: 16px; }
+.rf-cart__footer p { margin: 8px 0 16px; font-size: 11px; color: #84747d; }
+.rf-cart .rf-cart__checkout, .rf-cart__empty button { display: block; width: 100%; padding: 13px 16px; background: #f95490; color: #302630; text-align: center; font-size: 13px; font-weight: 600; border: 0; }
+.rf-cart .rf-cart__view { display: block; padding-top: 12px; text-align: center; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.rf-cart__empty { padding: 64px 0; text-align: center; }
+.rf-cart__empty > i { color: #f95490; font-size: 36px; }
+.rf-cart__empty h3 { font-size: 20px; margin: 20px 0 12px; }
+.rf-cart__empty p { margin: 0 0 24px; font-size: 12px; color: #84747d; }
+.rf-cart__retry { padding: 8px 16px; background: #fff0f5; border: 1px solid #e8dce2; }
+@media (max-width: 480px) { .rf-cart__header, .rf-cart__footer { padding-inline: 18px; } .rf-cart__body { padding-inline: 18px; } }
+@media (prefers-reduced-motion: reduce) { .rf-cart, .rf-cart::backdrop { transition: none; } }

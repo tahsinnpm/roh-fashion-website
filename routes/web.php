@@ -149,6 +149,9 @@ Route::get('/login-status/check', [FrontendController::class, 'loginCheck'])->na
 
 /* ============ Cart Show   ============= */
 Route::get('/cart',[CartController::class,'index'])->name('cart.show');
+Route::get('/cart/sidebar', [CartController::class, 'sidebar'])->name('cart.sidebar');
+Route::patch('/cart/sidebar/{rowId}', [CartController::class, 'updateSidebar']);
+Route::delete('/cart/sidebar/{rowId}', [CartController::class, 'removeSidebar']);
 /* ============ Cart Get Product   ============= */
 Route::get('/get-cart-product', [CartController::class, 'getCartProduct'])->name('getcart.product');
 /* ============  Cart Increment  ============= */
@@ -161,6 +164,9 @@ Route::get('/cart-remove/{rowId}', [CartController::class, 'removeCartProduct'])
 Route::get('/cart/all-delete',[CartController::class,'destroy'])->name('cart.remove.all');
 /* ============  Cart Checkout   ============= */
 Route::get('/checkout',[CheckoutController::class,'index'])->name('checkout');
+Route::get('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'show'])->name('checkout.quick');
+Route::get('/quick-checkout/invoice/{order}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'invoice'])->middleware('signed')->name('checkout.invoice');
+Route::post('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'store'])->middleware('throttle:15,1');
 Route::post('/checkout/payment',[CheckoutController::class,'payment'])->name('checkout.payment');
 /* ============ Cart Checkout Product   ============= */
 Route::get('/checkout-product', [CheckoutController::class, 'getCheckoutProduct'])->name('checktout.product');

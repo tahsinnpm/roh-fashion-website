@@ -35,27 +35,8 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        // if(!guest_checkout() && !auth()->check()){
-        //     return redirect()->route('login');
-        // }
-        $addresses = Address::where('status', 1)->get();
-        $shippings = Shipping::where('status', 1)->get();
-
-        $carts = Cart::content();
-        if(count($carts) == 0){
-//            return back()->with('message', 'Cart is Empty!!');
-            return redirect()->route('cart.show');
-        }
-
-        $cartTotal = Cart::total();
-        if(Auth::user() && Auth::user()->role == 3){
-            return view('FrontEnd.checkout.index',compact('addresses','shippings', 'carts', 'cartTotal'));
-        }
-        else{
-            return redirect()->route('login');
-        }
-
-    } // end method
+        return redirect()->to(route('home').'#checkout');
+    }
 
     public function shippingAjax($shipping_id){
         $shipping = Shipping::find($shipping_id);

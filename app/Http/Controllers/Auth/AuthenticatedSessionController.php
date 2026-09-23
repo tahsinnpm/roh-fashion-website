@@ -41,45 +41,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request)
     {
-        // dd($request->all());
-        $this->validate($request,[
-            'email' =>'required',
-            'password' =>'required'
-        ]);
-
-        // dd($request->all());
-        $check = $request->all();
-        if(Auth::guard('web')->attempt(['email' => $check['email'], 'password'=> $check['password'] ])){
-
-            if(Auth::guard('web')->user()->role == "3"){
-                $notification = array(
-                    'message' => 'User Login Successfully.', 
-                    'alert-type' => 'success'
-                );
-                return redirect()->route('dashboard')->with($notification);
-            }else{
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                $notification = array(
-                    'message' => 'Invaild Email Or Password.', 
-                    'alert-type' => 'error'
-                );
-                return back()->with($notification);
-            }
-            
-        }else{
-            $notification = array(
-                'message' => 'Invaild Email Or Password.', 
-                'alert-type' => 'error'
-            );
-            return back()->with($notification);
-        }
-
-        // $request->authenticate();
-        // $request->session()->regenerate();
-        // return redirect()->route('dashboard');
+        $request->authenticate();
+        $request->session()->regenerate();
+        return redirect()->route('dashboard')->with(['message' => 'User Login Successfully.', 'alert-type' => 'success']);
     }
 
     public function otp_login(Request $request)

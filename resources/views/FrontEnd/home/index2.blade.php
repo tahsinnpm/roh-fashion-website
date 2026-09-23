@@ -1,412 +1,325 @@
 @extends('FrontEnd.master')
 @section('title')
-    Home
+Home
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/home.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/home.css')) }}">
-    <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/hero.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/hero.css')) }}">
+<link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/home.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/home.css')) }}">
+<link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/hero.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/hero.css')) }}">
 @endpush
 
 @section('content')
 
 <section class="rf-hero-section">
-        <div class="custom_container">
-            <div class="rf-hero-section-grid">
-                <div class="rf-categories-panel">
-                    <div class="rf-categories-header">
-                        <i class="fas fa-bars"></i>
-                        <span>
-                            @if(session()->get('language') == 'bangla')
-                                সকল ক্যাটাগরি
-                            @else
-                                All Categories
-                            @endif
-                        </span>
-                    </div>
-
-                    <ul class="rf-category-menu">
-                        @foreach($categories as $category)
-                            @if($category->type == 1)
-                                <li class="rf-category-item">
-                                    <a href="{{route('product.category', $category->slug)}}" class="rf-category-link">
-                                        @if($category->icon)
-                                            <img loading="lazy" decoding="async" src="{{ asset($category->icon) }}" class="rf-site-category-icon" alt="">
-                                        @else
-                                            <i class="fas fa-th-large rf-category-placeholder" aria-hidden="true"></i>
-                                        @endif
-                                        <span>
-                                            @if(session()->get('language') == 'bangla')
-                                                {{$category->name_bn}}
-                                            @else
-                                                {{$category->name_en}}
-                                            @endif
-                                        </span>
-                                        @php $subcategories = $category->categories @endphp
-                                        @if(count($subcategories) > 0)
-                                            <i class="fas fa-chevron-right rf-category-arrow"></i>
-                                        @endif
-                                    </a>
-
-                                    @if(count($subcategories) > 0)
-                                        <div class="rf-subcategories">
-                                            @foreach($subcategories as $subcategory)
-                                                <div class="rf-subcategory-item">
-                                                    <a href="{{route('product.category', $subcategory->slug)}}" class="rf-subcategory-link">
-                                                        @if(session()->get('language') == 'bangla')
-                                                            {{$subcategory->name_bn}}
-                                                        @else
-                                                            {{$subcategory->name_en}}
-                                                        @endif
-                                                    </a>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </li>
-                            @endif
-                        @endforeach
-                    </ul>
-                </div>
-                <div class="rf-main-slider">
-                    <div id="mainCarousel" class="carousel slide" data-bs-interval="false">
-                        <div class="carousel-inner">
-                            @forelse ($sliders as $index => $slider)
-                                <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
-                                    <img loading="lazy" decoding="async" src="{{ asset($slider->slider_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন কালেকশন' : 'Roh Fashion collection' }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
-                                </div>
-                            @empty
-                                <div class="rf-slider-empty"><span>ROH FASHION</span><h2>{{ session('language') == 'bangla' ? 'খুঁজে নিন আপনার পছন্দের স্টাইল' : 'Find your everyday favourite.' }}</h2><a href="{{ route('category_list.index') }}">{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Discover the collection' }}</a></div>
-                            @endforelse
-                        </div>
-                        @if($sliders->count() > 1)
-                        <button aria-label="Previous slide" class="carousel-control-prev" type="button" data-bs-target="#mainCarousel"
-                            data-bs-slide="prev">
-                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
-                        </button>
-                        <button aria-label="Next slide" class="carousel-control-next" type="button" data-bs-target="#mainCarousel"
-                            data-bs-slide="next">
-                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                        </button>
+    <div class="custom_container">
+        <div class="rf-hero-section-grid">
+            <div class="rf-categories-panel">
+                <div class="rf-categories-header">
+                    <i class="fas fa-bars"></i>
+                    <span>
+                        @if(session()->get('language') == 'bangla')
+                        সকল ক্যাটাগরি
+                        @else
+                        All Categories
                         @endif
-                    </div>
+                    </span>
                 </div>
 
-<div class="rf-side-banners">
-                    @foreach ($home_banners->take(2) as $index => $banner)
-                        <a class="rf-promo-banner" href="{{ $banner->url ?: route('category_list.index') }}" aria-label="{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Explore collection' }}">
-                            <img loading="lazy" decoding="async" class="rf-promo-image" src="{{ asset($banner->banner_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন অফার' : 'Roh Fashion offer' }}" loading="lazy">
-                            <span class="rf-promo-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                <ul class="rf-category-menu">
+                    @foreach($categories as $category)
+                    @if($category->type == 1)
+                    <li class="rf-category-item">
+                        <a href="{{route('product.category', $category->slug)}}" class="rf-category-link">
+                            @if($category->icon)
+                            <img loading="lazy" decoding="async" src="{{ asset($category->icon) }}" class="rf-site-category-icon" alt="">
+                            @else
+                            <i class="fas fa-th-large rf-category-placeholder" aria-hidden="true"></i>
+                            @endif
+                            <span>
+                                @if(session()->get('language') == 'bangla')
+                                {{$category->name_bn}}
+                                @else
+                                {{$category->name_en}}
+                                @endif
+                            </span>
+                            @php $subcategories = $category->categories @endphp
+                            @if(count($subcategories) > 0)
+                            <i class="fas fa-chevron-right rf-category-arrow"></i>
+                            @endif
                         </a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </section>
 
-<section class="verified-section">
-        <div class="custom_container">
-            <div class="verified-grid">
-                <div class="verified-item">
-                    <div class="icon-box">
-                        <div class="icon-circle">
-                            <img loading="lazy" decoding="async" src="{{asset('FrontEnd')}}/assect/img/icon/safe.png" alt="Safe Payments">
+                        @if(count($subcategories) > 0)
+                        <div class="rf-subcategories">
+                            @foreach($subcategories as $subcategory)
+                            <div class="rf-subcategory-item">
+                                <a href="{{route('product.category', $subcategory->slug)}}" class="rf-subcategory-link">
+                                    @if(session()->get('language') == 'bangla')
+                                    {{$subcategory->name_bn}}
+                                    @else
+                                    {{$subcategory->name_en}}
+                                    @endif
+                                </a>
+                            </div>
+                            @endforeach
                         </div>
-                        <div class="icon-text">
-                            <h4>
-                                @if(session()->get('language') == 'bangla')
-                                    নিরাপদ পেমেন্ট
-                                @else
-                                    Safe & Secure
-                                @endif
-                            </h4>
-                            <p>Payment Protection</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="verified-item">
-                    <div class="icon-box">
-                        <div class="icon-circle">
-                            <img loading="lazy" decoding="async" src="{{asset('FrontEnd')}}/assect/img/icon/car.png" alt="Delivery">
-                        </div>
-                        <div class="icon-text">
-                            <h4>
-                                @if(session()->get('language') == 'bangla')
-                                    দেশব্যাপী ডেলিভারি
-                                @else
-                                    Fast Delivery
-                                @endif
-                            </h4>
-                            <p>Nationwide Service</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="verified-item">
-                    <div class="icon-box">
-                        <div class="icon-circle">
-                            <img loading="lazy" decoding="async" src="{{asset('FrontEnd')}}/assect/img/icon/best.png" alt="Price">
-                        </div>
-                        <div class="icon-text">
-                            <h4>
-                                @if(session()->get('language') == 'bangla')
-                                    বেস্ট প্রাইস
-                                @else
-                                    Best Price
-                                @endif
-                            </h4>
-                            <p>Guaranteed Savings</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="verified-item">
-                    <div class="icon-box">
-                        <div class="icon-circle">
-                            <img loading="lazy" decoding="async" src="{{asset('FrontEnd')}}/assect/img/icon/right.png" alt="Authentic">
-                        </div>
-                        <div class="icon-text">
-                            <h4>
-                                @if(session()->get('language') == 'bangla')
-                                    অথেনটিক পণ্য
-                                @else
-                                    100% Authentic
-                                @endif
-                            </h4>
-                            <p>Genuine Products</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-@if($campaign && $start_diff2->invert == 0 && $end_diff2->invert == 0)
-        <section class="custom_container pt-4">
-
-<div class="flash-sale-header">
-    <div class="flash-sale-content">
-        <h2 class="flash-sale-title">
-            <span class="fire-icon">🔥</span>
-            @if(session()->get('language') == 'bangla')
-                ফ্ল্যাশ সেল
-            @else
-                Flash Sale
-            @endif
-        </h2>
-        
-        <div class="timer-section">
-            <div class="timer-label">
-                @if(session()->get('language') == 'bangla')
-                    শেষ হচ্ছে
-                @else
-                    Ending In
-                @endif
-            </div>
-            <div class="countdown-timer" id="demo" data-countdown-start="{{ $campaignStart }}" data-countdown-end="{{ $campaignEnd }}">
-                00:00:00
-            </div>
-        </div>
-        
-        <a href="{{ route('campaign.product') }}" class="flash-sale-cta">
-            @if(session()->get('language') == 'bangla')
-                আরো দেখুন
-            @else
-                View All
-            @endif
-            <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-</div>
-            <div class="flash-sale rf-home-rail rf-products-rail" data-home-rail>
-                @foreach($campaign->campaing_products->take(6) as $campaignProduct)
-                    @if($campaignProduct->product && $campaignProduct->product->status == 1)
-                        <div class="rf-flash-slide">
-                            <x-product-card :product="$campaignProduct->product" />
-                        </div>
+                        @endif
+                    </li>
                     @endif
+                    @endforeach
+                </ul>
+            </div>
+            <div class="rf-main-slider">
+                <div id="mainCarousel" class="carousel slide" data-bs-interval="false">
+                    <div class="carousel-inner">
+                        @forelse ($sliders as $index => $slider)
+                        <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                            <img loading="lazy" decoding="async" src="{{ asset($slider->slider_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন কালেকশন' : 'Roh Fashion collection' }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
+                        </div>
+                        @empty
+                        <div class="rf-slider-empty"><span>ROH FASHION</span>
+                            <h2>{{ session('language') == 'bangla' ? 'খুঁজে নিন আপনার পছন্দের স্টাইল' : 'Find your everyday favourite.' }}</h2><a href="{{ route('category_list.index') }}">{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Discover the collection' }}</a>
+                        </div>
+                        @endforelse
+                    </div>
+                    @if($sliders->count() > 1)
+                    <button aria-label="Previous slide" class="carousel-control-prev" type="button" data-bs-target="#mainCarousel"
+                        data-bs-slide="prev">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    </button>
+                    <button aria-label="Next slide" class="carousel-control-next" type="button" data-bs-target="#mainCarousel"
+                        data-bs-slide="next">
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                    @endif
+                </div>
+            </div>
+
+            <div class="rf-side-banners">
+                @foreach ($home_banners->take(2) as $index => $banner)
+                <a class="rf-promo-banner" href="{{ $banner->url ?: route('category_list.index') }}" aria-label="{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Explore collection' }}">
+                    <img loading="lazy" decoding="async" class="rf-promo-image" src="{{ asset($banner->banner_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন অফার' : 'Roh Fashion offer' }}" loading="lazy">
+                    <span class="rf-promo-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                </a>
                 @endforeach
             </div>
-        </section>
-    @endif
+        </div>
+    </div>
+</section>
+
+@if($campaign && $start_diff2->invert == 0 && $end_diff2->invert == 0)
+<section class="custom_container rf-flash-section" aria-labelledby="flash-sale-title">
+
+    <header class="rf-flash-heading">
+        <div class="rf-flash-intro">
+            <span class="rf-flash-eyebrow"><i class="fa-solid fa-bolt" aria-hidden="true"></i> {{ session('language') === 'bangla' ? 'সীমিত সময়ের অফার' : 'LIMITED-TIME OFFERS' }}</span>
+            <h2 id="flash-sale-title">{{ session('language') === 'bangla' ? 'ফ্ল্যাশ সেল' : 'Flash Sale' }}<span aria-hidden="true">.</span></h2>
+            <p>{{ session('language') === 'bangla' ? 'পছন্দের পণ্য, আরও দারুণ দামে।' : 'Your favourites. Even better prices.' }}</p>
+        </div>
+        <div class="rf-flash-countdown">
+            <span class="rf-flash-timer-label">{{ session('language') === 'bangla' ? 'অফার শেষ হতে বাকি' : 'OFFER ENDS IN' }}</span>
+            <div class="rf-flash-clock" data-countdown-start="{{ $campaignStart }}" data-countdown-end="{{ $campaignEnd }}" role="timer" aria-label="{{ session('language') === 'bangla' ? 'অফারের বাকি সময়' : 'Time remaining for this offer' }}">
+                @foreach(['days' => ['Days', 'দিন'], 'hours' => ['Hrs', 'ঘণ্টা'], 'minutes' => ['Min', 'মিনিট'], 'seconds' => ['Sec', 'সেকেন্ড']] as $unit => $labels)
+                <span class="rf-flash-time"><strong data-time="{{ $unit }}">00</strong><small>{{ session('language') === 'bangla' ? $labels[1] : $labels[0] }}</small></span>
+                @endforeach
+            </div>
+        </div>
+        <div class="rf-flash-navigation">
+            <a href="{{ route('campaign.product') }}" class="rf-flash-link">{{ session('language') === 'bangla' ? 'সব অফার দেখুন' : 'Explore all offers' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <div data-flash-controls></div>
+        </div>
+    </header>
+    <div class="flash-sale rf-home-rail rf-products-rail" data-home-rail>
+        @foreach($campaign->campaing_products->take(6) as $campaignProduct)
+        @if($campaignProduct->product && $campaignProduct->product->status == 1)
+        <div class="rf-flash-slide">
+            <x-product-card :product="$campaignProduct->product" />
+        </div>
+        @endif
+        @endforeach
+    </div>
+</section>
+@endif
+
+@if(isset($product_featured) && $product_featured->count() > 0)
+<section class="custom_container mb-5">
+    <div class="section-header">
+        <h2 class="section-title">
+            @if(session()->get('language') == 'bangla')
+            ফিচার্ড প্রোডাক্ট
+            @else
+            Featured Products
+            @endif
+        </h2>
+        <a href="{{ route('product.show') }}" class="view-all-btn">
+            @if(session()->get('language') == 'bangla')
+            সব দেখুন
+            @else
+            View All
+            @endif
+        </a>
+    </div>
+
+    <div class="featured-slider rf-home-rail rf-products-rail" data-home-rail>
+        @foreach($product_featured->take(8) as $product)
+        <div class="rf-slide">
+            <x-product-card :product="$product" />
+        </div>
+        @endforeach
+    </div>
+</section>
+@endif
 
 <section class="custom_container pt-4">
-        <div class="section-header">
-            <h2 class="section-title">
-                @if(session()->get('language') == 'bangla')
-                    ক্যাটাগোরি
-                @else
-                    Categories
-                @endif
-            </h2>
-            <a href="{{route('category_list.index')}}" class="view-all-btn">
-                @if(session()->get('language') == 'bangla')
-                    সব দেখুন
-                @else
-                    View All
-                @endif
+    <div class="section-header">
+        <h2 class="section-title">
+            @if(session()->get('language') == 'bangla')
+            ক্যাটাগোরি
+            @else
+            Categories
+            @endif
+        </h2>
+        <a href="{{route('category_list.index')}}" class="view-all-btn">
+            @if(session()->get('language') == 'bangla')
+            সব দেখুন
+            @else
+            View All
+            @endif
+        </a>
+    </div>
+
+    <div class="category-slider rf-home-rail" data-home-rail>
+        @foreach($featured_category as $fc)
+        <div class="category-slide">
+            <a href="{{ route('product.category', $fc->slug) }}" class="category-card">
+                <div class="category-icon">
+                    <img loading="lazy" decoding="async" src="{{ asset($fc->image) }}" alt="{{ $fc->name_en }}">
+                </div>
+                <div class="category-content">
+                    <h3 class="category-name">
+                        @if(session()->get('language') == 'bangla')
+                        {{ $fc->name_bn }}
+                        @else
+                        {{ $fc->name_en }}
+                        @endif
+                    </h3>
+                </div>
             </a>
         </div>
+        @endforeach
+    </div>
+</section>
 
-        <div class="category-slider rf-home-rail" data-home-rail>
-            @foreach($featured_category as $fc)
-                <div class="category-slide">
-                    <a href="{{ route('product.category', $fc->slug) }}" class="category-card">
-                        <div class="category-icon">
-                            <img loading="lazy" decoding="async" src="{{ asset($fc->image) }}" alt="{{ $fc->name_en }}">
-                        </div>
-                        <div class="category-content">
-                            <h3 class="category-name">
-                                @if(session()->get('language') == 'bangla')
-                                    {{ $fc->name_bn }}
-                                @else
-                                    {{ $fc->name_en }}
-                                @endif
-                            </h3>
-                        </div>
-                    </a>
+
+
+<section class="custom_container mb-5">
+    <div class="section-header">
+        <h2 class="section-title">Popular Brands</h2>
+        <a href="{{ route('product.show') }}" class="view-all-btn">View All</a>
+    </div>
+
+    <div class="brands-slider rf-home-rail" data-home-rail>
+        @foreach($brands as $brand)
+        @if($brand->name_en != 'Non Brand')
+        <div class="brand-slide">
+            <a href="#" class="brand-card">
+                <div class="brand-image">
+                    <img loading="lazy" decoding="async" src="{{asset($brand->brand_image)}}" alt="{{ $brand->name_en }}">
                 </div>
-            @endforeach
-        </div>
-    </section>
-    
-    @if(isset($product_featured) && $product_featured->count() > 0)
-    <section class="custom_container mb-5">
-        <div class="section-header">
-            <h2 class="section-title">
-                @if(session()->get('language') == 'bangla')
-                    ফিচার্ড প্রোডাক্ট
-                @else
-                    Featured Products
-                @endif
-            </h2>
-            <a href="{{ route('product.show') }}" class="view-all-btn">
-                @if(session()->get('language') == 'bangla')
-                    সব দেখুন
-                @else
-                    View All
-                @endif
+                <p class="brand-title">
+                    {{session()->get('language') == 'bangla' ? $brand->name_bn : $brand->name_en}}
+                </p>
             </a>
         </div>
+        @endif
+        @endforeach
+    </div>
+</section>
 
-        <div class="featured-slider rf-home-rail rf-products-rail" data-home-rail>
-            @foreach($product_featured->take(8) as $product)
-                <div class="rf-slide">
-                    <x-product-card :product="$product" />
-                </div>
-            @endforeach
+<section class="custom_container mb-5">
+    <div class="section-header">
+        <h2 class="section-title">
+            @if(session()->get('language') == 'bangla')
+            সাম্প্রতিক পণ্যসমূহ
+            @else
+            Latest Products
+            @endif
+        </h2>
+
+    </div>
+
+    <div class="product-grid" id="latest-products-container">
+        @foreach ($product_trendings->take(8) as $product_trending)
+
+        <div class="">
+            <x-product-card :product="$product_trending" />
         </div>
-    </section>
-    @endif
+        @endforeach
+    </div>
+
+    <div class="text-center mt-4">
+        <button type="button" id="load-more-btn" data-url="{{ url('load-more-products') }}" data-offset="{{ $product_trendings->count() }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}" class="view-all-btn">
+            @if(session()->get('language') == 'bangla')
+            আরো দেখুন
+            @else
+            View More
+            @endif
+        </button>
+    </div>
+</section>
 
 <section class="custom_container mb-5">
-        <div class="section-header">
-            <h2 class="section-title">Popular Brands</h2>
-            <a href="{{ route('product.show') }}" class="view-all-btn">View All</a>
-        </div>
+    <div class="about-section">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="about-content">
+                    <h2 class="about-title">{{ get_setting('site_name')->value ?? '' }}</h2>
+                    <p class="about-description">
+                        Your trusted partner for hassle-free online shopping. We bring you the latest in technology, innovation, and authentic products designed to enhance your comfort.
+                    </p>
 
-        <div class="brands-slider rf-home-rail" data-home-rail>
-            @foreach($brands as $brand)
-                @if($brand->name_en != 'Non Brand')
-                    <div class="brand-slide">
-                        <a href="#" class="brand-card">
-                            <div class="brand-image">
-                                <img loading="lazy" decoding="async" src="{{asset($brand->brand_image)}}" alt="{{ $brand->name_en }}">
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-percentage"></i>
                             </div>
-                            <p class="brand-title">
-                                {{session()->get('language') == 'bangla' ? $brand->name_bn : $brand->name_en}}
-                            </p>
-                        </a>
-                    </div>
-                @endif
-            @endforeach
-</div>
-    </section>
-
-<section class="custom_container mb-5">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            @if(session()->get('language') == 'bangla')
-                                সাম্প্রতিক পণ্যসমূহ
-                            @else
-                                Latest Products
-                            @endif
-                        </h2>
-                      
-                    </div>
-
-                    <div class="product-grid" id="latest-products-container">
-                        @foreach ($product_trendings->take(8) as $product_trending)
-
-                            <div class="">
-                                <x-product-card :product="$product_trending" />
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="text-center mt-4">
-                          <button type="button" id="load-more-btn" data-url="{{ url('load-more-products') }}" data-offset="{{ $product_trendings->count() }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}" class="view-all-btn">
-                            @if(session()->get('language') == 'bangla')
-                                আরো দেখুন
-                            @else
-                                View More
-                            @endif
-                        </button>
-                    </div>
-                </section>
-
-<section class="custom_container mb-5">
-        <div class="about-section">
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="about-content">
-                        <h2 class="about-title">{{ get_setting('site_name')->value ?? '' }}</h2>
-                        <p class="about-description">
-                            Your trusted partner for hassle-free online shopping. We bring you the latest in technology, innovation, and authentic products designed to enhance your comfort.
-                        </p>
-
-                        <div class="features-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">
-                                    <i class="fas fa-percentage"></i>
-                                </div>
-                                <h4 class="feature-title">0% EMI Available</h4>
-                                <p class="feature-text">Flexible payment options with easy installments</p>
-                            </div>
-
-                            <div class="feature-card">
-                                <div class="feature-icon">
-                                    <i class="fas fa-shield-alt"></i>
-                                </div>
-                                <h4 class="feature-title">Product Warranty</h4>
-                                <p class="feature-text">Guaranteed brand authenticity and protection</p>
-                            </div>
-
-                            <div class="feature-card">
-                                <div class="feature-icon">
-                                    <i class="fas fa-undo-alt"></i>
-                                </div>
-                                <h4 class="feature-title">Easy Returns</h4>
-                                <p class="feature-text">Hassle-free 3-day return policy</p>
-                            </div>
+                            <h4 class="feature-title">0% EMI Available</h4>
+                            <p class="feature-text">Flexible payment options with easy installments</p>
                         </div>
-                    </div>
-                </div>
 
-                <div class="col-lg-4">
-                    <div class="about-cta">
-                        <h3 class="cta-title">Why Choose Us?</h3>
-                        <p class="cta-text">We're committed to providing you with the best shopping experience through quality products and excellent service.</p>
-                        <a href="#" class="cta-button">
-                            Learn More 
-                            <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h4 class="feature-title">Product Warranty</h4>
+                            <p class="feature-text">Guaranteed brand authenticity and protection</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-undo-alt"></i>
+                            </div>
+                            <h4 class="feature-title">Easy Returns</h4>
+                            <p class="feature-text">Hassle-free 3-day return policy</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-4">
+                <div class="about-cta">
+                    <h3 class="cta-title">Why Choose Us?</h3>
+                    <p class="cta-text">We're committed to providing you with the best shopping experience through quality products and excellent service.</p>
+                    <a href="#" class="cta-button">
+                        Learn More
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-    </section>
+    </div>
+</section>
 @endsection
 
 @push('js')
-    <script src="{{ asset('FrontEnd/assect/js/home.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/home.js')) }}" defer></script>
+<script src="{{ asset('FrontEnd/assect/js/home.js') }}?v={{ filemtime(public_path('FrontEnd/assect/js/home.js')) }}" defer></script>
 @endpush

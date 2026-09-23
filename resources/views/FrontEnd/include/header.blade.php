@@ -50,7 +50,7 @@
                     @endif
                 </span>
             </a>
-            <a class="roh-header__bag" href="{{ route('cart.show') }}" aria-label="{{ $isBangla ? 'শপিং ব্যাগ' : 'Shopping bag' }}">
+            <a class="roh-header__bag" href="{{ route('cart.show') }}" data-cart-open aria-controls="rf-cart-sidebar" aria-expanded="false" aria-label="{{ $isBangla ? 'শপিং ব্যাগ' : 'Shopping bag' }}">
                 <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
                 <span class="roh-header__count cartQty">{{ Cart::count() }}</span>
             </a>

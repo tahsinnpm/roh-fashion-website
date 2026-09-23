@@ -194,11 +194,12 @@ Login
             <form class="login-form" method="POST" action="{{ route('login') }}">
                 @csrf
                 <div class="mb-3">
-                    <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="email" 
+                    <label class="form-label">Phone number or email <span class="text-danger">*</span></label>
+                    <input type="text"
                            class="form-input" 
                            name="email" 
-                           placeholder="Login@gmail.com" 
+                           placeholder="Phone number or email"
+                           autocomplete="username"
                            value="{{ old('email') }}" 
                            required>
                     @error('email')
