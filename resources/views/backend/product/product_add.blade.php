@@ -297,7 +297,7 @@
                           </div>
 
 							<!-- Product Attribute Price combination Starts -->
-							<div class="col-12 mt-2 mb-2 text-white" id="variation_wrapper" >
+							<div class="col-12 mt-2 mb-2" id="variation_wrapper" style="display: none;">
 								<label for="" class="col-form-label" style="font-weight: bold;">Price Variation:</label>
 								<table class="table table-bordered" id="combination_table">
 									<thead class="text-dark text-center">
@@ -306,7 +306,8 @@
 											<th>Price</th>
 											<th>SKU</th>
 											<th>Quantity</th>
-											<th>Photo <span class="text-danger">*</span></th>
+											<th>Photo</th>
+											<th>Action</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -582,64 +583,150 @@
 @push('footer-script')
 
 <script>
-
     function makeCombinationTable(el) {
+        let form = el ? ($(el).closest('form').length ? $(el).closest('form') : $('form')) : $('form');
+        let choiceData = form.serializeArray().filter(function (field) {
+            return field.name.includes('choice');
+        });
+
+        let hasSelectedOptions = false;
+        choiceData.forEach(function(item) {
+            if (item.name.startsWith('choice_options') && item.value) {
+                hasSelectedOptions = true;
+            }
+        });
+
+        if (!hasSelectedOptions) {
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+            return;
+        }
 
         $.ajax({
             url: '{{ route('admin.api.attributes.index') }}',
             type: 'get',
             dataType: 'json',
             processData: true,
-            data: $(el).closest('form').serializeArray().filter(function (field) {
-                return field.name.includes('choice');
-            }),
+            data: choiceData,
             success: function (response) {
-				//console.log(response);
                 if (!response.success) {
                     return;
                 }
-				if(Object.keys(response.data).length > 0) {
-					let price = $('#totalRegularPriceInput').val();
-					let qty = $('#stock_qty').val();
+				if(response.data && Object.keys(response.data).length > 0) {
+					let price = $('#totalRegularPriceInput').val() || 0;
+					let qty = $('#stock_qty').val() || 10;
 					$('#combination_table tbody').html($.map(response.data, function (item, index) {
 						return `<tr>
 									<td>${index}<input type="hidden" name="vnames[]" class="form-control" value="${index}" required></td>
-									<td><input type="text" name="vprices[]" class="form-control vdp" value="`+price+`" required></td>
+									<td><input type="text" name="vprices[]" class="form-control vdp" value="${price}" required></td>
 									<td><input type="text" name="vskus[]" class="form-control" required value="sku-${index}"></td>
-									<td><input type="text" name="vqtys[]" class="form-control" value="10" required></td>
-									<td><input type="file" name="vimages[]" class="form-control" required></td>
+									<td><input type="text" name="vqtys[]" class="form-control" value="${qty}" required></td>
+									<td><input type="file" name="vimages[]" class="form-control"></td>
+									<td class="text-center">
+										<button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+											<i class="fa fa-trash"></i>
+										</button>
+									</td>
 								</tr>`;
-					}).join());
+					}).join(''));
 					$('#variation_wrapper').show();
 				}else{
-					$('#combination_table tbody').html();
+					$('#combination_table tbody').empty();
+					$('#variation_wrapper').hide();
 				}
-
             }
         });
     }
-</script>
-<!-- Attribute -->
-<script type="text/javascript">
-	function add_more_customer_choice_option(i, name){
+
+	function add_more_customer_choice_option(ids){
+        if (!ids || ids.length === 0) {
+            return;
+        }
         $.ajax({
             type:"POST",
             url:'{{ route('products.add-more-choice-option') }}',
             data:{
-               attribute_ids: i,
+               attribute_ids: ids,
                _token:  "{{ csrf_token() }}"
             },
             success: function(data) {
                 $('#customer_choice_options').append(data);
+                $('.js-example-basic-multiple').select2();
            }
        });
     }
 
 	$('#choice_attributes').on('change', function() {
-        $('#customer_choice_options').html(null);
+        let selectedAttributes = $(this).val() || [];
 
-    	$('#choice_attributes').val();
-    	add_more_customer_choice_option($(this).val(), $(this).text());
+        // Remove attribute containers that were deselected
+        $('#customer_choice_options .attribute-choice-item').each(function() {
+            let attrId = $(this).attr('id').replace('attribute_choice_', '');
+            if (!selectedAttributes.includes(attrId) && !selectedAttributes.includes(parseInt(attrId))) {
+                $(this).remove();
+            }
+        });
+
+        // Find which selected attributes are not yet rendered
+        let newAttributeIds = [];
+        selectedAttributes.forEach(function(id) {
+            if ($('#attribute_choice_' + id).length === 0) {
+                newAttributeIds.push(id);
+            }
+        });
+
+        if (newAttributeIds.length > 0) {
+            $.ajax({
+                type: "POST",
+                url: '{{ route('products.add-more-choice-option') }}',
+                data: {
+                    attribute_ids: newAttributeIds,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(data) {
+                    $('#customer_choice_options').append(data);
+                    $('.js-example-basic-multiple').select2();
+                    makeCombinationTable($('#customer_choice_options'));
+                }
+            });
+        } else {
+            makeCombinationTable($('#customer_choice_options'));
+        }
+
+        if (selectedAttributes.length === 0) {
+            $('#customer_choice_options').empty();
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+        }
+    });
+
+    // Remove single attribute on button click
+    $(document).on('click', '.remove-attribute-btn', function(e) {
+        e.preventDefault();
+        let attrId = $(this).data('id').toString();
+        $('#attribute_choice_' + attrId).remove();
+
+        let currentVals = $('#choice_attributes').val() || [];
+        currentVals = currentVals.filter(function(id) {
+            return id.toString() !== attrId;
+        });
+        $('#choice_attributes').val(currentVals).trigger('change.select2');
+
+        if (currentVals.length > 0 && $('#customer_choice_options select').length > 0) {
+            makeCombinationTable($('#customer_choice_options'));
+        } else {
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+        }
+    });
+
+    // Remove single variant row on button click
+    $(document).on('click', '.remove-variant-btn', function(e) {
+        e.preventDefault();
+        $(this).closest('tr').remove();
+        if ($('#combination_table tbody tr').length === 0) {
+            $('#variation_wrapper').hide();
+        }
     });
 
     $('#totalRegularPriceInput').on('keyup', function() {

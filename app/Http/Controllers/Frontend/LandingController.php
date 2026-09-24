@@ -85,6 +85,15 @@ class LandingController extends Controller
                         'values'  => $values,
                     ];
                 }
+
+                // Place Size at the very end of attributes
+                usort($structuredAttributes, function ($a, $b) {
+                    $aIsSize = strtolower($a['name']) === 'size';
+                    $bIsSize = strtolower($b['name']) === 'size';
+                    if ($aIsSize && !$bIsSize) return 1;
+                    if (!$aIsSize && $bIsSize) return -1;
+                    return 0;
+                });
             }
         }
 
@@ -152,6 +161,17 @@ class LandingController extends Controller
         $quantity = $request->filled('quantity') ? (int)$request->quantity : ((int)$request->qty ?: 1);
         $productId = $request->product_id;
         $selectedVariant = $request->varient ?: $request->color;
+        if (!$selectedVariant) {
+            $attrValues = [];
+            foreach ($request->all() as $k => $v) {
+                if (str_starts_with($k, 'attr_') && !empty($v)) {
+                    $attrValues[] = trim($v);
+                }
+            }
+            if (!empty($attrValues)) {
+                $selectedVariant = implode('-', $attrValues);
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -171,6 +191,17 @@ class LandingController extends Controller
                     $matchedStock = $product->stocks->first(function ($item) use ($selectedVariant) {
                         return strcasecmp(trim($item->varient), trim($selectedVariant)) === 0;
                     });
+
+                    // Order-independent variant matching fallback (e.g. Stitched-38 vs 38-Stitched)
+                    if (!$matchedStock) {
+                        $selParts = array_map('trim', explode('-', strtolower($selectedVariant)));
+                        sort($selParts);
+                        $matchedStock = $product->stocks->first(function ($item) use ($selParts) {
+                            $stockParts = array_map('trim', explode('-', strtolower($item->varient)));
+                            sort($stockParts);
+                            return $stockParts === $selParts;
+                        });
+                    }
                 }
 
                 // If not matched or not provided, fallback to first stock variant
@@ -200,6 +231,15 @@ class LandingController extends Controller
                                         'attribute_value' => $parts[$idx] ?? '',
                                     ];
                                 }
+
+                                // Place Size at the end of variations
+                                usort($variations, function ($a, $b) {
+                                    $aIsSize = strtolower($a['attribute_name'] ?? '') === 'size';
+                                    $bIsSize = strtolower($b['attribute_name'] ?? '') === 'size';
+                                    if ($aIsSize && !$bIsSize) return 1;
+                                    if (!$aIsSize && $bIsSize) return -1;
+                                    return 0;
+                                });
                             } else {
                                 $firstAttr = Attribute::find($attrIds[0]);
                                 if ($firstAttr) {

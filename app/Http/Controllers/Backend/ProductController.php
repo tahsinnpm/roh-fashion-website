@@ -188,15 +188,17 @@ class ProductController extends Controller
 
         /* ========= Product Attributes Start ========= */
         $attribute_values = array();
-        if($request->has('choice_attributes')){
+        if($request->has('choice_attributes') && is_array($request->choice_attributes)){
             foreach ($request->choice_attributes as $key => $attribute)
             {
                 $atr = 'choice_options'.$attribute;
                 $item['attribute_id'] = $attribute;
                 $data = array();
 
-                foreach ($request[$atr] as $key => $value) {
-                    array_push($data, $value);
+                if(isset($request[$atr]) && is_array($request[$atr])){
+                    foreach ($request[$atr] as $key => $value) {
+                        array_push($data, $value);
+                    }
                 }
 
                 $item['values'] = $data;
@@ -204,23 +206,23 @@ class ProductController extends Controller
             }
         }
 
-        if (!empty($request->choice_attributes)) {
+        if (!empty($request->choice_attributes) && is_array($request->choice_attributes)) {
             $product->attributes = json_encode($request->choice_attributes);
             $product->is_varient = 1;
 
-            if($request->has('vnames')){
+            if($request->has('vnames') && is_array($request->vnames)){
                 $i = 0;
                 foreach ($request->vnames as $key => $name){
                     $stock = ProductStock::create([
                         'product_id' => $product->id,
                         'varient'    => $name,
-                        'sku'        => $request->vskus[$i],
-                        'price'      => $request->vprices[$i],
-                        'qty'        => $request->vqtys[$i],
+                        'sku'        => $request->vskus[$i] ?? ('sku-'.$name),
+                        'price'      => $request->vprices[$i] ?? $product->regular_price,
+                        'qty'        => $request->vqtys[$i] ?? 10,
                     ]);
 
-                    $image = $request->vimages[$i];
-                    if($image){
+                    $image = isset($request->vimages[$i]) ? $request->vimages[$i] : null;
+                    if($image && ($image instanceof \Illuminate\Http\UploadedFile) && $image->isValid()){
                         $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
                         Image::make($image)->resize(438,438)->save('upload/products/variations/'.$name_gen);
                         $save_url = 'upload/products/variations/'.$name_gen;
@@ -237,6 +239,7 @@ class ProductController extends Controller
         }
         else {
             $product->attributes = json_encode(array());
+            $product->is_varient = 0;
         }
 
         $attr_values = collect($attribute_values);
@@ -456,13 +459,36 @@ class ProductController extends Controller
                     $price = $stock->id."_price";
                     $sku = $stock->id."_sku";
                     $qty = $stock->id."_qty";
-                    $image = $stock->id."_image";
+                    $image_field = $stock->id."_image";
+
+                    if (!$request->has($variant)) {
+                        try {
+                            if(!empty($stock->image) && file_exists($stock->image)){
+                                unlink($stock->image);
+                            }
+                        } catch (Exception $e) {}
+                        $stock->delete();
+                        continue;
+                    }
 
                     $stock->update([
                         'sku' => $request->$sku,
                         'price' => $request->$price,
                         'qty' => $request->$qty,
                     ]);
+
+                    if($request->hasFile($image_field)){
+                        try {
+                            if(!empty($stock->image) && file_exists($stock->image)){
+                                unlink($stock->image);
+                            }
+                        } catch (Exception $e) {}
+                        $file = $request->file($image_field);
+                        $name_gen = hexdec(uniqid()).'.'.$file->getClientOriginalExtension();
+                        Image::make($file)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                        $stock->image = 'upload/products/variations/'.$name_gen;
+                        $stock->save();
+                    }
                 }
 
             }
@@ -471,15 +497,17 @@ class ProductController extends Controller
         if($request->is_variation_changed){
             /* ========= Product Attributes Start ========= */
             $attribute_values = array();
-            if($request->has('choice_attributes')){
+            if($request->has('choice_attributes') && is_array($request->choice_attributes)){
                 foreach ($request->choice_attributes as $key => $attribute)
                 {
                     $atr = 'choice_options'.$attribute;
                     $item['attribute_id'] = $attribute;
                     $data = array();
 
-                    foreach ($request[$atr] as $key => $value) {
-                        array_push($data, $value);
+                    if(isset($request[$atr]) && is_array($request[$atr])){
+                        foreach ($request[$atr] as $key => $value) {
+                            array_push($data, $value);
+                        }
                     }
 
                     $item['values'] = $data;
@@ -487,29 +515,23 @@ class ProductController extends Controller
                 }
             }
 
-            if (!empty($request->choice_attributes)) {
+            if (!empty($request->choice_attributes) && is_array($request->choice_attributes)) {
                 $product->attributes = json_encode($request->choice_attributes);
                 $product->is_varient = 1;
 
-                if($request->has('vnames')){
+                if($request->has('vnames') && is_array($request->vnames)){
                     $i = 0;
                     foreach ($request->vnames as $key => $name){
                         $stock = ProductStock::create([
                             'product_id' => $product->id,
                             'varient'    => $name,
-                            'sku'        => $request->vskus[$i],
-                            'price'      => $request->vprices[$i],
-                            'qty'        => $request->vqtys[$i],
+                            'sku'        => $request->vskus[$i] ?? ('sku-'.$name),
+                            'price'      => $request->vprices[$i] ?? $product->regular_price,
+                            'qty'        => $request->vqtys[$i] ?? 10,
                         ]);
-//                        return $request->vimages[$i] ;
-                        if($request->vimages){
-                            $image = $request->vimages[$i];
-                        }
-                        else{
-                            $image=0;
-                        }
 
-                        if($image){
+                        $image = isset($request->vimages[$i]) ? $request->vimages[$i] : null;
+                        if($image && ($image instanceof \Illuminate\Http\UploadedFile) && $image->isValid()){
                             $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
                             Image::make($image)->resize(438,438)->save('upload/products/variations/'.$name_gen);
                             $save_url = 'upload/products/variations/'.$name_gen;
@@ -712,7 +734,10 @@ class ProductController extends Controller
     } // end method
 
     public function add_more_choice_option(Request $request) {
-        $attributes = Attribute::whereIn('id', $request->attribute_ids)->get();
+        if(!$request->has('attribute_ids') || empty($request->attribute_ids)){
+            return '';
+        }
+        $attributes = Attribute::whereIn('id', (array)$request->attribute_ids)->get();
         // dd($attributes);
         return view('backend.product.attribute_select_value',compact('attributes'));
     }

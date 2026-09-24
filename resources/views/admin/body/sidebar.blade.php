@@ -678,7 +678,7 @@
 
         <hr />
 
-        <!-- @if(Auth::guard('admin')->user()->role == '1')
+        @if(Auth::guard('admin')->user()->role == '1')
             <ul class="menu-aside">
                 <li class="menu-item has-submenu
                 {{ ($route == 'setting.index')? 'active':'' }}
@@ -696,7 +696,7 @@
                     </div>
                 </li>
             </ul>
-        @endif -->
+        @endif
     </nav>
 </aside>
 

@@ -52,7 +52,8 @@ class FrontendController extends Controller
         $start_diff2 = $campaign ? date_diff(date_create($campaign->flash_start), date_create(date('d-m-Y H:i:s'))) : null;
         $end_diff2 = $campaign ? date_diff(date_create(date('d-m-Y H:i:s')), date_create($campaign->flash_end)) : null;
 
-        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
+        // return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
+        return view('FrontEnd.home.under-construction', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
     }
 
     public function index2(Request $request)

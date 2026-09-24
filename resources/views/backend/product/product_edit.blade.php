@@ -245,9 +245,12 @@
 				                <div class="custom_select cit-multi-select">
 				                	<label for="choice_attributes" class="col-form-label" style="font-weight: bold;">Attributes:</label>
                                     <select class="form-control select-active w-100 form-select select-nice" name="choice_attributes[]" id="choice_attributes" multiple="multiple" data-placeholder="Choose Attributes">
+					                	@php
+					                		$prod_attributes = json_decode($product->attributes, true) ?: [];
+					                	@endphp
 					                	@foreach($attributes as $attribute)
-					                		@if($product->is_varient==1 && count(json_decode($product->attributes)) > 0)
-					                			<option @if(in_array($attribute->id, json_decode($product->attributes))) selected @endif value="{{ $attribute->id }}">{{ $attribute->name }}</option>
+					                		@if($product->is_varient==1 && is_array($prod_attributes) && in_array($attribute->id, $prod_attributes))
+					                			<option selected value="{{ $attribute->id }}">{{ $attribute->name }}</option>
 					                		@else
 					                			<option value="{{ $attribute->id }}">{{ $attribute->name }}</option>
 					                		@endif
@@ -258,31 +261,38 @@
 
 	                        <div class="col-md-12 mb-4">
 	                        	<div class="customer_choice_options" id="customer_choice_options">
-	                        		<div class="mb-4">
+									@if($product->is_varient==1 && is_array($prod_attributes) && count($prod_attributes) > 0)
 										@foreach ($attributes as $attribute)
-											@if($product->is_varient==1 && count(json_decode($product->attributes)) > 0)
-
-												@if(in_array($attribute->id, json_decode($product->attributes)))
-													@php
-														$attr_values = array();
-														foreach(json_decode($product->attribute_values) as $attribute_value){
-															if($attribute_value->attribute_id == $attribute->id){
-																$attr_values = $attribute_value->values;
-															}
+											@if(in_array($attribute->id, $prod_attributes))
+												@php
+													$attr_values = array();
+													$decoded_values = json_decode($product->attribute_values) ?: [];
+													foreach($decoded_values as $attribute_value){
+														if(isset($attribute_value->attribute_id) && $attribute_value->attribute_id == $attribute->id){
+															$attr_values = $attribute_value->values ?? [];
 														}
-													@endphp
-													<div class="custom_select cit-multi-select mb-4">
-														<label for="choice_attributes" class="col-form-label" style="font-weight: bold;">{{$attribute->name}} :</label>
-												    	<select class="form-control form-select js-example-basic-multiple" name="choice_options{{$attribute->id}}[]" id="choice_options{{$attribute->id}}" onchange="makeCombinationTable(this)" multiple data-placeholder="Nothing selected">
-												        	@foreach($attribute->attribute_values as $value)
-												        		<option @if(in_array($value->value, $attr_values)) selected @endif value="{{ $value->value }}">{{ $value->value }}</option>
-												       		@endforeach
-												        </select>
+													}
+												@endphp
+												<div class="attribute-choice-item mb-3 p-3 border rounded bg-white shadow-sm" id="attribute_choice_{{$attribute->id}}">
+													<div class="d-flex justify-content-between align-items-center mb-2">
+														<label class="col-form-label mb-0" style="font-weight: bold; font-size: 15px;">
+															<i class="fa fa-sliders me-1 text-primary"></i> {{$attribute->name}} :
+														</label>
+														<button type="button" class="btn btn-sm btn-outline-danger remove-attribute-btn" data-id="{{$attribute->id}}" title="Remove {{$attribute->name}}">
+															<i class="fa fa-times me-1"></i> Remove
+														</button>
 													</div>
-												@endif
+													<div class="custom_select cit-multi-select">
+														<select class="form-control form-select js-example-basic-multiple" name="choice_options{{$attribute->id}}[]" id="choice_options{{$attribute->id}}" onchange="makeCombinationTable(this)" multiple data-placeholder="Select {{$attribute->name}} values">
+															@foreach($attribute->attribute_values as $value)
+																<option @if(in_array($value->value, $attr_values)) selected @endif value="{{ $value->value }}">{{ $value->value }}</option>
+															@endforeach
+														</select>
+													</div>
+												</div>
 											@endif
 										@endforeach
-									</div>
+									@endif
 
 									<script>
 										$(document).ready(function() {
@@ -366,7 +376,7 @@
 							</div>
 
 							<!-- Product Attribute Price combination Starts -->
-							<div class="col-12 mt-2 mb-2" id="variation_wrapper">
+							<div class="col-12 mt-2 mb-2" id="variation_wrapper" @if($product->is_varient != 1 || count($product->stocks) == 0) style="display:none;" @endif>
 								<label for="" class="col-form-label" style="font-weight: bold;">Price Variation:</label>
 								<input type="hidden" id="is_variation_changed" name="is_variation_changed" value="0">
 								<table class="table table-bordered" id="combination_table">
@@ -376,7 +386,8 @@
 											<th>Price</th>
 											<th>SKU</th>
 											<th>Quantity</th>
-											<th>Photo <span class="text-danger">*</span></th>
+											<th>Photo</th>
+											<th>Action</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -387,8 +398,17 @@
 												<td><input type="text" name="{{ $stock->id }}_sku" class="form-control" required value="{{ $stock->sku }}"></td>
 												<td><input type="text" name="{{ $stock->id }}_qty" class="form-control" value="{{ $stock->qty }}" required></td>
 												<td>
-													<img src="{{ asset($stock->image) }}" alt="{{ $stock->varient }}-image" style="width: 15%; float: left;">
-													<input type="file" name="{{ $stock->id }}_image" class="form-control" style="width: 80%; float: left; margin-left: 5%;">
+													@if($stock->image)
+														<img src="{{ asset($stock->image) }}" alt="{{ $stock->varient }}-image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; float: left;">
+														<input type="file" name="{{ $stock->id }}_image" class="form-control" style="width: 75%; float: left; margin-left: 5%;">
+													@else
+														<input type="file" name="{{ $stock->id }}_image" class="form-control">
+													@endif
+												</td>
+												<td class="text-center">
+													<button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+														<i class="fa fa-trash"></i>
+													</button>
 												</td>
 											</tr>
 										@endforeach
@@ -597,66 +617,157 @@
 
 @push('footer-script')
 <script>
-
-
     function makeCombinationTable(el) {
+        let form = el ? ($(el).closest('form').length ? $(el).closest('form') : $('form')) : $('form');
+        let choiceData = form.serializeArray().filter(function (field) {
+            return field.name.includes('choice');
+        });
+
+        let hasSelectedOptions = false;
+        choiceData.forEach(function(item) {
+            if (item.name.startsWith('choice_options') && item.value) {
+                hasSelectedOptions = true;
+            }
+        });
+
+        if (!hasSelectedOptions) {
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+            $('#is_variation_changed').val(1);
+            return;
+        }
 
         $.ajax({
             url: '{{ route('admin.api.attributes.index') }}',
             type: 'get',
             dataType: 'json',
             processData: true,
-            data: $(el).closest('form').serializeArray().filter(function (field) {
-                return field.name.includes('choice');
-            }),
+            data: choiceData,
             success: function (response) {
-				console.log(response);
                 if (!response.success) {
                     return;
                 }
-				if(Object.keys(response.data).length > 0) {
-					let price = $('#regular_price').val();
-					let qty = $('#stock_qty').val();
+				if(response.data && Object.keys(response.data).length > 0) {
+					let price = $('#regular_price').val() || 0;
+					let qty = $('#stock_qty').val() || 10;
 					$('#combination_table tbody').html($.map(response.data, function (item, index) {
 						return `<tr>
 									<td>${index}<input type="hidden" name="vnames[]" class="form-control" value="${index}" required></td>
-									<td><input type="text" name="vprices[]" class="form-control vdp" value="`+price+`" required></td>
+									<td><input type="text" name="vprices[]" class="form-control vdp" value="${price}" required></td>
 									<td><input type="text" name="vskus[]" class="form-control" required value="sku-${index}"></td>
-									<td><input type="text" name="vqtys[]" class="form-control" value="10" required></td>
+									<td><input type="text" name="vqtys[]" class="form-control" value="${qty}" required></td>
 									<td><input type="file" name="vimages[]" class="form-control"></td>
+									<td class="text-center">
+										<button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+											<i class="fa fa-trash"></i>
+										</button>
+									</td>
 								</tr>`;
-					}).join());
+					}).join(''));
 					$('#variation_wrapper').show();
 					$('#is_variation_changed').val(1);
 				}else{
-					$('#combination_table tbody').html();
+					$('#combination_table tbody').empty();
+					$('#variation_wrapper').hide();
+					$('#is_variation_changed').val(1);
 				}
-
             }
         });
     }
-</script>
-<!-- Attribute -->
-<script type="text/javascript">
-	function add_more_customer_choice_option(i, name){
+
+	function add_more_customer_choice_option(ids){
+        if (!ids || ids.length === 0) {
+            return;
+        }
         $.ajax({
             type:"POST",
             url:'{{ route('products.add-more-choice-option') }}',
             data:{
-               attribute_ids: i,
+               attribute_ids: ids,
                _token:  "{{ csrf_token() }}"
             },
             success: function(data) {
                 $('#customer_choice_options').append(data);
+                $('.js-example-basic-multiple').select2();
            }
        });
     }
 
 	$('#choice_attributes').on('change', function() {
-        $('#customer_choice_options').html(null);
+        let selectedAttributes = $(this).val() || [];
 
-    	$('#choice_attributes').val();
-    	add_more_customer_choice_option($(this).val(), $(this).text());
+        // Remove attribute containers that were deselected
+        $('#customer_choice_options .attribute-choice-item').each(function() {
+            let attrId = $(this).attr('id').replace('attribute_choice_', '');
+            if (!selectedAttributes.includes(attrId) && !selectedAttributes.includes(parseInt(attrId))) {
+                $(this).remove();
+            }
+        });
+
+        // Find which selected attributes are not yet rendered
+        let newAttributeIds = [];
+        selectedAttributes.forEach(function(id) {
+            if ($('#attribute_choice_' + id).length === 0) {
+                newAttributeIds.push(id);
+            }
+        });
+
+        $('#is_variation_changed').val(1);
+
+        if (newAttributeIds.length > 0) {
+            $.ajax({
+                type: "POST",
+                url: '{{ route('products.add-more-choice-option') }}',
+                data: {
+                    attribute_ids: newAttributeIds,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(data) {
+                    $('#customer_choice_options').append(data);
+                    $('.js-example-basic-multiple').select2();
+                    makeCombinationTable($('#customer_choice_options'));
+                }
+            });
+        } else {
+            makeCombinationTable($('#customer_choice_options'));
+        }
+
+        if (selectedAttributes.length === 0) {
+            $('#customer_choice_options').empty();
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+        }
+    });
+
+    // Remove single attribute on button click
+    $(document).on('click', '.remove-attribute-btn', function(e) {
+        e.preventDefault();
+        let attrId = $(this).data('id').toString();
+        $('#attribute_choice_' + attrId).remove();
+
+        let currentVals = $('#choice_attributes').val() || [];
+        currentVals = currentVals.filter(function(id) {
+            return id.toString() !== attrId;
+        });
+        $('#choice_attributes').val(currentVals).trigger('change.select2');
+        $('#is_variation_changed').val(1);
+
+        if (currentVals.length > 0 && $('#customer_choice_options select').length > 0) {
+            makeCombinationTable($('#customer_choice_options'));
+        } else {
+            $('#combination_table tbody').empty();
+            $('#variation_wrapper').hide();
+        }
+    });
+
+    // Remove single variant row on button click
+    $(document).on('click', '.remove-variant-btn', function(e) {
+        e.preventDefault();
+        $(this).closest('tr').remove();
+        $('#is_variation_changed').val(1);
+        if ($('#combination_table tbody tr').length === 0) {
+            $('#variation_wrapper').hide();
+        }
     });
 
     $('#regular_price').on('keyup', function() {
