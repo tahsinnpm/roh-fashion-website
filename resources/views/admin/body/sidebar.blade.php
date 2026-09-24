@@ -1,6 +1,6 @@
 @php
-  $prefix = Request::route()->getPrefix();
-  $route = Route::current()->getName();
+  $prefix = Request::route() ? Request::route()->getPrefix() : '';
+  $route = Route::current() ? Route::current()->getName() : '';
 @endphp
 
 <style>
@@ -359,6 +359,17 @@
                     @if(Auth::guard('admin')->user()->role == '1' || in_array('9', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
                         <a class="{{ ($prefix == 'admin/brand') ? 'active':'' }}" href="{{ route('brand.all') }}">Brands</a>
                     @endif -->
+                </div>
+            </li>
+
+            <li class="menu-item has-submenu {{ ($prefix == 'admin/landing-page') ? 'active' : '' }}">
+                <a class="menu-link" href="#">
+                    <i class="fa-solid fa-file-invoice fontawesome_icon_custom"></i>
+                    <span class="text">Landing Page</span>
+                </a>
+                <div class="submenu">
+                    <a class="{{ ($route == 'landing.page.index') ? 'active':'' }}" href="{{ route('landing.page.index') }}">Landing Page List</a>
+                    <a class="{{ ($route == 'landing.page.create') ? 'active':'' }}" href="{{ route('landing.page.create') }}">Create Landing Page</a>
                 </div>
             </li>
 

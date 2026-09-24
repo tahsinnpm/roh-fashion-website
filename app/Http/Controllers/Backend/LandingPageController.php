@@ -137,7 +137,7 @@ class LandingPageController extends Controller
         } elseif ($request->filled('existing_slider_images')) {
             $sliderImages = is_array($request->existing_slider_images)
                 ? $request->existing_slider_images
-                : json_decode($request->existing_slider_images, true) ?: [];
+                : (json_decode($request->existing_slider_images, true) ?: []);
         }
 
         // Fallback to product images if none uploaded

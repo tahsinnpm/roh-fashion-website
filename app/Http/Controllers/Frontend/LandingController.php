@@ -14,6 +14,7 @@ use App\Models\District;
 use App\Models\AccountLedger;
 use App\Models\Affiliate;
 use App\Models\Attribute;
+use App\Models\LandingPage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,94 @@ class LandingController extends Controller
         $shippings = Shipping::where('status', 1)->get();
 
         return view('FrontEnd.landing.turbo-fan', compact('product', 'shipping_inside', 'shipping_outside', 'shippings'));
+    }
+
+    /**
+     * Display dynamic custom landing page by slug.
+     */
+    public function showDynamicLanding($slug)
+    {
+        $landingPage = LandingPage::with(['product.stocks', 'product.category', 'product.brand', 'product.multi_imgs'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $product = $landingPage->product;
+        if (!$product) {
+            abort(404, 'Product not found');
+        }
+
+        // Parse attributes and values
+        $structuredAttributes = [];
+        if ($product->is_varient == 1 && !empty($product->attributes)) {
+            $attrIds = is_array($product->attributes) ? $product->attributes : json_decode($product->attributes, true);
+            $attrValues = is_array($product->attribute_values) ? $product->attribute_values : json_decode($product->attribute_values, true);
+
+            if (!empty($attrIds) && is_array($attrIds)) {
+                foreach ($attrIds as $attrId) {
+                    $attrModel = Attribute::find($attrId);
+                    $values = [];
+                    if (!empty($attrValues) && is_array($attrValues)) {
+                        foreach ($attrValues as $valObj) {
+                            if (isset($valObj['attribute_id']) && $valObj['attribute_id'] == $attrId) {
+                                $values = $valObj['values'] ?? [];
+                                break;
+                            }
+                        }
+                    }
+
+                    $attrNameEn = $attrModel ? $attrModel->name : 'Attribute';
+                    $attrNameBn = $attrNameEn;
+                    if (strtolower($attrNameEn) == 'size') $attrNameBn = 'সাইজ';
+                    elseif (strtolower($attrNameEn) == 'fabric') $attrNameBn = 'ফ্যাব্রিক';
+                    elseif (strtolower($attrNameEn) == 'color') $attrNameBn = 'কালার';
+
+                    $structuredAttributes[] = [
+                        'id'      => $attrId,
+                        'name'    => $attrNameEn,
+                        'name_bn' => $attrNameBn,
+                        'values'  => $values,
+                    ];
+                }
+            }
+        }
+
+        $productStocks = $product->stocks;
+
+        $delivery_inside = (float)($landingPage->delivery_charge_dhaka ?? 70.00);
+        $delivery_outside = (float)($landingPage->delivery_charge_outside ?? 120.00);
+
+        $sliderImages = $landingPage->slider_images ?: [];
+        if (empty($sliderImages)) {
+            if ($product->product_thumbnail) {
+                $sliderImages[] = $product->product_thumbnail;
+            }
+            if ($product->multi_imgs) {
+                foreach ($product->multi_imgs as $m) {
+                    $sliderImages[] = $m->photo_name;
+                }
+            }
+        }
+
+        $overviewImage = $landingPage->overview_image ?: ($sliderImages[0] ?? $product->product_thumbnail);
+        $features = $landingPage->features ?: ['ক্যাশ অন ডেলিভারি', 'সারাদেশে ডেলিভারি', 'এক্সচেঞ্জ সুবিধা'];
+        $overviewPoints = $landingPage->overview_points ?: [];
+        $reviews = $landingPage->reviews ?: [];
+        $faqs = $landingPage->faqs ?: [];
+
+        return view('FrontEnd.landing.dynamic', compact(
+            'landingPage',
+            'product',
+            'structuredAttributes',
+            'productStocks',
+            'delivery_inside',
+            'delivery_outside',
+            'sliderImages',
+            'overviewImage',
+            'features',
+            'overviewPoints',
+            'reviews',
+            'faqs'
+        ));
     }
 
     /**
@@ -97,24 +186,43 @@ class LandingController extends Controller
                     }
                     $variantName = $matchedStock->varient;
 
-                    // Get Attribute name or default to 'Color'
                     $attributeName = 'Color';
+                    $variations = [];
                     if (!empty($product->attributes)) {
                         $attrIds = is_array($product->attributes) ? $product->attributes : json_decode($product->attributes, true);
                         if (!empty($attrIds) && is_array($attrIds)) {
-                            $firstAttr = Attribute::find($attrIds[0]);
-                            if ($firstAttr) {
-                                $attributeName = $firstAttr->name;
+                            $parts = explode('-', $variantName);
+                            if (count($parts) === count($attrIds)) {
+                                foreach ($attrIds as $idx => $aId) {
+                                    $attrModel = Attribute::find($aId);
+                                    $variations[] = [
+                                        'attribute_name'  => $attrModel ? $attrModel->name : 'Attribute ' . $aId,
+                                        'attribute_value' => $parts[$idx] ?? '',
+                                    ];
+                                }
+                            } else {
+                                $firstAttr = Attribute::find($attrIds[0]);
+                                if ($firstAttr) {
+                                    $attributeName = $firstAttr->name;
+                                }
+                                $variations = [
+                                    [
+                                        'attribute_name'  => $attributeName,
+                                        'attribute_value' => $variantName,
+                                    ]
+                                ];
                             }
                         }
                     }
 
-                    $variations = [
-                        [
-                            'attribute_name'  => $attributeName,
-                            'attribute_value' => $variantName,
-                        ]
-                    ];
+                    if (empty($variations)) {
+                        $variations = [
+                            [
+                                'attribute_name'  => $attributeName,
+                                'attribute_value' => $variantName,
+                            ]
+                        ];
+                    }
                 }
             }
 

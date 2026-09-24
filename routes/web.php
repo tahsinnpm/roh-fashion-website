@@ -245,9 +245,9 @@ Route::POST('/subscribers/store', [SubscriberController::class, 'store'])->name(
 // Compare
 Route::post('/become-a-seller', [FrontendController::class, 'becomeaseller'])->name('become.a.seller');
 
-Route::get('/compare', 'CompareController@index')->name('compare');
-Route::get('/compare/reset', 'CompareController@reset')->name('compare.reset');
-Route::post('/compare/addToCompare', 'CompareController@addToCompare')->name('compare.addToCompare');
+Route::get('/compare', [CompareController::class, 'index'])->name('compare');
+Route::get('/compare/reset', [CompareController::class, 'reset'])->name('compare.reset');
+Route::post('/compare/addToCompare', [CompareController::class, 'addToCompare'])->name('compare.addToCompare');
 
 Route::get('/contact',[ContactController::class, 'index'])->name('contact.index');
 Route::post('/creat-contact',[ContactController::class, 'newcontact'])->name('new-contact');
@@ -273,5 +273,7 @@ Route::post('/landing/order/store', [LandingController::class, 'orderStore'])->n
 
 Route::get('/landing/turbo-fan-offer', [LandingController::class, 'turboFanOffer'])->name('turbo-fan-offer');
 Route::post('/landing/turbo-fan-offer/store', [LandingController::class, 'turboFanOfferOrderStore'])->name('landing.turbo-fan-offer.store');
+
+Route::get('/landing/{slug}', [LandingController::class, 'showDynamicLanding'])->name('landing.dynamic');
 
 require __DIR__.'/auth.php';

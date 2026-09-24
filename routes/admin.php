@@ -9,6 +9,7 @@ use App\Http\Controllers\Backend\BrandController;
 use App\Http\Controllers\Backend\CampaingController;
 use App\Http\Controllers\Backend\CategoryController;
 use App\Http\Controllers\Backend\CouponController;
+use App\Http\Controllers\Backend\LandingPageController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
 use App\Http\Controllers\Backend\PaymentMethodController;
@@ -108,6 +109,7 @@ Route::prefix($prefix)->middleware('admin')->group(function(){
 		Route::get('/supplier_inactive/{id}', [SupplierController::class, 'inactive'])->name('supplier.in_active');
 	});
 
+	/*
 	// Admin Tags All Routes
 	Route::prefix('tag')->group(function(){
 		Route::get('/view', [TagController::class, 'TagView'])->name('tag.all');
@@ -118,8 +120,8 @@ Route::prefix($prefix)->middleware('admin')->group(function(){
 		Route::get('/delete/{id}', [TagController::class, 'TagDelete'])->name('tag.delete');
 		Route::get('/tag_active/{id}', [TagController::class, 'active'])->name('tag.active');
 		Route::get('/tag_inactive/{id}', [TagController::class, 'inactive'])->name('tag.in_active');
-
 	});
+	*/
 
 	// Admin Product All Routes
 	Route::prefix('product')->group(function(){
@@ -425,6 +427,18 @@ Route::middleware('adminAccess')->group(function(){
 
     //return request update
     Route::post('return-request/update', [ReturnRequestController::class, 'update'])->name('return-request.update');
+
+    // Landing Page Routes
+    Route::prefix('landing-page')->group(function(){
+        Route::get('/list', [LandingPageController::class, 'index'])->name('landing.page.index');
+        Route::get('/create', [LandingPageController::class, 'create'])->name('landing.page.create');
+        Route::post('/store', [LandingPageController::class, 'store'])->name('landing.page.store');
+        Route::get('/edit/{id}', [LandingPageController::class, 'edit'])->name('landing.page.edit');
+        Route::post('/update/{id}', [LandingPageController::class, 'update'])->name('landing.page.update');
+        Route::get('/delete/{id}', [LandingPageController::class, 'destroy'])->name('landing.page.destroy');
+        Route::get('/change-status/{id}', [LandingPageController::class, 'changeStatus'])->name('landing.page.change_status');
+        Route::get('/ajax/product-details/{id}', [LandingPageController::class, 'ajaxProductDetails'])->name('landing.page.ajax.product');
+    });
 
 });
 
