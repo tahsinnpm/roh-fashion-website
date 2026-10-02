@@ -99,19 +99,28 @@ class LandingController extends Controller
 
         $productStocks = $product->stocks;
 
-        $delivery_inside = (float)($landingPage->delivery_charge_dhaka ?? 70.00);
-        $delivery_outside = (float)($landingPage->delivery_charge_outside ?? 120.00);
+        // Fetch dynamic shipping rates from database (website shipping charge)
+        $shipping_inside = Shipping::where('type', 1)->where('status', 1)->first();
+        $shipping_outside = Shipping::where('type', 2)->where('status', 1)->first();
+        $shippings = Shipping::where('status', 1)->get();
 
-        $sliderImages = $landingPage->slider_images ?: [];
-        if (empty($sliderImages)) {
-            if ($product->product_thumbnail) {
-                $sliderImages[] = $product->product_thumbnail;
-            }
-            if ($product->multi_imgs) {
-                foreach ($product->multi_imgs as $m) {
+        $delivery_inside = $shipping_inside ? (float)$shipping_inside->shipping_charge : (float)($landingPage->delivery_charge_dhaka ?? 80.00);
+        $delivery_outside = $shipping_outside ? (float)$shipping_outside->shipping_charge : (float)($landingPage->delivery_charge_outside ?? 150.00);
+
+        // Slide images strictly from product primary image & multi-images first
+        $sliderImages = [];
+        if ($product->product_thumbnail) {
+            $sliderImages[] = $product->product_thumbnail;
+        }
+        if ($product->multi_imgs && $product->multi_imgs->count() > 0) {
+            foreach ($product->multi_imgs as $m) {
+                if (!empty($m->photo_name) && !in_array($m->photo_name, $sliderImages)) {
                     $sliderImages[] = $m->photo_name;
                 }
             }
+        }
+        if (empty($sliderImages) && !empty($landingPage->slider_images)) {
+            $sliderImages = is_array($landingPage->slider_images) ? $landingPage->slider_images : (json_decode($landingPage->slider_images, true) ?: []);
         }
 
         $overviewImage = $landingPage->overview_image ?: ($sliderImages[0] ?? $product->product_thumbnail);
@@ -127,6 +136,9 @@ class LandingController extends Controller
             'productStocks',
             'delivery_inside',
             'delivery_outside',
+            'shipping_inside',
+            'shipping_outside',
+            'shippings',
             'sliderImages',
             'overviewImage',
             'features',
@@ -210,10 +222,12 @@ class LandingController extends Controller
                 }
 
                 if ($matchedStock) {
-                    if ($product->discount_price > 0) {
-                        $unitPrice = (float)$product->discount_price;
-                    } elseif ($matchedStock->price > 0) {
+                    if ($matchedStock->price > 0) {
                         $unitPrice = (float)$matchedStock->price;
+                    } elseif ($product->discount_price > 0) {
+                        $unitPrice = (float)$product->discount_price;
+                    } else {
+                        $unitPrice = (float)$product->regular_price;
                     }
                     $variantName = $matchedStock->varient;
 
@@ -383,11 +397,11 @@ class LandingController extends Controller
                 'invoice_no'      => $invoiceNo,
                 'delivery_status' => 'pending',
                 'phone'           => $request->phone,
-                'email'           => $request->email ?: null,
+                'email'           => $request->filled('email') ? trim($request->email) : null,
                 'division_id'     => $divisionId,
                 'district_id'     => $districtId,
                 'upazilla_id'     => null,
-                'address'         => $request->address . ($request->area ? ', ' . $request->area : '') . ($request->district ? ', ' . $request->district : ''),
+                'address'         => trim($request->address),
                 'comment'         => $request->comment,
                 'coupon'          => null,
                 'type'            => $type,

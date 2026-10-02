@@ -83,7 +83,15 @@
                             	@foreach ($orders as $key => $order)
                                 <tr>
                                     <td>{{ $order->invoice_no }}</td>
-                                    <td><b>{{ $order->name }}</b></td>
+                                    <td>
+                                        <b class="text-dark">{{ $order->name }}</b>
+                                        @if(!empty($order->phone))
+                                            <br><small class="text-primary"><i class="fa fa-phone me-1"></i>{{ $order->phone }}</small>
+                                        @endif
+                                        @if(!empty($order->address))
+                                            <br><small class="text-muted" title="{{ $order->address }}"><i class="fa fa-map-marker-alt text-danger me-1"></i>{{ Str::limit($order->address, 55) }}</small>
+                                        @endif
+                                    </td>
                                     <td>
                                         {{$order->grand_total}}
 {{--                                        <?php--}}

@@ -109,14 +109,15 @@
                             <i class="text-primary material-icons md-place"></i>
                         </span>
                             <div class="text">
-                                <h6 class="mb-1">Deliver to</h6>
-                                <p class="mb-1">
-                                    City: {{ ucwords($order->upazilla->name_en ?? 'Null' ) }}, <br />{{ ucwords($order->district->district_name_en ?? 'Null') }},<br />
-                                    {{ ucwords($order->division->division_name_en ?? 'Null') }}
+                                <h6 class="mb-1 text-primary"><i class="material-icons md-place" style="font-size: 16px; vertical-align: middle;"></i> Delivery Address</h6>
+                                <p class="mb-1 fw-bold text-dark" style="font-size: 15px; line-height: 1.5; word-break: break-word;">
+                                    {{ $order->address ?: 'No address specified' }}
                                 </p>
-                                <!-- <a  href="#" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{ $order->id }}">Edit Address</a> -->
-
-
+                                @if($order->upazilla || $order->district || $order->division)
+                                    <small class="text-muted d-block mt-1">
+                                        {{ ucwords($order->upazilla->name_en ?? '') }}{{ $order->district ? ', ' . ucwords($order->district->district_name_en) : '' }}{{ $order->division ? ', ' . ucwords($order->division->division_name_en) : '' }}
+                                    </small>
+                                @endif
                             </div>
                         </article>
                     </div>
@@ -133,34 +134,38 @@
                                     <td><input type="" class="form-control" name="email" value="{{ $order->email ?? 'Null'}}"></td>
                                 </tr>
                                 <tr>
-                                    <th class="col-2">Shipping Address</th>
+                                    <th class="col-2">Delivery Address <span class="text-danger">*</span></th>
+                                    <td colspan="3">
+                                        <textarea class="form-control" name="address" rows="3" placeholder="সম্পূর্ণ ডেলিভারি ঠিকানা">{{ $order->address }}</textarea>
+                                    </td>
+                                </tr>
+                                <tr class="bg-light">
+                                    <th class="col-2 text-muted small">Area / Location (Optional)</th>
                                     <td>
-                                        <label for="division_id" class="fw-bold text-black"><span class="text-danger">*</span> Division</label>
-                                        <select class="form-control select-active"  name="division_id" id="division_id" required>
+                                        <label for="division_id" class="small text-muted">Division</label>
+                                        <select class="form-control form-select select-active" name="division_id" id="division_id">
                                             <option value="">Select Division</option>
-
                                             @foreach(get_divisions($order->division_id) as $division)
                                                 <option value="{{ $division->id }}" {{ $division->id == $order->division_id ? 'selected': '' }}>{{ ucwords($division->division_name_en) }}</option>
                                             @endforeach
                                         </select>
                                     </td>
                                     <td>
-                                        <label for="district_id" class="fw-bold text-black"><span class="text-danger">*</span> District</label>
-                                        <select class="form-control select-active" name="district_id" id="district_id" required>
-                                            <option selected=""  value="">Select District</option>
+                                        <label for="district_id" class="small text-muted">District</label>
+                                        <select class="form-control form-select select-active" name="district_id" id="district_id">
+                                            <option value="">Select District</option>
                                             @foreach(get_district_by_division_id($order->division_id) as $district)
                                                 <option value="{{ $district->id }}" {{ $district->id == $order->district_id ? 'selected': '' }}>{{ ucwords($district->district_name_en) }}</option>
                                             @endforeach
                                         </select>
                                     </td>
                                     <td>
-                                        <label for="upazilla_id" class="fw-bold text-black"><span class="text-danger">*</span> Upazilla</label>
-                                        <select class="form-control select-active" name="upazilla_id" id="upazilla_id" required>
-                                            <option selected=""  value="">Select Upazilla</option>
+                                        <label for="upazilla_id" class="small text-muted">Upazilla</label>
+                                        <select class="form-control form-select select-active" name="upazilla_id" id="upazilla_id">
+                                            <option value="">Select Upazilla</option>
                                             @foreach(get_upazilla_by_district_id($order->district_id) as $upazilla)
                                                 <option value="{{ $upazilla->id }}" {{ $upazilla->id == $order->upazilla_id ? 'selected': '' }}>{{ ucwords($upazilla->name_en) }}</option>
                                             @endforeach
-
                                         </select>
                                     </td>
                                 </tr>

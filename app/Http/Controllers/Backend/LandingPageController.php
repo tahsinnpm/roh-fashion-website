@@ -8,6 +8,7 @@ use App\Models\LandingPage;
 use App\Models\Product;
 use App\Models\Attribute;
 use App\Models\MultiImg;
+use App\Models\Shipping;
 use Illuminate\Support\Str;
 use Image;
 use Session;
@@ -252,12 +253,43 @@ class LandingPageController extends Controller
             $discountText = $pct . '% ছাড়';
         }
 
+        $shippingDhaka = Shipping::where('type', 1)->value('shipping_charge') ?? 80.00;
+        // Process steps and guarantee into about_cards
+        $steps = [];
+        if ($request->filled('steps') && is_array($request->steps)) {
+            foreach ($request->steps as $stp) {
+                if (!empty($stp['title'])) {
+                    $steps[] = [
+                        'title' => $stp['title'],
+                        'desc'  => $stp['desc'] ?? '',
+                    ];
+                }
+            }
+        }
+        if (empty($steps)) {
+            $steps = [
+                ['title' => 'ফর্ম পূরণ করুন', 'desc' => 'নাম, ফোন, ঠিকানা — ৩০ সেকেন্ড'],
+                ['title' => 'কনফার্মেশন কল', 'desc' => 'আমরা কল দিয়ে নিশ্চিত করব'],
+                ['title' => 'হাতে পেয়ে টাকা', 'desc' => 'খুলে দেখে তারপর পেমেন্ট'],
+            ];
+        }
+
+        $aboutCards = [
+            'steps'           => $steps,
+            'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
+            'guarantee_desc'  => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+        ];
+
         LandingPage::create([
             'product_id'             => $product->id,
             'title'                  => $request->title,
             'slug'                   => $slug,
             'sub_title'              => $request->sub_title ?? ($product->name_bn ?: $product->name_en),
-            'theme_color'            => $request->theme_color ?: '#275b57',
+            'theme_color'            => $request->theme_color ?: '#880e4f',
+            'btn_color'              => $request->btn_color ?: '#E0B04A',
+            'btn_text_color'         => $request->btn_text_color ?: '#2B1C06',
+            'bg_color'               => $request->bg_color ?: '#1F0A0F',
+            'top_notice'             => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
             'hero_tag'               => $request->hero_tag ?: 'PREMIUM COLLECTION',
             'slider_images'          => $sliderImages,
             'video_url'              => $request->video_url,
@@ -266,15 +298,16 @@ class LandingPageController extends Controller
             'discount_text'          => $discountText,
             'stock_text'             => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
             'features'               => $features,
-            'overview_title'         => $request->overview_title ?: 'Product Full Overview',
+            'overview_title'         => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
             'overview_sub_title'     => $request->overview_sub_title ?: 'প্রোডাক্ট সম্পর্কে দরকারি তথ্য এক জায়গায়।',
             'overview_image'         => $overviewImagePath,
             'overview_text'          => $request->overview_text ?: ($product->description_en ?: $product->description_bn),
             'overview_points'        => $overviewPoints,
+            'about_cards'            => $aboutCards,
             'reviews'                => $reviews,
             'faqs'                   => $faqs,
-            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : 70.00,
-            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : 120.00,
+            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : $shippingDhaka,
+            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : $shippingOutside,
             'status'                 => $request->has('status') ? (int)$request->status : 1,
         ]);
 
@@ -406,12 +439,46 @@ class LandingPageController extends Controller
             $discountText = $pct . '% ছাড়';
         }
 
+        $shippingDhaka = Shipping::where('type', 1)->value('shipping_charge') ?? 80.00;
+        $shippingOutside = Shipping::where('type', 2)->value('shipping_charge') ?? 150.00;
+
+        // Process steps and guarantee into about_cards
+        $steps = [];
+        if ($request->filled('steps') && is_array($request->steps)) {
+            foreach ($request->steps as $stp) {
+                if (!empty($stp['title'])) {
+                    $steps[] = [
+                        'title' => $stp['title'],
+                        'desc'  => $stp['desc'] ?? '',
+                    ];
+                }
+            }
+        }
+        if (empty($steps)) {
+            $existingAbout = is_array($landingPage->about_cards) ? $landingPage->about_cards : [];
+            $steps = $existingAbout['steps'] ?? [
+                ['title' => 'ফর্ম পূরণ করুন', 'desc' => 'নাম, ফোন, ঠিকানা — ৩০ সেকেন্ড'],
+                ['title' => 'কনফার্মেশন কল', 'desc' => 'আমরা কল দিয়ে নিশ্চিত করব'],
+                ['title' => 'হাতে পেয়ে টাকা', 'desc' => 'খুলে দেখে তারপর পেমেন্ট'],
+            ];
+        }
+
+        $aboutCards = [
+            'steps'           => $steps,
+            'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
+            'guarantee_desc'  => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+        ];
+
         $landingPage->update([
             'product_id'             => $product->id,
             'title'                  => $request->title,
             'slug'                   => Str::slug($request->slug),
             'sub_title'              => $request->sub_title,
-            'theme_color'            => $request->theme_color ?: '#275b57',
+            'theme_color'            => $request->theme_color ?: '#880e4f',
+            'btn_color'              => $request->btn_color ?: '#E0B04A',
+            'btn_text_color'         => $request->btn_text_color ?: '#2B1C06',
+            'bg_color'               => $request->bg_color ?: '#1F0A0F',
+            'top_notice'             => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
             'hero_tag'               => $request->hero_tag,
             'slider_images'          => $sliderImages,
             'video_url'              => $request->video_url,
@@ -420,15 +487,16 @@ class LandingPageController extends Controller
             'discount_text'          => $discountText,
             'stock_text'             => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
             'features'               => $features,
-            'overview_title'         => $request->overview_title,
+            'overview_title'         => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
             'overview_sub_title'     => $request->overview_sub_title,
             'overview_image'         => $overviewImagePath,
             'overview_text'          => $request->overview_text,
             'overview_points'        => $overviewPoints,
+            'about_cards'            => $aboutCards,
             'reviews'                => $reviews,
             'faqs'                   => $faqs,
-            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : 70.00,
-            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : 120.00,
+            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : ($landingPage->delivery_charge_dhaka ?: $shippingDhaka),
+            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : ($landingPage->delivery_charge_outside ?: $shippingOutside),
             'status'                 => $request->has('status') ? (int)$request->status : 0,
         ]);
 

@@ -168,21 +168,23 @@ class OrderController extends Controller
         ]);
         $order = Order::findOrFail($id);
 
-        $order->division_id = $request->division_id;
-        $order->district_id = $request->district_id;
-        $order->upazilla_id = $request->upazilla_id;
+        if ($request->has('address')) {
+            $order->address = $request->address;
+        }
+        $order->division_id = $request->division_id ?: null;
+        $order->district_id = $request->district_id ?: null;
+        $order->upazilla_id = $request->upazilla_id ?: null;
         $order->payment_method = $request->payment_method;
-//        $order->payment_status = $request->status;
+        if ($request->filled('email')) {
+            $order->email = $request->email;
+        }
 
         $discount_total = ($order->sub_total - $request->discount);
         $total_ammount = ($discount_total + $request->shipping_charge);
 
-        Order::where('id', $id)->update([
-            'shipping_charge'   => $request->shipping_charge,
-            'discount'          => $request->discount,
-            'grand_total'       => $total_ammount,
-        ]);
-
+        $order->shipping_charge = $request->shipping_charge;
+        $order->discount        = $request->discount;
+        $order->grand_total     = $total_ammount;
         $order->save();
 
         Session::flash('success','Admin Orders Information Updated Successfully');

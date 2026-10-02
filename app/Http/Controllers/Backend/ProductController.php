@@ -206,11 +206,12 @@ class ProductController extends Controller
             }
         }
 
-        if (!empty($request->choice_attributes) && is_array($request->choice_attributes)) {
-            $product->attributes = json_encode($request->choice_attributes);
-            $product->is_varient = 1;
+        $hasVariants = ($request->has('vnames') && is_array($request->vnames) && count($request->vnames) > 0);
+        if (!empty($request->choice_attributes) || $hasVariants) {
+            $product->attributes = json_encode($request->choice_attributes ?? []);
+            $product->is_varient = $hasVariants ? 1 : 0;
 
-            if($request->has('vnames') && is_array($request->vnames)){
+            if($hasVariants){
                 $i = 0;
                 foreach ($request->vnames as $key => $name){
                     $stock = ProductStock::create([
@@ -472,6 +473,7 @@ class ProductController extends Controller
                     }
 
                     $stock->update([
+                        'varient' => $request->$variant ?? $stock->varient,
                         'sku' => $request->$sku,
                         'price' => $request->$price,
                         'qty' => $request->$qty,
@@ -490,6 +492,33 @@ class ProductController extends Controller
                         $stock->save();
                     }
                 }
+
+                // Also handle any newly added variants in edit mode
+                if($request->has('new_vnames') && is_array($request->new_vnames)){
+                    foreach ($request->new_vnames as $k => $newName){
+                        if(!empty($newName)){
+                            $newStock = ProductStock::create([
+                                'product_id' => $product->id,
+                                'varient'    => $newName,
+                                'sku'        => $request->new_vskus[$k] ?? ('sku-'.Str::slug($newName)),
+                                'price'      => $request->new_vprices[$k] ?? $product->regular_price,
+                                'qty'        => $request->new_vqtys[$k] ?? 10,
+                            ]);
+
+                            if($request->hasFile("new_vimages.$k")){
+                                $file = $request->file("new_vimages.$k");
+                                $name_gen = hexdec(uniqid()).'.'.$file->getClientOriginalExtension();
+                                Image::make($file)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                                $newStock->image = 'upload/products/variations/'.$name_gen;
+                                $newStock->save();
+                            }
+                        }
+                    }
+                }
+
+                $remainingStocksCount = ProductStock::where('product_id', $product->id)->count();
+                $product->is_varient = $remainingStocksCount > 0 ? 1 : 0;
+                $product->save();
 
             }
         }
@@ -515,9 +544,10 @@ class ProductController extends Controller
                 }
             }
 
-            if (!empty($request->choice_attributes) && is_array($request->choice_attributes)) {
-                $product->attributes = json_encode($request->choice_attributes);
-                $product->is_varient = 1;
+            $hasVariants = ($request->has('vnames') && is_array($request->vnames) && count($request->vnames) > 0);
+            if (!empty($request->choice_attributes) || $hasVariants) {
+                $product->attributes = json_encode($request->choice_attributes ?? []);
+                $product->is_varient = $hasVariants ? 1 : 0;
 
                 if($request->has('vnames') && is_array($request->vnames)){
                     $i = 0;

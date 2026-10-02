@@ -45,6 +45,21 @@
         padding: 16px;
         display: none;
     }
+    .color-preview-box {
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    .color-preview-btn {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
 </style>
 
 <section class="content-main">
@@ -116,7 +131,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Hero & Basic Settings -->
+                <!-- 2. Page & Hero Settings -->
                 <div class="section-card">
                     <div class="section-card-header">
                         <i class="fa fa-desktop text-primary"></i> 2. Page & Hero Section
@@ -125,75 +140,135 @@
                         <div class="row">
                             <div class="col-md-7 mb-3">
                                 <label class="form-label fw-bold">Landing Page Title <span class="text-danger">*</span></label>
-                                <input type="text" name="title" id="page_title" class="form-control" placeholder="e.g. Premium Designer Saree" value="{{ old('title') }}" required>
+                                <input type="text" name="title" id="page_title" class="form-control" placeholder="e.g. Premium Designer Dress" value="{{ old('title') }}" required>
                             </div>
                             <div class="col-md-5 mb-3">
                                 <label class="form-label fw-bold">URL Slug <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text small bg-light text-muted">/landing/</span>
-                                    <input type="text" name="slug" id="page_slug" class="form-control" placeholder="designer-saree" value="{{ old('slug') }}">
+                                    <input type="text" name="slug" id="page_slug" class="form-control" placeholder="designer-dress" value="{{ old('slug') }}">
                                 </div>
                             </div>
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Hero Sub-title / Tagline</label>
-                                <textarea name="sub_title" id="sub_title" class="form-control" rows="2" placeholder="সিম্পল, এলিগ্যান্ট এবং প্রিমিয়াম লুক। পার্টি, ওয়েডিং ও বিশেষ দিনের জন্য বাছাই করা ডিজাইন।">{{ old('sub_title') }}</textarea>
+                                <label class="form-label fw-bold">Top Announcement Bar Text</label>
+                                <input type="text" name="top_notice" class="form-control" placeholder="✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন" value="{{ old('top_notice', '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন') }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Hero Tag (Top Badge)</label>
                                 <input type="text" name="hero_tag" id="hero_tag" class="form-control" placeholder="e.g. ROH CLOTHS · PREMIUM COLLECTION" value="{{ old('hero_tag', 'ROH CLOTHS · PREMIUM COLLECTION') }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Theme Primary Color</label>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="color" name="theme_color" id="theme_color" class="form-control form-control-color" value="{{ old('theme_color', '#275b57') }}" title="Choose theme color">
-                                    <input type="text" id="theme_color_text" class="form-control font-monospace" value="{{ old('theme_color', '#275b57') }}" readonly style="width: 120px;">
-                                </div>
+                                <label class="form-label fw-bold">Video Embed URL (Optional)</label>
+                                <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('video_url') }}">
                             </div>
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Video Embed URL (Optional)</label>
-                                <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/embed/..." value="{{ old('video_url') }}">
-                                <small class="text-muted">Provide a YouTube embed or video link if you want to feature a product video.</small>
+                                <label class="form-label fw-bold">Hero Sub-title / Tagline</label>
+                                <textarea name="sub_title" id="sub_title" class="form-control" rows="2" placeholder="সিম্পল, এলিগ্যান্ট এবং প্রিমিয়াম লুক। পার্টি, ওয়েডিং ও বিশেষ দিনের জন্য বাছাই করা ডিজাইন।">{{ old('sub_title') }}</textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">Feature Highlights (Under Order Button, 1 per line)</label>
+                                <textarea name="features" class="form-control" rows="3" placeholder="ক্যাশ অন ডেলিভারি&#10;সারাদেশে ডেলিভারি&#10;এক্সচেঞ্জ সুবিধা&#10;প্রিমিয়াম প্যাকেজিং">{{ old('features', "ক্যাশ অন ডেলিভারি\nসারাদেশে ডেলিভারি\nএক্সচেঞ্জ সুবিধা\nপ্রিমিয়াম প্যাকেজিং") }}</textarea>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. Overview Section -->
+                <!-- 3. Button & Background Colors (Dynamic Styling) -->
                 <div class="section-card">
                     <div class="section-card-header">
-                        <i class="fa fa-align-left text-primary"></i> 3. Product Full Overview
+                        <i class="fa fa-palette text-primary"></i> 3. Button & Background Colors (ডিজাইন কালার)
                     </div>
                     <div class="section-card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Overview Section Title</label>
-                                <input type="text" name="overview_title" class="form-control" value="{{ old('overview_title', 'Product Full Overview') }}">
+                                <label class="form-label fw-bold">CTA Button Background Color (বাটন কালার)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" name="btn_color" id="btn_color" class="form-control form-control-color" value="{{ old('btn_color', '#E0B04A') }}">
+                                    <input type="text" id="btn_color_text" class="form-control font-monospace" value="{{ old('btn_color', '#E0B04A') }}" readonly style="width: 120px;">
+                                </div>
+                                <small class="text-muted">সমস্ত "অর্ডার করুন" ও সাবমিট বাটনের কালার পরিবর্তন হবে।</small>
                             </div>
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Overview Sub-title</label>
-                                <input type="text" name="overview_sub_title" class="form-control" value="{{ old('overview_sub_title', 'প্রোডাক্ট সম্পর্কে দরকারি তথ্য এক জায়গায়।') }}">
+                                <label class="form-label fw-bold">CTA Button Text Color (বাটন টেক্সট কালার)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" name="btn_text_color" id="btn_text_color" class="form-control form-control-color" value="{{ old('btn_text_color', '#2B1C06') }}">
+                                    <input type="text" id="btn_text_color_text" class="form-control font-monospace" value="{{ old('btn_text_color', '#2B1C06') }}" readonly style="width: 120px;">
+                                </div>
+                                <small class="text-muted">বাটনের ভেতরের লেখার কালার।</small>
                             </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Overview Description Text</label>
-                                <textarea name="overview_text" id="overview_text" class="form-control" rows="3" placeholder="প্রোডাক্টের আকর্ষণীয় বর্ণনা লিখুন...">{{ old('overview_text') }}</textarea>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Section Dark Background Color (হিরো ও ডার্ক সেকশন ব্যাকগ্রাউন্ড)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" name="bg_color" id="bg_color" class="form-control form-control-color" value="{{ old('bg_color', '#1F0A0F') }}">
+                                    <input type="text" id="bg_color_text" class="form-control font-monospace" value="{{ old('bg_color', '#1F0A0F') }}" readonly style="width: 120px;">
+                                </div>
+                                <small class="text-muted">Hero ব্যানার, গ্যালারি ও ফুটারের ব্যাকগ্রাউন্ড কালার।</small>
                             </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Overview Bullet Points (1 point per line)</label>
-                                <textarea name="overview_points" id="overview_points" class="form-control" rows="5" placeholder="Soft & comfortable premium fabric&#10;Elegant party and wedding design&#10;Neat finishing and premium appearance&#10;Available in multiple sizes&#10;Cash on Delivery available">{{ old('overview_points', "Soft & comfortable premium fabric\nElegant party and wedding design\nNeat finishing and premium appearance\nAvailable in multiple sizes\nCash on Delivery available") }}</textarea>
-                                <small class="text-muted">Enter each bullet feature on a new line.</small>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Theme Primary / Accent Color (থিম অ্যাকসেন্ট)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" name="theme_color" id="theme_color" class="form-control form-control-color" value="{{ old('theme_color', '#880e4f') }}">
+                                    <input type="text" id="theme_color_text" class="form-control font-monospace" value="{{ old('theme_color', '#880e4f') }}" readonly style="width: 120px;">
+                                </div>
+                                <small class="text-muted">অ্যাকসেন্ট, হেডার বাটন এবং হাইলাইট কালার।</small>
                             </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Feature Highlights (Under Order Button, 1 per line)</label>
-                                <textarea name="features" class="form-control" rows="3" placeholder="ক্যাশ অন ডেলিভারি&#10;সারাদেশে ডেলিভারি&#10;এক্সচেঞ্জ সুবিধা">{{ old('features', "ক্যাশ অন ডেলিভারি\nসারাদেশে ডেলিভারি\nএক্সচেঞ্জ সুবিধা") }}</textarea>
+
+                            <!-- Live Color Preview -->
+                            <div class="col-12 mt-2">
+                                <label class="form-label fw-bold small text-muted">লাইভ কালার প্রিভিউ (Live Preview):</label>
+                                <div class="color-preview-box" id="colorPreviewBox" style="background: #1F0A0F; border: 1px solid #e2e8f0;">
+                                    <span style="color: #fff; font-size: 13px; display: block; margin-bottom: 12px;">ডার্ক ব্যাকগ্রাউন্ডে বাটনের দৃশ্যমানতা:</span>
+                                    <a href="javascript:void(0)" class="color-preview-btn" id="previewBtn">অর্ডার করুন — ৳১,৯৫০</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. Customer Reviews -->
+                <!-- 4. ৩টি সহজ অর্ডার ধাপ ও গ্যারান্টি (Order Steps & Guarantee) -->
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <i class="fa fa-list-ol text-primary"></i> 4. ৩টি সহজ অর্ডার ধাপ ও গ্যারান্টি
+                    </div>
+                    <div class="section-card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small fw-bold">ধাপ ১ (Step 1 Title)</label>
+                                <input type="text" name="steps[0][title]" class="form-control form-control-sm" value="{{ old('steps.0.title', 'ফর্ম পূরণ করুন') }}">
+                                <input type="text" name="steps[0][desc]" class="form-control form-control-sm mt-1" value="{{ old('steps.0.desc', 'নাম, ফোন, ঠিকানা — ৩০ সেকেন্ড') }}" placeholder="সংক্ষিপ্ত বিবরণ">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small fw-bold">ধাপ ২ (Step 2 Title)</label>
+                                <input type="text" name="steps[1][title]" class="form-control form-control-sm" value="{{ old('steps.1.title', 'কনফার্মেশন কল') }}">
+                                <input type="text" name="steps[1][desc]" class="form-control form-control-sm mt-1" value="{{ old('steps.1.desc', 'আমরা কল দিয়ে নিশ্চিত করব') }}" placeholder="সংক্ষিপ্ত বিবরণ">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small fw-bold">ধাপ ৩ (Step 3 Title)</label>
+                                <input type="text" name="steps[2][title]" class="form-control form-control-sm" value="{{ old('steps.2.title', 'হাতে পেয়ে টাকা') }}">
+                                <input type="text" name="steps[2][desc]" class="form-control form-control-sm mt-1" value="{{ old('steps.2.desc', 'খুলে দেখে তারপর পেমেন্ট') }}" placeholder="সংক্ষিপ্ত বিবরণ">
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">গ্যারান্টি সেকশন শিরোনাম</label>
+                                <input type="text" name="guarantee_title" class="form-control form-control-sm" value="{{ old('guarantee_title', 'ঝুঁকিটা আমাদের, আপনার না') }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">গ্যারান্টি সেকশন বিবরণ</label>
+                                <input type="text" name="guarantee_desc" class="form-control form-control-sm" value="{{ old('guarantee_desc', 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Customer Reviews -->
                 <div class="section-card">
                     <div class="section-card-header d-flex justify-content-between align-items-center">
-                        <div><i class="fa fa-star text-warning"></i> 4. Customer Reviews</div>
+                        <div><i class="fa fa-star text-warning"></i> 5. Customer Reviews (ক্রেতাদের রিভিউ)</div>
                         <button type="button" class="btn btn-sm btn-outline-primary" id="addReviewBtn">
                             <i class="fa fa-plus me-1"></i> Add Review
                         </button>
@@ -205,11 +280,11 @@
                                 <div class="row">
                                     <div class="col-md-5 mb-2">
                                         <label class="form-label small fw-bold">Customer Name</label>
-                                        <input type="text" name="reviews[0][name]" class="form-control form-control-sm" value="সাদিয়া রহমান">
+                                        <input type="text" name="reviews[0][name]" class="form-control form-control-sm" value="তানজিলা ইসলাম">
                                     </div>
                                     <div class="col-md-4 mb-2">
                                         <label class="form-label small fw-bold">City / Location</label>
-                                        <input type="text" name="reviews[0][location]" class="form-control form-control-sm" value="ঢাকা">
+                                        <input type="text" name="reviews[0][location]" class="form-control form-control-sm" value="ধানমন্ডি, ঢাকা">
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <label class="form-label small fw-bold">Rating (Stars)</label>
@@ -221,7 +296,7 @@
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold">Review Comment</label>
-                                        <input type="text" name="reviews[0][comment]" class="form-control form-control-sm" value="কাপড়ের কোয়ালিটি খুব ভালো। ছবির মতোই সুন্দর পেয়েছি।">
+                                        <input type="text" name="reviews[0][comment]" class="form-control form-control-sm" value="মাশাল্লাহ! ছবির চেয়েও বাস্তবে প্রোডাক্টটা অনেক বেশি সুন্দর ও নিখুঁত। কাপড় এবং ফিনিশিং অসাধারণ।">
                                     </div>
                                 </div>
                             </div>
@@ -231,11 +306,11 @@
                                 <div class="row">
                                     <div class="col-md-5 mb-2">
                                         <label class="form-label small fw-bold">Customer Name</label>
-                                        <input type="text" name="reviews[1][name]" class="form-control form-control-sm" value="তানজিনা আক্তার">
+                                        <input type="text" name="reviews[1][name]" class="form-control form-control-sm" value="নুসরাত জাহান রিমু">
                                     </div>
                                     <div class="col-md-4 mb-2">
                                         <label class="form-label small fw-bold">City / Location</label>
-                                        <input type="text" name="reviews[1][location]" class="form-control form-control-sm" value="চট্টগ্রাম">
+                                        <input type="text" name="reviews[1][location]" class="form-control form-control-sm" value="চট্টগ্রাম সদর">
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <label class="form-label small fw-bold">Rating (Stars)</label>
@@ -247,7 +322,7 @@
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold">Review Comment</label>
-                                        <input type="text" name="reviews[1][comment]" class="form-control form-control-sm" value="ডেলিভারি দ্রুত ছিল এবং প্যাকেজিংও ভালো ছিল।">
+                                        <input type="text" name="reviews[1][comment]" class="form-control form-control-sm" value="ডেলিভারি ম্যানের সামনে প্যাকেট খুলে চেক করে নিতে পেরেছি, এটাই সবচেয়ে বড় ভরসা। কোয়ালিটি ১০০/১০০!">
                                     </div>
                                 </div>
                             </div>
@@ -255,10 +330,10 @@
                     </div>
                 </div>
 
-                <!-- 5. Frequently Asked Questions (FAQs) -->
+                <!-- 6. Frequently Asked Questions (FAQs) -->
                 <div class="section-card">
                     <div class="section-card-header d-flex justify-content-between align-items-center">
-                        <div><i class="fa fa-circle-question text-info"></i> 5. FAQs (Accordion)</div>
+                        <div><i class="fa fa-circle-question text-info"></i> 6. FAQs (সচরাচর জিজ্ঞাসা)</div>
                         <button type="button" class="btn btn-sm btn-outline-primary" id="addFaqBtn">
                             <i class="fa fa-plus me-1"></i> Add FAQ
                         </button>
@@ -269,11 +344,11 @@
                                 <button type="button" class="btn btn-sm btn-danger remove-btn remove-faq"><i class="fa fa-times"></i></button>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold">Question</label>
-                                    <input type="text" name="faqs[0][question]" class="form-control form-control-sm" value="ডেলিভারি করতে কতদিন সময় লাগে?">
+                                    <input type="text" name="faqs[0][question]" class="form-control form-control-sm" value="প্রোডাক্ট কি ছবির মতোই হবে?">
                                 </div>
                                 <div>
                                     <label class="form-label small fw-bold">Answer</label>
-                                    <textarea name="faqs[0][answer]" class="form-control form-control-sm" rows="2">ঢাকার ভিতরে সাধারণত ১–২ কর্মদিবস এবং ঢাকার বাইরে ২–৪ কর্মদিবস সময় লাগতে পারে।</textarea>
+                                    <textarea name="faqs[0][answer]" class="form-control form-control-sm" rows="2">জি, আমাদের প্রতিটি ছবি অরিজিনাল স্টকের। ডেলিভারির সময় প্যাকেট খুলে দেখে তারপর পেমেন্ট করতে পারবেন।</textarea>
                                 </div>
                             </div>
 
@@ -281,11 +356,11 @@
                                 <button type="button" class="btn btn-sm btn-danger remove-btn remove-faq"><i class="fa fa-times"></i></button>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold">Question</label>
-                                    <input type="text" name="faqs[1][question]" class="form-control form-control-sm" value="ক্যাশ অন ডেলিভারি আছে?">
+                                    <input type="text" name="faqs[1][question]" class="form-control form-control-sm" value="ডেলিভারি কতদিনে পাবো?">
                                 </div>
                                 <div>
                                     <label class="form-label small fw-bold">Answer</label>
-                                    <textarea name="faqs[1][answer]" class="form-control form-control-sm" rows="2">হ্যাঁ, সারা বাংলাদেশে ক্যাশ অন ডেলিভারি সুবিধা রয়েছে।</textarea>
+                                    <textarea name="faqs[1][answer]" class="form-control form-control-sm" rows="2">ঢাকা সিটির ভিতরে সাধারণত ২৪–৪৮ ঘণ্টা এবং ঢাকার বাইরে ২–৩ কার্যদিবস সময় লাগে।</textarea>
                                 </div>
                             </div>
                         </div>
@@ -294,7 +369,7 @@
 
             </div>
 
-            <!-- Right 4 Columns: Pricing, Media, Delivery, Publish -->
+            <!-- Right 4 Columns: Publish & Auto-Sync Summary -->
             <div class="col-lg-4">
 
                 <!-- Publish Card -->
@@ -313,68 +388,17 @@
                     </div>
                 </div>
 
-                <!-- Pricing & Stock Card -->
-                <div class="section-card">
-                    <div class="section-card-header">
-                        <i class="fa fa-tag text-primary"></i> Pricing & Stock
-                    </div>
-                    <div class="section-card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Regular Price (৳)</label>
-                            <input type="number" step="0.01" name="regular_price" id="regular_price" class="form-control" placeholder="3850.00" value="{{ old('regular_price') }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Sale / Offer Price (৳) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="sale_price" id="sale_price" class="form-control" placeholder="3050.00" value="{{ old('sale_price') }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Discount Text Badge</label>
-                            <input type="text" name="discount_text" id="discount_text" class="form-control" placeholder="e.g. ২১% ছাড়" value="{{ old('discount_text') }}">
-                            <small class="text-muted">Leave empty to auto-calculate discount %.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Stock Status Text</label>
-                            <input type="text" name="stock_text" class="form-control" placeholder="বর্তমান স্টক: সীমিত" value="{{ old('stock_text', 'বর্তমান স্টক: সীমিত') }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delivery Charges Card -->
-                <div class="section-card">
-                    <div class="section-card-header">
-                        <i class="fa fa-truck text-primary"></i> Delivery Charges
-                    </div>
-                    <div class="section-card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Inside Dhaka (৳)</label>
-                            <input type="number" step="0.01" name="delivery_charge_dhaka" class="form-control" value="{{ old('delivery_charge_dhaka', '70.00') }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Outside Dhaka (৳)</label>
-                            <input type="number" step="0.01" name="delivery_charge_outside" class="form-control" value="{{ old('delivery_charge_outside', '120.00') }}" required>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Media Uploads Card -->
-                <div class="section-card">
-                    <div class="section-card-header">
-                        <i class="fa fa-images text-primary"></i> Slider & Overview Images
-                    </div>
-                    <div class="section-card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Hero Slider Images (Multiple)</label>
-                            <input type="file" name="slider_images[]" id="slider_images" class="form-control" multiple accept="image/*">
-                            <small class="text-muted">If none selected, product images are automatically used.</small>
-                            <div id="sliderPreviewContainer" class="d-flex gap-2 flex-wrap mt-2"></div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Overview Big Image</label>
-                            <input type="file" name="overview_image" id="overview_image" class="form-control" accept="image/*">
-                            <small class="text-muted">Defaults to product thumbnail if left empty.</small>
-                            <div id="overviewPreviewContainer" class="mt-2"></div>
-                        </div>
+                <!-- Auto-Fetched Summary Notice -->
+                <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, #f0fdf4 0%, #e6fcf5 100%); border: 1px solid #bbf7d0 !important; border-radius: 8px;">
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold text-success mb-2 d-flex align-items-center gap-2">
+                            <i class="fa fa-circle-check"></i> স্বয়ংক্রিয়ভাবে সংযুক্ত বিষয়সমূহ
+                        </h6>
+                        <ul class="list-unstyled mb-0 small text-secondary" style="line-height: 1.8;">
+                            <li><i class="fa fa-check text-success me-1"></i> <strong>মূল্য ও স্টক:</strong> সিলেক্ট করা প্রোডাক্ট ও তার ভ্যারিয়েন্ট স্টক থেকে সরাসরি অটোমেটিক আসবে।</li>
+                            <li><i class="fa fa-check text-success me-1"></i> <strong>ডেলিভারি চার্জ:</strong> ওয়েবসাইট শিপিং সেটিংস থেকে সরাসরি আসবে।</li>
+                            <li><i class="fa fa-check text-success me-1"></i> <strong>স্লাইডার ও গ্যালারি ছবি:</strong> প্রোডাক্টের প্রধান ছবি এবং মাল্টি-ইমেজ থেকে সরাসরি তৈরি হবে।</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -385,27 +409,28 @@
 
 <script>
 $(document).ready(function() {
-    // Sync color input with text input
-    $('#theme_color').on('input', function() {
-        $('#theme_color_text').val($(this).val());
-    });
+    // Sync color pickers with text inputs & live preview
+    function updateColorPreview() {
+        var btnColor = $('#btn_color').val();
+        var btnTextColor = $('#btn_text_color').val();
+        var bgColor = $('#bg_color').val();
 
-    // Auto-generate slug from title
-    $('#page_title').on('keyup change', function() {
-        if (!$('#page_slug').data('customized')) {
-            var slug = $(this).val().toLowerCase()
-                .replace(/[^a-z0-9 -]/g, '')
-                .replace(/\s+/g, '-')
-                .replace(/-+/g, '-');
-            $('#page_slug').val(slug);
-        }
-    });
+        $('#btn_color_text').val(btnColor);
+        $('#btn_text_color_text').val(btnTextColor);
+        $('#bg_color_text').val(bgColor);
+        $('#theme_color_text').val($('#theme_color').val());
 
-    $('#page_slug').on('input', function() {
-        $(this).data('customized', true);
-    });
+        $('#colorPreviewBox').css('background', bgColor);
+        $('#previewBtn').css({
+            'background': btnColor,
+            'color': btnTextColor
+        });
+    }
 
-    // Handle Product AJAX load on change
+    $('#btn_color, #btn_text_color, #bg_color, #theme_color').on('input change', updateColorPreview);
+    updateColorPreview();
+
+    // Auto title & slug from product
     $('#product_id').on('change', function() {
         var productId = $(this).val();
         if (!productId) {
@@ -414,70 +439,44 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: "{{ url('admin/landing-page/ajax/product-details') }}/" + productId,
+            url: "{{ url('admin/landing-page/ajax-product') }}/" + productId,
             type: "GET",
             dataType: "json",
-            beforeSend: function() {
-                $('#productPreviewBox').show();
-                $('#previewTitle').text('Loading product details...');
-            },
             success: function(data) {
                 if (data.success) {
                     $('#productPreviewBox').show();
-                    $('#previewTitle').text(data.name_en);
-                    $('#previewThumb').attr('src', data.thumbnail || '{{ asset("upload/no_image.jpg") }}');
+                    $('#previewTitle').text(data.name_en + (data.name_bn ? ' (' + data.name_bn + ')' : ''));
+                    if (data.thumbnail) {
+                        $('#previewThumb').attr('src', data.thumbnail).show();
+                    } else {
+                        $('#previewThumb').hide();
+                    }
                     $('#previewRegPrice').text('৳' + (data.regular_price || 0));
                     $('#previewSalePrice').text('৳' + (data.discount_price > 0 ? data.discount_price : data.regular_price));
-                    $('#previewStock').text(data.stock_qty + ' in stock');
+                    $('#previewStock').text(data.stock_qty || 0);
 
-                    if (data.is_varient == 1 && data.attributes && data.attributes.length > 0) {
-                        var attrHtml = '<span class="badge bg-primary">Variants: ';
-                        var attrNames = data.attributes.map(function(a) { return a.name; }).join(', ');
-                        attrHtml += attrNames + '</span>';
-                        $('#previewVarBadge').html(attrHtml);
-                    } else {
-                        $('#previewVarBadge').html('<span class="badge bg-secondary">Single Product (No Variants)</span>');
-                    }
-
-                    // Auto-fill form fields if they are currently blank
+                    // Auto-fill title & slug if empty
                     if (!$('#page_title').val()) {
-                        $('#page_title').val(data.name_en).trigger('change');
+                        $('#page_title').val(data.name_en);
+                        var slug = data.name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                        $('#page_slug').val(slug);
                     }
-                    if (!$('#sub_title').val()) {
-                        $('#sub_title').val(data.name_bn || data.name_en);
-                    }
-                    if (!$('#regular_price').val()) {
-                        $('#regular_price').val(data.regular_price);
-                    }
-                    if (!$('#sale_price').val()) {
-                        $('#sale_price').val(data.discount_price > 0 ? data.discount_price : data.regular_price);
-                    }
-                    if (!$('#overview_text').val() && data.description_en) {
-                        $('#overview_text').val(data.description_en.substring(0, 300));
-                    }
-
-                    // Display product gallery in preview container
-                    if (data.gallery && data.gallery.length > 0) {
-                        var galHtml = '<div class="w-100 small text-muted mb-1">Product Images (used as fallback):</div>';
-                        data.gallery.forEach(function(imgUrl) {
-                            galHtml += '<img src="' + imgUrl + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">';
-                        });
-                        $('#sliderPreviewContainer').html(galHtml);
+                    if (!$('#sub_title').val() && (data.description_en || data.description_bn)) {
+                        $('#sub_title').val(data.description_en || data.description_bn);
                     }
                 }
-            },
-            error: function() {
-                $('#productPreviewBox').hide();
             }
         });
     });
 
-    // Auto trigger if old value exists
-    if ($('#product_id').val()) {
-        $('#product_id').trigger('change');
-    }
+    // Auto slug on typing title
+    $('#page_title').on('keyup', function() {
+        var title = $(this).val();
+        var slug = title.toLowerCase().replace(/[^a-z0-9\u0980-\u09FF]+/g, '-').replace(/(^-|-$)+/g, '');
+        $('#page_slug').val(slug);
+    });
 
-    // Dynamic Review Adder
+    // Add Review Repeater
     var reviewIndex = 2;
     $('#addReviewBtn').on('click', function() {
         var html = `
@@ -486,11 +485,11 @@ $(document).ready(function() {
             <div class="row">
                 <div class="col-md-5 mb-2">
                     <label class="form-label small fw-bold">Customer Name</label>
-                    <input type="text" name="reviews[` + reviewIndex + `][name]" class="form-control form-control-sm" placeholder="নাম">
+                    <input type="text" name="reviews[` + reviewIndex + `][name]" class="form-control form-control-sm" placeholder="গ্রাহকের নাম">
                 </div>
                 <div class="col-md-4 mb-2">
                     <label class="form-label small fw-bold">City / Location</label>
-                    <input type="text" name="reviews[` + reviewIndex + `][location]" class="form-control form-control-sm" placeholder="লোকেশন">
+                    <input type="text" name="reviews[` + reviewIndex + `][location]" class="form-control form-control-sm" placeholder="শহর / জেলা">
                 </div>
                 <div class="col-md-3 mb-2">
                     <label class="form-label small fw-bold">Rating (Stars)</label>
@@ -502,7 +501,7 @@ $(document).ready(function() {
                 </div>
                 <div class="col-12">
                     <label class="form-label small fw-bold">Review Comment</label>
-                    <input type="text" name="reviews[` + reviewIndex + `][comment]" class="form-control form-control-sm" placeholder="মন্তব্য">
+                    <input type="text" name="reviews[` + reviewIndex + `][comment]" class="form-control form-control-sm" placeholder="রিভিউ মন্তব্য">
                 </div>
             </div>
         </div>`;
@@ -514,7 +513,7 @@ $(document).ready(function() {
         $(this).closest('.repeater-item').remove();
     });
 
-    // Dynamic FAQ Adder
+    // Add FAQ Repeater
     var faqIndex = 2;
     $('#addFaqBtn').on('click', function() {
         var html = `
@@ -535,32 +534,6 @@ $(document).ready(function() {
 
     $(document).on('click', '.remove-faq', function() {
         $(this).closest('.repeater-item').remove();
-    });
-
-    // Image preview for slider
-    $('#slider_images').on('change', function() {
-        $('#sliderPreviewContainer').empty();
-        if (this.files) {
-            Array.from(this.files).forEach(function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#sliderPreviewContainer').append('<img src="' + e.target.result + '" style="width: 55px; height: 55px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">');
-                }
-                reader.readAsDataURL(file);
-            });
-        }
-    });
-
-    // Image preview for overview
-    $('#overview_image').on('change', function() {
-        $('#overviewPreviewContainer').empty();
-        if (this.files && this.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#overviewPreviewContainer').html('<img src="' + e.target.result + '" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">');
-            }
-            reader.readAsDataURL(this.files[0]);
-        }
     });
 });
 </script>

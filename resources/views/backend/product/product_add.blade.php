@@ -298,22 +298,29 @@
 
 							<!-- Product Attribute Price combination Starts -->
 							<div class="col-12 mt-2 mb-2" id="variation_wrapper" style="display: none;">
-								<label for="" class="col-form-label" style="font-weight: bold;">Price Variation:</label>
-								<table class="table table-bordered" id="combination_table">
-									<thead class="text-dark text-center">
-										<tr>
-											<th>Variant</th>
-											<th>Price</th>
-											<th>SKU</th>
-											<th>Quantity</th>
-											<th>Photo</th>
-											<th>Action</th>
-										</tr>
-									</thead>
-									<tbody>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<label for="" class="col-form-label mb-0" style="font-weight: bold;"><i class="fa fa-layer-group text-primary me-1"></i> Price Variation (ভ্যারিয়েন্ট সমূহ):</label>
+									<button type="button" class="btn btn-sm btn-primary" id="btn_add_custom_variant">
+										<i class="fa fa-plus me-1"></i>  Add Custom Variant
+									</button>
+								</div>
+								<div class="table-responsive">
+									<table class="table table-bordered align-middle" id="combination_table">
+										<thead class="bg-light text-dark text-center">
+											<tr>
+												<th style="min-width: 180px;">Variant Name</th>
+												<th style="min-width: 120px;">Price (৳)</th>
+												<th style="min-width: 120px;">SKU</th>
+												<th style="min-width: 100px;">Quantity</th>
+												<th style="min-width: 120px;">Photo</th>
+												<th style="width: 60px;" class="text-center">Action</th>
+											</tr>
+										</thead>
+										<tbody>
 
-									</tbody>
-								</table>
+										</tbody>
+									</table>
+								</div>
 							</div>
 							<!-- Product Attribute Price combination Ends -->
 			        	</div>
@@ -617,7 +624,7 @@
 					let qty = $('#stock_qty').val() || 10;
 					$('#combination_table tbody').html($.map(response.data, function (item, index) {
 						return `<tr>
-									<td>${index}<input type="hidden" name="vnames[]" class="form-control" value="${index}" required></td>
+									<td><input type="text" name="vnames[]" class="form-control" value="${index}" placeholder="Variant Name" required></td>
 									<td><input type="text" name="vprices[]" class="form-control vdp" value="${price}" required></td>
 									<td><input type="text" name="vskus[]" class="form-control" required value="sku-${index}"></td>
 									<td><input type="text" name="vqtys[]" class="form-control" value="${qty}" required></td>
@@ -727,6 +734,28 @@
         if ($('#combination_table tbody tr').length === 0) {
             $('#variation_wrapper').hide();
         }
+    });
+
+    // Add custom variant row manually
+    $('#btn_add_custom_variant').on('click', function(e) {
+        e.preventDefault();
+        let price = $('#totalRegularPriceInput').val() || 0;
+        let qty = $('#stock_qty').val() || 10;
+        let randomSku = 'sku-' + Math.floor(1000 + Math.random() * 9000);
+        let newRow = `<tr>
+            <td><input type="text" name="vnames[]" class="form-control" placeholder="যেমন: সেলাই ছাড়া (Unstitched) বা 38-Stitched" required></td>
+            <td><input type="text" name="vprices[]" class="form-control vdp" value="${price}" required></td>
+            <td><input type="text" name="vskus[]" class="form-control" required value="${randomSku}"></td>
+            <td><input type="text" name="vqtys[]" class="form-control" value="${qty}" required></td>
+            <td><input type="file" name="vimages[]" class="form-control"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+        $('#combination_table tbody').append(newRow);
+        $('#variation_wrapper').show();
     });
 
     $('#totalRegularPriceInput').on('keyup', function() {

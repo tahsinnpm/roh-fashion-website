@@ -377,43 +377,50 @@
 
 							<!-- Product Attribute Price combination Starts -->
 							<div class="col-12 mt-2 mb-2" id="variation_wrapper" @if($product->is_varient != 1 || count($product->stocks) == 0) style="display:none;" @endif>
-								<label for="" class="col-form-label" style="font-weight: bold;">Price Variation:</label>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<label for="" class="col-form-label mb-0" style="font-weight: bold;"><i class="fa fa-layer-group text-primary me-1"></i> Price Variation (ভ্যারিয়েন্ট সমূহ):</label>
+									<button type="button" class="btn btn-sm btn-primary" id="btn_add_custom_variant_edit">
+										<i class="fa fa-plus me-1"></i> Add Custom Variant
+									</button>
+								</div>
 								<input type="hidden" id="is_variation_changed" name="is_variation_changed" value="0">
-								<table class="table table-bordered" id="combination_table">
-									<thead>
-										<tr>
-											<th>Variant</th>
-											<th>Price</th>
-											<th>SKU</th>
-											<th>Quantity</th>
-											<th>Photo</th>
-											<th>Action</th>
-										</tr>
-									</thead>
-									<tbody>
-										@foreach($product->stocks as $stock)
+								<div class="table-responsive">
+									<table class="table table-bordered align-middle" id="combination_table">
+										<thead class="bg-light text-dark text-center">
 											<tr>
-												<td>{{ $stock->varient }}<input type="hidden" name="{{ $stock->id }}_variant" class="form-control" value="{{ $stock->varient }}" required></td>
-												<td><input type="text" name="{{ $stock->id }}_price" class="form-control vdp" value="{{ $stock->price }}" required></td>
-												<td><input type="text" name="{{ $stock->id }}_sku" class="form-control" required value="{{ $stock->sku }}"></td>
-												<td><input type="text" name="{{ $stock->id }}_qty" class="form-control" value="{{ $stock->qty }}" required></td>
-												<td>
-													@if($stock->image)
-														<img src="{{ asset($stock->image) }}" alt="{{ $stock->varient }}-image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; float: left;">
-														<input type="file" name="{{ $stock->id }}_image" class="form-control" style="width: 75%; float: left; margin-left: 5%;">
-													@else
-														<input type="file" name="{{ $stock->id }}_image" class="form-control">
-													@endif
-												</td>
-												<td class="text-center">
-													<button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
-														<i class="fa fa-trash"></i>
-													</button>
-												</td>
+												<th style="min-width: 180px;">Variant Name</th>
+												<th style="min-width: 120px;">Price (৳)</th>
+												<th style="min-width: 120px;">SKU</th>
+												<th style="min-width: 100px;">Quantity</th>
+												<th style="min-width: 120px;">Photo</th>
+												<th style="width: 60px;" class="text-center">Action</th>
 											</tr>
-										@endforeach
-									</tbody>
-								</table>
+										</thead>
+										<tbody>
+											@foreach($product->stocks as $stock)
+												<tr>
+													<td><input type="text" name="{{ $stock->id }}_variant" class="form-control" value="{{ $stock->varient }}" required></td>
+													<td><input type="text" name="{{ $stock->id }}_price" class="form-control vdp" value="{{ $stock->price }}" required></td>
+													<td><input type="text" name="{{ $stock->id }}_sku" class="form-control" required value="{{ $stock->sku }}"></td>
+													<td><input type="text" name="{{ $stock->id }}_qty" class="form-control" value="{{ $stock->qty }}" required></td>
+													<td>
+														@if($stock->image)
+															<img src="{{ asset($stock->image) }}" alt="{{ $stock->varient }}-image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; float: left;">
+															<input type="file" name="{{ $stock->id }}_image" class="form-control" style="width: 75%; float: left; margin-left: 5%;">
+														@else
+															<input type="file" name="{{ $stock->id }}_image" class="form-control">
+														@endif
+													</td>
+													<td class="text-center">
+														<button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+															<i class="fa fa-trash"></i>
+														</button>
+													</td>
+												</tr>
+											@endforeach
+										</tbody>
+									</table>
+								</div>
 							</div>
 							<!-- Product Attribute Price combination Ends -->
 			        	</div>
@@ -652,7 +659,7 @@
 					let qty = $('#stock_qty').val() || 10;
 					$('#combination_table tbody').html($.map(response.data, function (item, index) {
 						return `<tr>
-									<td>${index}<input type="hidden" name="vnames[]" class="form-control" value="${index}" required></td>
+									<td><input type="text" name="vnames[]" class="form-control" value="${index}" placeholder="Variant Name" required></td>
 									<td><input type="text" name="vprices[]" class="form-control vdp" value="${price}" required></td>
 									<td><input type="text" name="vskus[]" class="form-control" required value="sku-${index}"></td>
 									<td><input type="text" name="vqtys[]" class="form-control" value="${qty}" required></td>
@@ -764,10 +771,31 @@
     $(document).on('click', '.remove-variant-btn', function(e) {
         e.preventDefault();
         $(this).closest('tr').remove();
-        $('#is_variation_changed').val(1);
         if ($('#combination_table tbody tr').length === 0) {
             $('#variation_wrapper').hide();
         }
+    });
+
+    // Add custom variant row in edit mode
+    $('#btn_add_custom_variant_edit').on('click', function(e) {
+        e.preventDefault();
+        let price = $('#regular_price').val() || 0;
+        let qty = $('#stock_qty').val() || 10;
+        let randomSku = 'sku-' + Math.floor(1000 + Math.random() * 9000);
+        let newRow = `<tr>
+            <td><input type="text" name="new_vnames[]" class="form-control" placeholder="যেমন: সেলাই ছাড়া (Unstitched) বা 38-Stitched" required></td>
+            <td><input type="text" name="new_vprices[]" class="form-control vdp" value="${price}" required></td>
+            <td><input type="text" name="new_vskus[]" class="form-control" required value="${randomSku}"></td>
+            <td><input type="text" name="new_vqtys[]" class="form-control" value="${qty}" required></td>
+            <td><input type="file" name="new_vimages[]" class="form-control"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger remove-variant-btn" title="Remove this variant">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+        $('#combination_table tbody').append(newRow);
+        $('#variation_wrapper').show();
     });
 
     $('#regular_price').on('keyup', function() {

@@ -102,16 +102,24 @@
         <table>
             <tr><td class="strong small gry-color">Bill to:</td></tr>
             <tr><td class="strong">{{ $order->name }}</td></tr>
-            @if($order->order_type == 1)
+            @if(!empty($order->address))
                 <tr>
                     <td class="gry-color small">
-                        {{ ucwords($order->upazilla->name_en) }},
-                        {{ ucwords($order->district->district_name_en) }},
-                        {{ ucwords($order->division->division_name_en) }}
+                        <strong>Address:</strong> {{ $order->address }}
+                    </td>
+                </tr>
+            @elseif($order->order_type == 1 && ($order->upazilla || $order->district || $order->division))
+                <tr>
+                    <td class="gry-color small">
+                        {{ ucwords($order->upazilla->name_en ?? '') }},
+                        {{ ucwords($order->district->district_name_en ?? '') }},
+                        {{ ucwords($order->division->division_name_en ?? '') }}
                     </td>
                 </tr>
             @endif
-            <tr><td class="gry-color small">Email: {{ $order->email }}</td></tr>
+            @if(!empty($order->email))
+                <tr><td class="gry-color small">Email: {{ $order->email }}</td></tr>
+            @endif
             <tr><td class="gry-color small">Phone: {{ $order->phone }}</td></tr>
         </table>
     </div>
