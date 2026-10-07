@@ -24,10 +24,19 @@ class QuickCheckoutController extends Controller
         return response()->json([
             'token' => session('quick_checkout.token'), 'subtotal' => $quote['subtotal'], 'discount' => $quote['discount'],
             'items' => collect($quote['items'])->map(function ($item) {
-                return ['name' => $item['product']->name_en, 'quantity' => $item['row']->qty, 'variant' => $item['row']->options->varient ?: '', 'total' => $item['total']];
+                return [
+                    'rowId' => $item['row']->rowId,
+                    'id' => $item['product']->id,
+                    'name' => $item['product']->name_en,
+                    'quantity' => (int) $item['row']->qty,
+                    'price' => (float) $item['price'],
+                    'image' => asset($item['product']->product_thumbnail ?: 'upload/product-default.jpg'),
+                    'variant' => $item['row']->options->varient ?: '',
+                    'total' => (float) $item['total'],
+                ];
             }),
             'areas' => Shipping::where('status', 1)->get(['id', 'name', 'type', 'shipping_charge']),
-            'customer' => $request->user() && (int) $request->user()->role === 3 ? $request->user()->only('name', 'phone', 'address') : null,
+            'customer' => $request->user() && (int) $request->user()->role === 3 ? $request->user()->only('name', 'phone', 'address', 'email') : null,
         ]);
     }
 
@@ -36,8 +45,13 @@ class QuickCheckoutController extends Controller
         $phone = preg_replace('/[\s()-]+/', '', (string) $request->input('phone'));
         $request->merge(['phone' => preg_replace('/^(?:\+88|88)(01)/', '$1', $phone)]);
         $data = $request->validate([
-            'name' => 'required|string|max:150', 'phone' => ['required', 'regex:/^01[3-9][0-9]{8}$/'],
-            'address' => 'required|string|max:255', 'shipping_id' => 'required|integer', 'token' => 'required|uuid',
+            'name' => 'required|string|max:150',
+            'phone' => ['required', 'regex:/^01[3-9][0-9]{8}$/'],
+            'address' => 'required|string|max:255',
+            'email' => 'nullable|email|max:191',
+            'comment' => 'nullable|string|max:1000',
+            'shipping_id' => 'required|integer',
+            'token' => 'required|uuid',
         ]);
         if (!hash_equals((string) session('quick_checkout.token'), $data['token'])) {
             throw ValidationException::withMessages(['cart' => 'Please reopen checkout and try again.']);
@@ -51,6 +65,33 @@ class QuickCheckoutController extends Controller
             'account_created' => $result['account_created'], 'cartQty' => 0,
             'invoice_url' => URL::signedRoute('checkout.invoice', ['order' => $result['order']->id]),
         ]);
+    }
+
+    public function updateItem(Request $request, $rowId)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+        $row = Cart::get($rowId);
+        if (!$row) {
+            return response()->json(['error' => 'Item not found in cart.'], 404);
+        }
+        $product = \App\Models\Product::findOrFail($row->id);
+        if ($product->is_varient) {
+            $stock = \App\Models\ProductStock::where('product_id', $product->id)->where('varient', $row->options->varient)->first();
+            $available = $stock ? (int) $stock->qty : 0;
+        } else {
+            $available = (int) $product->stock_qty;
+        }
+        if ($request->quantity > $available) {
+            return response()->json(['error' => 'Not enough stock available.'], 422);
+        }
+        Cart::update($rowId, (int) $request->quantity);
+        return response()->json(['success' => 'Cart updated', 'cartQty' => Cart::count()]);
+    }
+
+    public function removeItem($rowId)
+    {
+        Cart::remove($rowId);
+        return response()->json(['success' => 'Item removed', 'cartQty' => Cart::count()]);
     }
 
     public function invoice(Order $order)

@@ -220,6 +220,18 @@
 						            </div>
 					            </div>
 
+					            <div class="col-sm-12 mb-3">
+						            <div class="mb-2">
+						             	<label for="topbar_marquee_text" class="col-form-label" style="font-weight: bold;">Topbar Marquee Text (হেডার নোটিশ / চলমান লেখা)</label>
+						             	<input type="hidden" name="types[]" value="topbar_marquee_text">
+						             	<textarea name="topbar_marquee_text" id="topbar_marquee_text" class="form-control" rows="3" placeholder="উদা: 🔥 Roh Fashion-এ স্বাগতম! সারাদেশে ক্যাশ অন ডেলিভারি সুবিধা | হটলাইন: 01838389494 🔥">{{ get_setting('topbar_marquee_text')->value ?? '' }}</textarea>
+						             	<small class="text-muted d-block mt-1">ওয়েবসাইটের একদম উপরে (Navbar-এর উপর) এই লেখাটি Marquee আকারে স্ক্রলিং হবে।</small>
+						                @error('topbar_marquee_text')
+						                    <p class="text-danger">{{$message}}</p>
+						                @enderror
+						            </div>
+					            </div>
+
 				        	</div>
 				        	<!-- row //-->
 				        </div>

@@ -40,7 +40,8 @@ use App\Models\Affiliate;
 Route::get('/', [FrontendController::class, 'index'])->name('home');
 Route::get('/home2', [FrontendController::class, 'index2'])->name('home2');
 Route::get('/seller/apply', [FrontendController::class, 'sellerApply'])->name('seller.apply');
-Route::get('/shop-grid', [FrontendController::class, 'shopgrid'])->name('shop.grid');
+Route::get('/shop-grid', [ProductController::class, 'index'])->name('shop.grid');
+Route::get('/shop', [ProductController::class, 'index'])->name('shop');
 
 Route::middleware([UserMiddleware::class])->group(function () {
     Route::get('/dashboard',[UserController::class, 'index'])->name('dashboard');
@@ -167,6 +168,8 @@ Route::get('/checkout',[CheckoutController::class,'index'])->name('checkout');
 Route::get('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'show'])->name('checkout.quick');
 Route::get('/quick-checkout/invoice/{order}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'invoice'])->middleware('signed')->name('checkout.invoice');
 Route::post('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'store'])->middleware('throttle:15,1');
+Route::post('/quick-checkout/item/{rowId}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'updateItem'])->name('checkout.quick.update');
+Route::delete('/quick-checkout/item/{rowId}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'removeItem'])->name('checkout.quick.remove');
 Route::post('/checkout/payment',[CheckoutController::class,'payment'])->name('checkout.payment');
 // /* ============ Cart Checkout Product   ============= */
 Route::get('/checkout-product', [CheckoutController::class, 'getCheckoutProduct'])->name('checktout.product');

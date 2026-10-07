@@ -68,8 +68,8 @@ class LandingPageController extends Controller
                     }
 
                     $attributesData[] = [
-                        'id'     => $attrId,
-                        'name'   => $attrModel ? $attrModel->name : 'Attribute ' . $attrId,
+                        'id' => $attrId,
+                        'name' => $attrModel ? $attrModel->name : 'Attribute ' . $attrId,
                         'values' => $values,
                     ];
                 }
@@ -88,21 +88,21 @@ class LandingPageController extends Controller
         }
 
         return response()->json([
-            'success'          => true,
-            'id'               => $product->id,
-            'name_en'          => $product->name_en,
-            'name_bn'          => $product->name_bn,
-            'thumbnail'        => $product->product_thumbnail ? asset($product->product_thumbnail) : null,
-            'thumbnail_path'   => $product->product_thumbnail,
-            'regular_price'    => $product->regular_price,
-            'discount_price'   => $product->discount_price,
-            'description_en'   => strip_tags($product->description_en ?? ''),
-            'description_bn'   => strip_tags($product->description_bn ?? ''),
-            'gallery'          => $gallery,
-            'is_varient'       => $product->is_varient,
-            'attributes'       => $attributesData,
-            'stocks'           => $product->stocks,
-            'stock_qty'        => $product->stock_qty,
+            'success' => true,
+            'id' => $product->id,
+            'name_en' => $product->name_en,
+            'name_bn' => $product->name_bn,
+            'thumbnail' => $product->product_thumbnail ? asset($product->product_thumbnail) : null,
+            'thumbnail_path' => $product->product_thumbnail,
+            'regular_price' => $product->regular_price,
+            'discount_price' => $product->discount_price,
+            'description_en' => strip_tags($product->description_en ?? ''),
+            'description_bn' => strip_tags($product->description_bn ?? ''),
+            'gallery' => $gallery,
+            'is_varient' => $product->is_varient,
+            'attributes' => $attributesData,
+            'stocks' => $product->stocks,
+            'stock_qty' => $product->stock_qty,
         ]);
     }
 
@@ -113,8 +113,8 @@ class LandingPageController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'title'      => 'required|string|max:255',
-            'slug'       => 'nullable|string|max:255|unique:landing_pages,slug',
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:landing_pages,slug',
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -205,10 +205,10 @@ class LandingPageController extends Controller
             foreach ($request->reviews as $rev) {
                 if (!empty($rev['name']) && !empty($rev['comment'])) {
                     $reviews[] = [
-                        'name'     => $rev['name'],
+                        'name' => $rev['name'],
                         'location' => $rev['location'] ?? 'ঢাকা',
-                        'stars'    => (int)($rev['stars'] ?? 5),
-                        'comment'  => $rev['comment'],
+                        'stars' => (int) ($rev['stars'] ?? 5),
+                        'comment' => $rev['comment'],
                     ];
                 }
             }
@@ -229,7 +229,7 @@ class LandingPageController extends Controller
                 if (!empty($faq['question']) && !empty($faq['answer'])) {
                     $faqs[] = [
                         'question' => $faq['question'],
-                        'answer'   => $faq['answer'],
+                        'answer' => $faq['answer'],
                     ];
                 }
             }
@@ -245,8 +245,8 @@ class LandingPageController extends Controller
         }
 
         // Calculate discount text if not given
-        $regPrice = $request->filled('regular_price') ? (float)$request->regular_price : (float)$product->regular_price;
-        $salePrice = $request->filled('sale_price') ? (float)$request->sale_price : (float)($product->discount_price > 0 ? $product->discount_price : $product->regular_price);
+        $regPrice = $request->filled('regular_price') ? (float) $request->regular_price : (float) $product->regular_price;
+        $salePrice = $request->filled('sale_price') ? (float) $request->sale_price : (float) ($product->discount_price > 0 ? $product->discount_price : $product->regular_price);
         $discountText = $request->discount_text;
         if (empty($discountText) && $regPrice > $salePrice && $regPrice > 0) {
             $pct = round((($regPrice - $salePrice) / $regPrice) * 100);
@@ -261,7 +261,7 @@ class LandingPageController extends Controller
                 if (!empty($stp['title'])) {
                     $steps[] = [
                         'title' => $stp['title'],
-                        'desc'  => $stp['desc'] ?? '',
+                        'desc' => $stp['desc'] ?? '',
                     ];
                 }
             }
@@ -275,40 +275,40 @@ class LandingPageController extends Controller
         }
 
         $aboutCards = [
-            'steps'           => $steps,
+            'steps' => $steps,
             'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
-            'guarantee_desc'  => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+            'guarantee_desc' => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
         ];
 
         LandingPage::create([
-            'product_id'             => $product->id,
-            'title'                  => $request->title,
-            'slug'                   => $slug,
-            'sub_title'              => $request->sub_title ?? ($product->name_bn ?: $product->name_en),
-            'theme_color'            => $request->theme_color ?: '#880e4f',
-            'btn_color'              => $request->btn_color ?: '#E0B04A',
-            'btn_text_color'         => $request->btn_text_color ?: '#2B1C06',
-            'bg_color'               => $request->bg_color ?: '#1F0A0F',
-            'top_notice'             => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
-            'hero_tag'               => $request->hero_tag ?: 'PREMIUM COLLECTION',
-            'slider_images'          => $sliderImages,
-            'video_url'              => $request->video_url,
-            'regular_price'          => $regPrice,
-            'sale_price'             => $salePrice,
-            'discount_text'          => $discountText,
-            'stock_text'             => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
-            'features'               => $features,
-            'overview_title'         => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
-            'overview_sub_title'     => $request->overview_sub_title ?: 'প্রোডাক্ট সম্পর্কে দরকারি তথ্য এক জায়গায়।',
-            'overview_image'         => $overviewImagePath,
-            'overview_text'          => $request->overview_text ?: ($product->description_en ?: $product->description_bn),
-            'overview_points'        => $overviewPoints,
-            'about_cards'            => $aboutCards,
-            'reviews'                => $reviews,
-            'faqs'                   => $faqs,
-            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : $shippingDhaka,
-            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : $shippingOutside,
-            'status'                 => $request->has('status') ? (int)$request->status : 1,
+            'product_id' => $product->id,
+            'title' => $request->title,
+            'slug' => $slug,
+            'sub_title' => $request->sub_title ?? ($product->name_bn ?: $product->name_en),
+            'theme_color' => $request->theme_color ?: '#000000',
+            'btn_color' => $request->btn_color ?: '#E0B04A',
+            'btn_text_color' => $request->btn_text_color ?: '#2B1C06',
+            'bg_color' => $request->bg_color ?: '#1F0A0F',
+            'top_notice' => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
+            'hero_tag' => $request->hero_tag ?: 'PREMIUM COLLECTION',
+            'slider_images' => $sliderImages,
+            'video_url' => $request->video_url,
+            'regular_price' => $regPrice,
+            'sale_price' => $salePrice,
+            'discount_text' => $discountText,
+            'stock_text' => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
+            'features' => $features,
+            'overview_title' => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
+            'overview_sub_title' => $request->overview_sub_title ?: 'প্রোডাক্ট সম্পর্কে দরকারি তথ্য এক জায়গায়।',
+            'overview_image' => $overviewImagePath,
+            'overview_text' => $request->overview_text ?: ($product->description_en ?: $product->description_bn),
+            'overview_points' => $overviewPoints,
+            'about_cards' => $aboutCards,
+            'reviews' => $reviews,
+            'faqs' => $faqs,
+            'delivery_charge_dhaka' => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : $shippingDhaka,
+            'delivery_charge_outside' => $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : $shippingOutside,
+            'status' => $request->has('status') ? (int) $request->status : 1,
         ]);
 
         Session::flash('success', 'ল্যান্ডিং পেজ সফলভাবে তৈরি হয়েছে!');
@@ -338,8 +338,8 @@ class LandingPageController extends Controller
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'title'      => 'required|string|max:255',
-            'slug'       => 'required|string|max:255|unique:landing_pages,slug,' . $landingPage->id,
+            'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:landing_pages,slug,' . $landingPage->id,
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -403,10 +403,10 @@ class LandingPageController extends Controller
             foreach ($request->reviews as $rev) {
                 if (!empty($rev['name']) && !empty($rev['comment'])) {
                     $reviews[] = [
-                        'name'     => $rev['name'],
+                        'name' => $rev['name'],
                         'location' => $rev['location'] ?? 'ঢাকা',
-                        'stars'    => (int)($rev['stars'] ?? 5),
-                        'comment'  => $rev['comment'],
+                        'stars' => (int) ($rev['stars'] ?? 5),
+                        'comment' => $rev['comment'],
                     ];
                 }
             }
@@ -422,7 +422,7 @@ class LandingPageController extends Controller
                 if (!empty($faq['question']) && !empty($faq['answer'])) {
                     $faqs[] = [
                         'question' => $faq['question'],
-                        'answer'   => $faq['answer'],
+                        'answer' => $faq['answer'],
                     ];
                 }
             }
@@ -431,8 +431,8 @@ class LandingPageController extends Controller
             $faqs = $landingPage->faqs ?: [];
         }
 
-        $regPrice = $request->filled('regular_price') ? (float)$request->regular_price : (float)$product->regular_price;
-        $salePrice = $request->filled('sale_price') ? (float)$request->sale_price : (float)($product->discount_price > 0 ? $product->discount_price : $product->regular_price);
+        $regPrice = $request->filled('regular_price') ? (float) $request->regular_price : (float) $product->regular_price;
+        $salePrice = $request->filled('sale_price') ? (float) $request->sale_price : (float) ($product->discount_price > 0 ? $product->discount_price : $product->regular_price);
         $discountText = $request->discount_text;
         if (empty($discountText) && $regPrice > $salePrice && $regPrice > 0) {
             $pct = round((($regPrice - $salePrice) / $regPrice) * 100);
@@ -449,7 +449,7 @@ class LandingPageController extends Controller
                 if (!empty($stp['title'])) {
                     $steps[] = [
                         'title' => $stp['title'],
-                        'desc'  => $stp['desc'] ?? '',
+                        'desc' => $stp['desc'] ?? '',
                     ];
                 }
             }
@@ -464,40 +464,40 @@ class LandingPageController extends Controller
         }
 
         $aboutCards = [
-            'steps'           => $steps,
+            'steps' => $steps,
             'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
-            'guarantee_desc'  => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+            'guarantee_desc' => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
         ];
 
         $landingPage->update([
-            'product_id'             => $product->id,
-            'title'                  => $request->title,
-            'slug'                   => Str::slug($request->slug),
-            'sub_title'              => $request->sub_title,
-            'theme_color'            => $request->theme_color ?: '#880e4f',
-            'btn_color'              => $request->btn_color ?: '#E0B04A',
-            'btn_text_color'         => $request->btn_text_color ?: '#2B1C06',
-            'bg_color'               => $request->bg_color ?: '#1F0A0F',
-            'top_notice'             => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
-            'hero_tag'               => $request->hero_tag,
-            'slider_images'          => $sliderImages,
-            'video_url'              => $request->video_url,
-            'regular_price'          => $regPrice,
-            'sale_price'             => $salePrice,
-            'discount_text'          => $discountText,
-            'stock_text'             => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
-            'features'               => $features,
-            'overview_title'         => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
-            'overview_sub_title'     => $request->overview_sub_title,
-            'overview_image'         => $overviewImagePath,
-            'overview_text'          => $request->overview_text,
-            'overview_points'        => $overviewPoints,
-            'about_cards'            => $aboutCards,
-            'reviews'                => $reviews,
-            'faqs'                   => $faqs,
-            'delivery_charge_dhaka'  => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : ($landingPage->delivery_charge_dhaka ?: $shippingDhaka),
-            'delivery_charge_outside'=> $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : ($landingPage->delivery_charge_outside ?: $shippingOutside),
-            'status'                 => $request->has('status') ? (int)$request->status : 0,
+            'product_id' => $product->id,
+            'title' => $request->title,
+            'slug' => Str::slug($request->slug),
+            'sub_title' => $request->sub_title,
+            'theme_color' => $request->theme_color ?: '#000000',
+            'btn_color' => $request->btn_color ?: '#E0B04A',
+            'btn_text_color' => $request->btn_text_color ?: '#2B1C06',
+            'bg_color' => $request->bg_color ?: '#1F0A0F',
+            'top_notice' => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
+            'hero_tag' => $request->hero_tag,
+            'slider_images' => $sliderImages,
+            'video_url' => $request->video_url,
+            'regular_price' => $regPrice,
+            'sale_price' => $salePrice,
+            'discount_text' => $discountText,
+            'stock_text' => $request->stock_text ?: 'বর্তমান স্টক: সীমিত',
+            'features' => $features,
+            'overview_title' => $request->overview_title ?: 'পণ্যের বিশেষ বৈশিষ্ট্য',
+            'overview_sub_title' => $request->overview_sub_title,
+            'overview_image' => $overviewImagePath,
+            'overview_text' => $request->overview_text,
+            'overview_points' => $overviewPoints,
+            'about_cards' => $aboutCards,
+            'reviews' => $reviews,
+            'faqs' => $faqs,
+            'delivery_charge_dhaka' => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : ($landingPage->delivery_charge_dhaka ?: $shippingDhaka),
+            'delivery_charge_outside' => $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : ($landingPage->delivery_charge_outside ?: $shippingOutside),
+            'status' => $request->has('status') ? (int) $request->status : 0,
         ]);
 
         Session::flash('success', 'ল্যান্ডিং পেজ সফলভাবে আপডেট করা হয়েছে!');

@@ -182,18 +182,18 @@
     /* --- Begin: Responsive grid and card styles from index2.blade.php --- */
     .latest-products-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 18px;
         margin-top: 20px;
     }
     @media (max-width: 1400px) {
         .latest-products-grid {
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
         }
     }
     @media (max-width: 1200px) {
         .latest-products-grid {
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
         }
     }
     @media (max-width: 992px) {

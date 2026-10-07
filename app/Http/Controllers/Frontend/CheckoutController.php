@@ -244,12 +244,25 @@ class CheckoutController extends Controller
             if($product->vendor_id !=0){
                 $vendor_id = $product->vendor_id;
             }
-            if($cart->options->is_varient == 1){
+            $opt = is_array($cart->options) ? $cart->options : (method_exists($cart->options, 'toArray') ? $cart->options->toArray() : (array)$cart->options);
+            if(!empty($opt['is_varient']) && $opt['is_varient'] == 1){
                 $variations = array();
-                for($i=0; $i<count($cart->options->attribute_names); $i++){
-                    $item['attribute_name'] = $cart->options->attribute_names[$i];
-                    $item['attribute_value'] = $cart->options->attribute_values[$i];
-                    array_push($variations, $item);
+                $attrNames = $opt['attribute_names'] ?? [];
+                $attrValues = $opt['attribute_values'] ?? [];
+                if(!empty($attrNames) && is_array($attrNames)){
+                    foreach($attrNames as $i => $name){
+                        $item = [
+                            'attribute_name' => $name,
+                            'attribute_value' => $attrValues[$i] ?? ($opt['varient'] ?? ''),
+                        ];
+                        array_push($variations, $item);
+                    }
+                }
+                if(empty($variations) && !empty($opt['varient'])){
+                    $variations[] = [
+                        'attribute_name' => 'Variant',
+                        'attribute_value' => $opt['varient'],
+                    ];
                 }
                 OrderDetail::insert([
                     'order_id' => $order->id,
@@ -266,11 +279,19 @@ class CheckoutController extends Controller
                 ]);
 
                 // stock calculation //
-                $stock = ProductStock::where('product_id', $product->id)->where('varient', $cart->options->varient)->first();
-//                 dd($cart);
+                $variantStr = $opt['varient'] ?? '';
+                $stock = ProductStock::where('product_id', $product->id)->where('varient', $variantStr)->first();
+                if(!$stock && !empty($variantStr)){
+                    $cleanV = preg_replace('/\s+/', ' ', trim($variantStr));
+                    foreach(ProductStock::where('product_id', $product->id)->get() as $s){
+                        if(preg_replace('/\s+/', ' ', trim($s->varient)) === $cleanV){
+                            $stock = $s;
+                            break;
+                        }
+                    }
+                }
                 if($stock){
-//                     dd($stock->qty, $cart->qty);
-                    $stock->qty = ($stock->qty - $cart->qty);
+                    $stock->qty = max(0, $stock->qty - $cart->qty);
                     $stock->save();
                 }
 

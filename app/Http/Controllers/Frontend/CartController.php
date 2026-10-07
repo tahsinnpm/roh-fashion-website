@@ -86,37 +86,82 @@ class CartController extends Controller
         $price = $product->storefrontPrice();
         $available = (int) $product->stock_qty;
         if ($product->is_varient) {
+            $reqVarient = trim((string) $request->product_varient);
             $stock = ProductStock::where('product_id', $id)->where('varient', $request->product_varient)->first();
+            if (!$stock && !empty($reqVarient)) {
+                $stock = ProductStock::where('product_id', $id)->where('varient', $reqVarient)->first();
+            }
+            if (!$stock && !empty($reqVarient)) {
+                $cleanReq = preg_replace('/\s+/', ' ', $reqVarient);
+                foreach (ProductStock::where('product_id', $id)->get() as $s) {
+                    if (preg_replace('/\s+/', ' ', trim($s->varient)) === $cleanReq) {
+                        $stock = $s;
+                        break;
+                    }
+                }
+            }
             if (!$stock) {
                 return response()->json(['error' => 'Please select an available combination.'], 422);
             }
             $submitted = json_decode($request->input('options', '[]'), true);
-            if (!is_array($submitted)) {
-                return response()->json(['error' => 'Please select all options.'], 422);
-            }
-            $values = collect($submitted)->where('name', 'attribute_options[]')->pluck('value')->all();
+            $values = is_array($submitted) ? collect($submitted)->where('name', 'attribute_options[]')->pluck('value')->all() : [];
             $definitions = json_decode($product->attribute_values ?: '[]') ?: [];
-            if (count($values) !== count($definitions) || implode('-', $values) !== $stock->varient) {
-                return response()->json(['error' => 'Please select all options.'], 422);
+            if (empty($values) && $stock->varient) {
+                $values = explode('-', $stock->varient);
             }
-            $ids = []; $names = [];
-            foreach ($definitions as $index => $definition) {
-                if (!in_array($values[$index], $definition->values, true)) {
-                    return response()->json(['error' => 'Invalid product option.'], 422);
+            if (!empty($definitions)) {
+                $stockParts = explode('-', $stock->varient);
+                if (count($stockParts) === count($definitions)) {
+                    $values = $stockParts;
+                    $ids = []; $names = [];
+                    foreach ($definitions as $index => $definition) {
+                        $ids[] = $definition->attribute_id;
+                        $names[] = optional(\App\Models\Attribute::find($definition->attribute_id))->name;
+                    }
+                    $options += ['varient' => $stock->varient, 'attribute_ids' => $ids, 'attribute_names' => $names, 'attribute_values' => $values];
+                } else {
+                    $options += [
+                        'varient' => $stock->varient,
+                        'attribute_ids' => [],
+                        'attribute_names' => ['Variant'],
+                        'attribute_values' => [$stock->varient],
+                    ];
                 }
-                $ids[] = $definition->attribute_id;
-                $names[] = optional(\App\Models\Attribute::find($definition->attribute_id))->name;
+            } else {
+                $options += [
+                    'varient' => $stock->varient,
+                    'attribute_ids' => [],
+                    'attribute_names' => ['Variant'],
+                    'attribute_values' => [$stock->varient],
+                ];
             }
-            $options += ['varient' => $stock->varient, 'attribute_ids' => $ids, 'attribute_names' => $names, 'attribute_values' => $values];
             $price = $product->storefrontPrice($stock->price);
             $available = (int) $stock->qty;
         }
-        $existing = Cart::content()->filter(function ($item) use ($id, $product, $request) {
-            return $item->id == $id && (!$product->is_varient || $item->options->varient === $request->product_varient);
-        })->sum('qty');
-        if ($existing + $quantity > $available) {
+        $existingRow = Cart::content()->first(function ($item) use ($id, $product, $request, $options) {
+            if ($item->id != $id) {
+                return false;
+            }
+            if ($product->is_varient) {
+                $targetVar = $options['varient'] ?? $request->product_varient;
+                $rowVar = $item->options->varient ?? '';
+                return preg_replace('/\s+/', ' ', trim((string) $rowVar)) === preg_replace('/\s+/', ' ', trim((string) $targetVar));
+            }
+            return true;
+        });
+
+        if ($existingRow) {
+            return response()->json([
+                'success' => 'Already in your cart',
+                'cartQty' => Cart::count(),
+                'already_in_cart' => true
+            ]);
+        }
+
+        if ($quantity > $available) {
             return response()->json(['error' => 'Not enough stock.'], 422);
         }
+
         Cart::add(['id' => $product->id, 'name' => $product->name_en, 'qty' => $quantity, 'price' => $price, 'weight' => 1, 'options' => $options]);
         return response()->json(['success' => 'Added to your cart', 'cartQty' => Cart::count()]);
     }

@@ -11,101 +11,22 @@ Home
 @section('content')
 
 <section class="rf-hero-section">
-    <div class="custom_container">
-        <div class="rf-hero-section-grid">
-            <div class="rf-categories-panel">
-                <div class="rf-categories-header">
-                    <i class="fas fa-bars"></i>
-                    <span>
-                        @if(session()->get('language') == 'bangla')
-                        সকল ক্যাটাগরি
-                        @else
-                        All Categories
-                        @endif
-                    </span>
+    <div class="rf-hero-section-grid">
+        <div class="rf-main-slider">
+            @if($sliders->isNotEmpty())
+                @php($heroBanner = $sliders->first())
+                <img src="{{ asset($heroBanner->slider_img) }}" alt="Roh Fashion collection banner" fetchpriority="high">
+            @else
+                <div class="rf-slider-empty">
+                    <span>ROH FASHION</span>
+                    <h2>Find your everyday favourite.</h2>
+                    <a href="{{ route('category_list.index') }}">Discover the collection</a>
                 </div>
-
-                <ul class="rf-category-menu">
-                    @foreach($categories as $category)
-                    @if($category->type == 1)
-                    <li class="rf-category-item">
-                        <a href="{{route('product.category', $category->slug)}}" class="rf-category-link">
-                            @if($category->icon)
-                            <img loading="lazy" decoding="async" src="{{ asset($category->icon) }}" class="rf-site-category-icon" alt="">
-                            @else
-                            <i class="fas fa-th-large rf-category-placeholder" aria-hidden="true"></i>
-                            @endif
-                            <span>
-                                @if(session()->get('language') == 'bangla')
-                                {{$category->name_bn}}
-                                @else
-                                {{$category->name_en}}
-                                @endif
-                            </span>
-                            @php $subcategories = $category->categories @endphp
-                            @if(count($subcategories) > 0)
-                            <i class="fas fa-chevron-right rf-category-arrow"></i>
-                            @endif
-                        </a>
-
-                        @if(count($subcategories) > 0)
-                        <div class="rf-subcategories">
-                            @foreach($subcategories as $subcategory)
-                            <div class="rf-subcategory-item">
-                                <a href="{{route('product.category', $subcategory->slug)}}" class="rf-subcategory-link">
-                                    @if(session()->get('language') == 'bangla')
-                                    {{$subcategory->name_bn}}
-                                    @else
-                                    {{$subcategory->name_en}}
-                                    @endif
-                                </a>
-                            </div>
-                            @endforeach
-                        </div>
-                        @endif
-                    </li>
-                    @endif
-                    @endforeach
-                </ul>
-            </div>
-            <div class="rf-main-slider">
-                <div id="mainCarousel" class="carousel slide" data-bs-interval="false">
-                    <div class="carousel-inner">
-                        @forelse ($sliders as $index => $slider)
-                        <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
-                            <img loading="lazy" decoding="async" src="{{ asset($slider->slider_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন কালেকশন' : 'Roh Fashion collection' }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
-                        </div>
-                        @empty
-                        <div class="rf-slider-empty"><span>ROH FASHION</span>
-                            <h2>{{ session('language') == 'bangla' ? 'খুঁজে নিন আপনার পছন্দের স্টাইল' : 'Find your everyday favourite.' }}</h2><a href="{{ route('category_list.index') }}">{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Discover the collection' }}</a>
-                        </div>
-                        @endforelse
-                    </div>
-                    @if($sliders->count() > 1)
-                    <button aria-label="Previous slide" class="carousel-control-prev" type="button" data-bs-target="#mainCarousel"
-                        data-bs-slide="prev">
-                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
-                    </button>
-                    <button aria-label="Next slide" class="carousel-control-next" type="button" data-bs-target="#mainCarousel"
-                        data-bs-slide="next">
-                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                    </button>
-                    @endif
-                </div>
-            </div>
-
-            <div class="rf-side-banners">
-                @foreach ($home_banners->take(2) as $index => $banner)
-                <a class="rf-promo-banner" href="{{ $banner->url ?: route('category_list.index') }}" aria-label="{{ session('language') == 'bangla' ? 'কালেকশন দেখুন' : 'Explore collection' }}">
-                    <img loading="lazy" decoding="async" class="rf-promo-image" src="{{ asset($banner->banner_img) }}" alt="{{ session('language') == 'bangla' ? 'রোহ ফ্যাশন অফার' : 'Roh Fashion offer' }}" loading="lazy">
-                    <span class="rf-promo-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
-                </a>
-                @endforeach
-            </div>
+            @endif
         </div>
     </div>
 </section>
-
+{{-- Flash Sale temporarily hidden.
 @if($campaign && $start_diff2->invert == 0 && $end_diff2->invert == 0)
 <section class="custom_container rf-flash-section" aria-labelledby="flash-sale-title">
 
@@ -123,10 +44,6 @@ Home
                 @endforeach
             </div>
         </div>
-        <div class="rf-flash-navigation">
-            <a href="{{ route('campaign.product') }}" class="rf-flash-link">{{ session('language') === 'bangla' ? 'সব অফার দেখুন' : 'Explore all offers' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-            <div data-flash-controls></div>
-        </div>
     </header>
     <div class="flash-sale rf-home-rail rf-products-rail" data-home-rail>
         @foreach($campaign->campaing_products->take(6) as $campaignProduct)
@@ -137,11 +54,16 @@ Home
         @endif
         @endforeach
     </div>
+    <div class="rf-home-section-footer">
+        <a href="{{ route('campaign.product') }}" class="rf-home-view-all">{{ session('language') === 'bangla' ? 'সব অফার দেখুন' : 'View All' }}</a>
+        <div data-flash-controls></div>
+    </div>
 </section>
 @endif
+--}}
 
 @if(isset($product_featured) && $product_featured->count() > 0)
-<section class="custom_container">
+<section class="custom_container rf-home-product-section">
     <div class="section-header">
         <h2 class="section-title">
             @if(session()->get('language') == 'bangla')
@@ -150,13 +72,6 @@ Home
             Featured Products
             @endif
         </h2>
-        <a href="{{ route('product.show') }}" class="view-all-btn">
-            @if(session()->get('language') == 'bangla')
-            সব দেখুন
-            @else
-            View All
-            @endif
-        </a>
     </div>
 
     <div class="featured-slider rf-home-rail rf-products-rail" data-home-rail>
@@ -166,10 +81,11 @@ Home
         </div>
         @endforeach
     </div>
+    <div class="rf-home-section-footer"><a href="{{ route('product.show', ['featured' => 1]) }}" class="rf-home-view-all">{{ session('language') === 'bangla' ? 'সব দেখুন' : 'View All' }}</a></div>
 </section>
 @endif
 
-<section class="custom_container pt-4 roh-category-section">
+<section class="custom_container pt-4 roh-category-section rf-home-product-section">
     <div class="section-header">
         <h2 class="section-title">
             @if(session()->get('language') == 'bangla')
@@ -178,13 +94,6 @@ Home
             Categories
             @endif
         </h2>
-        <a href="{{route('category_list.index')}}" class="view-all-btn">
-            @if(session()->get('language') == 'bangla')
-            সব দেখুন
-            @else
-            View All
-            @endif
-        </a>
     </div>
 
     <div class="roh-category-carousel">
@@ -192,10 +101,7 @@ Home
         @foreach($featured_category as $fc)
         <div class="category-slide">
             <a href="{{ route('product.category', $fc->slug) }}" class="category-card">
-                <span class="category-label">{{ session('language') === 'bangla' ? ($fc->name_bn ?: $fc->name_en) : $fc->name_en }}</span>
-                <div class="category-icon">
-                    <img loading="lazy" decoding="async" src="{{ asset($fc->image ?: 'upload/product-default.jpg') }}" alt="" width="100" height="100" onerror="this.onerror=null;this.src='{{ asset('upload/product-default.jpg') }}'">
-                </div>
+                <img class="category-card-image" loading="lazy" decoding="async" src="{{ asset($fc->image ?: 'upload/product-default.jpg') }}" alt="" onerror="this.onerror=null;this.src='{{ asset('upload/product-default.jpg') }}'">
                 <div class="category-content">
                     <h3 class="category-name">
                         @if(session()->get('language') == 'bangla')
@@ -204,20 +110,49 @@ Home
                         {{ $fc->name_en }}
                         @endif
                     </h3>
-                    <span class="category-shop">{{ session('language') === 'bangla' ? 'কেনাকাটা করুন' : 'Shop Now' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                    <span class="category-shop">Discover</span>
                 </div>
             </a>
         </div>
         @endforeach
     </div>
     </div>
+
+    <div class="rf-home-section-footer"><a href="{{ route('category_list.index') }}" class="rf-home-view-all">{{ session('language') === 'bangla' ? 'সব দেখুন' : 'View All' }}</a></div>
 </section>
 
+{{-- Dynamic Sections (Configured from Admin with Custom Position & Product Ordering) --}}
+@if(isset($dynamic_sections) && $dynamic_sections->count() > 0)
+    @foreach($dynamic_sections as $section)
+        @if($section->products && $section->products->count() > 0)
+        <section class="custom_container rf-home-product-section dynamic-section mb-4" id="section-{{ $section->slug }}">
+            <div class="section-header">
+                <h2 class="section-title">
+                    @if(session()->get('language') == 'bangla')
+                        {{ $section->title_bn ?: $section->title }}
+                    @else
+                        {{ $section->title }}
+                    @endif
+                </h2>
+            </div>
 
-
-
-
-<section class="custom_container mb-5">
+            <div class="rf-home-rail rf-products-rail" data-home-rail>
+                @foreach($section->products as $product)
+                <div class="rf-slide">
+                    <x-product-card :product="$product" />
+                </div>
+                @endforeach
+            </div>
+            <div class="rf-home-section-footer">
+                <a href="{{ route('product.show', ['section' => $section->slug]) }}" class="rf-home-view-all">
+                    {{ session('language') === 'bangla' ? 'সব দেখুন' : 'View All' }}
+                </a>
+            </div>
+        </section>
+        @endif
+    @endforeach
+@endif
+<section class="custom_container mb-5 rf-home-product-section">
     <div class="section-header">
         <h2 class="section-title">
             @if(session()->get('language') == 'bangla')
@@ -238,14 +173,8 @@ Home
         @endforeach
     </div>
 
-    <div class="text-center mt-4">
-        <button type="button" id="load-more-btn" data-url="{{ url('load-more-products') }}" data-offset="{{ $product_trendings->count() }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}" class="view-all-btn">
-            @if(session()->get('language') == 'bangla')
-            আরো দেখুন
-            @else
-            View More
-            @endif
-        </button>
+    <div class="rf-home-section-footer">
+        <a href="{{ route('product.show', ['sort_by' => 'newest']) }}" class="view-all-btn rf-home-view-all text-decoration-none d-inline-block">{{ session('language') === 'bangla' ? 'আরো দেখুন' : 'View More' }}</a>
     </div>
 </section>
 

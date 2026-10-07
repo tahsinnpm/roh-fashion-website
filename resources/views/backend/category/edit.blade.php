@@ -96,6 +96,14 @@
 
                                 <div class="mb-4">
                                     <div class="custom-control custom-switch">
+                                        <input type="hidden" name="is_header" value="0">
+                                        <input type="checkbox" class="form-check-input me-2 cursor" name="is_header" id="is_header" value="1" {{ $category->is_header == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label cursor" for="is_header">Header Category</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="custom-control custom-switch">
                                         <input type="checkbox" class="form-check-input me-2 cursor" name="status" id="status" {{ $category->status == 1 ? 'checked': '' }} value="1">
                                         <label class="form-check-label cursor" for="status">Status</label>
                                     </div>

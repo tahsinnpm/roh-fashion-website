@@ -25,6 +25,12 @@ class QuickCheckout
             $product = $products->get($row->id);
             $variant = $product && $product->is_varient
                 ? $stocks->where('product_id', $row->id)->firstWhere('varient', $row->options->varient) : null;
+            if ($product && $product->is_varient && !$variant && !empty($row->options->varient)) {
+                $cleanRowV = preg_replace('/\s+/', ' ', trim($row->options->varient));
+                $variant = $stocks->where('product_id', $row->id)->first(function ($s) use ($cleanRowV) {
+                    return preg_replace('/\s+/', ' ', trim($s->varient)) === $cleanRowV;
+                });
+            }
             $key = $row->id.':'.($variant ? $variant->id : 'simple');
             $used[$key] = ($used[$key] ?? 0) + (int) $row->qty;
             $available = $product && $product->is_varient ? (int) optional($variant)->qty : (int) optional($product)->stock_qty;
@@ -64,6 +70,7 @@ class QuickCheckout
                 if (!$user) {
                     $user = User::create([
                         'name' => $data['name'], 'phone' => $data['phone'], 'address' => $data['address'],
+                        'email' => !empty($data['email']) ? $data['email'] : null,
                         'role' => 3, 'password' => Hash::make('12345678'),
                     ]);
                     $created = true;
@@ -72,6 +79,8 @@ class QuickCheckout
             $charge = max(0, (float) $shipping->shipping_charge);
             $order = Order::create([
                 'user_id' => $user->id, 'name' => $data['name'], 'phone' => $data['phone'], 'address' => $data['address'],
+                'email' => !empty($data['email']) ? $data['email'] : null,
+                'comment' => !empty($data['comment']) ? $data['comment'] : null,
                 'affiliate_id' => session('affiliate_ref') ? Affiliate::where('referral_code', session('affiliate_ref'))->value('id') : null,
                 'invoice_no' => $invoice, 'sub_total' => $quote['subtotal'], 'discount' => $quote['discount'],
                 'coupon' => $quote['coupon'] ? $quote['discount'] : null,
@@ -86,6 +95,9 @@ class QuickCheckout
                 $variations = [];
                 foreach (($row->options->attribute_names ?: []) as $index => $name) {
                     $variations[] = ['attribute_name' => $name, 'attribute_value' => $row->options->attribute_values[$index] ?? ''];
+                }
+                if (empty($variations) && !empty($row->options->varient)) {
+                    $variations[] = ['attribute_name' => 'Variant', 'attribute_value' => $row->options->varient];
                 }
                 OrderDetail::create([
                     'order_id' => $order->id, 'invoice_no' => $invoice, 'product_id' => $product->id,

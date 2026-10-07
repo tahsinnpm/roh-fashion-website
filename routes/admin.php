@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\CampaingController;
 use App\Http\Controllers\Backend\CategoryController;
 use App\Http\Controllers\Backend\CouponController;
 use App\Http\Controllers\Backend\LandingPageController;
+use App\Http\Controllers\Backend\DynamicSectionController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
 use App\Http\Controllers\Backend\PaymentMethodController;
@@ -437,7 +438,20 @@ Route::middleware('adminAccess')->group(function(){
         Route::post('/update/{id}', [LandingPageController::class, 'update'])->name('landing.page.update');
         Route::get('/delete/{id}', [LandingPageController::class, 'destroy'])->name('landing.page.destroy');
         Route::get('/change-status/{id}', [LandingPageController::class, 'changeStatus'])->name('landing.page.change_status');
-        Route::get('/ajax/product-details/{id}', [LandingPageController::class, 'ajaxProductDetails'])->name('landing.page.ajax.product');
+    });
+
+    // Dynamic Section Routes
+    Route::prefix('dynamic-sections')->group(function(){
+        Route::get('/list', [DynamicSectionController::class, 'index'])->name('dynamic-section.index');
+        Route::get('/create', [DynamicSectionController::class, 'create'])->name('dynamic-section.create');
+        Route::post('/store', [DynamicSectionController::class, 'store'])->name('dynamic-section.store');
+        Route::get('/edit/{id}', [DynamicSectionController::class, 'edit'])->name('dynamic-section.edit');
+        Route::post('/update/{id}', [DynamicSectionController::class, 'update'])->name('dynamic-section.update');
+        Route::get('/delete/{id}', [DynamicSectionController::class, 'destroy'])->name('dynamic-section.destroy');
+        Route::get('/change-status/{id}', [DynamicSectionController::class, 'changeStatus'])->name('dynamic-section.change_status');
+        Route::post('/update-positions', [DynamicSectionController::class, 'updatePositions'])->name('dynamic-section.update_positions');
+        Route::post('/update-product-positions/{id}', [DynamicSectionController::class, 'updateProductPositions'])->name('dynamic-section.update_product_positions');
+        Route::get('/ajax/get-product', [DynamicSectionController::class, 'ajaxGetProduct'])->name('dynamic-section.ajax.get_product');
     });
 
 });

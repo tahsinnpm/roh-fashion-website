@@ -35,7 +35,10 @@ class AppServiceProvider extends ServiceProvider
         });
         View::composer('FrontEnd.include.header', function ($view){
             $view->with(
-                'categories', Category::orderBy('name_en','ASC')->where('status','=',1)->limit(11)->get()
+                'categories', Category::where('status', 1)
+                    ->where('is_header', 1)
+                    ->orderBy('name_en', 'ASC')
+                    ->get()
             );
 
         });

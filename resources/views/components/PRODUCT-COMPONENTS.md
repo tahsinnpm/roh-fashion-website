@@ -8,7 +8,7 @@ Render an Eloquent Product anywhere inside `FrontEnd.master`:
 
 The layout loads `products.css`, `products.js`, and one `<x-product-quick-view />` automatically. Do not place a modal inside each card or product loop. Existing pages keep their legacy modal until their cards are migrated.
 
-Cards link to the full product page. Simple products add their minimum quantity directly; variant products open the shared dialog. The eye button previews either type. The dialog loads images, description, available attributes and variant stock, and provides a details link.
+Cards link to the full product page. Hovering or focusing a card reveals its eye button, which opens the shared dialog for either simple or variant products. The dialog loads images, description, available attributes and variant stock, and provides cart and details actions.
 
 Eager-load `stocks` when rendering collections of products. Load-more responses use `FrontEnd.partials.product-cards` so dynamically appended cards have the same markup and delegated interactions.
 

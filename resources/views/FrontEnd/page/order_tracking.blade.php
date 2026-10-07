@@ -1,99 +1,428 @@
 @extends('FrontEnd.master')
+@section('title', 'Track Your Order')
+
 @section('content')
-    <main class="main" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
-        <div class="container py-5">
-            <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
-                <div class="col-lg-6 col-md-8">
-                    <div class="card border-0 shadow-lg" style="border-radius: 2rem; overflow: hidden; background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(216,63,38,0.10);">
-                        <div class="card-header text-center bg-transparent" style="border-bottom: none; padding: 2.5rem 2rem 1.5rem 2rem;">
-                            <div style="display: flex; justify-content: center;">
-                                <img src="{{asset('FrontEnd/assect/img/logo/Captureimgae.PNG')}}" alt="Order Tracking" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; box-shadow: 0 4px 16px rgba(216,63,38,0.10); border: 4px solid #fff;">
-                            </div>
-                            <h2 style="font-weight: 900; font-size: 2.3rem; color: #D83F26; margin: 1rem 0 0.5rem 0; letter-spacing: -1px;">Track Your Order</h2>
-                            <p style="font-size: 1.1rem; color: #444; margin-bottom: 0;">Stay updated on your package from checkout to delivery.</p>
-                        </div>
-                        <div class="card-body px-5 py-4" style="background: transparent;">
-                            <div class="text-center mb-4">
-                                <h4 id="error_msg" style="color: #D83F26; font-weight: 700; font-size: 1.15rem; margin-bottom: 0.5rem;">
-                                    {{session()->get('message')}}
-                                </h4>
-                                <p style="color: #888; font-size: 1rem; margin-bottom: 2rem;">
-                                    Enter your <span style="color:#D83F26;font-weight:600;">Invoice ID</span> and <span style="color:#D83F26;font-weight:600;">Phone</span> to check your order status.
-                                </p>
-                            </div>
-                            <form method="get" action="{{ route('order.track') }}" class="needs-validation" novalidate style="max-width: 420px; margin: 0 auto;">
-                                @csrf
-                                <div class="mb-4">
-                                    <label class="form-label" style="font-weight: 700; color: #222; font-size: 1.08rem;">Invoice ID <span style="color: #D83F26;">*</span></label>
-                                    <div class="input-group" style="border-radius: 1rem; overflow: hidden; box-shadow: 0 2px 8px rgba(216,63,38,0.04);">
-                                        <span class="input-group-text" style="background: #fff; border-right: 0; border-radius: 1rem 0 0 1rem; font-size: 1.2rem;">
-                                            <i class="fi-rs-receipt" style="color: #D83F26;"></i>
-                                        </span>
-                                        <input type="text" name="invoice_no" class="form-control" placeholder="e.g. INV123456" value="{{ old('invoice_no') }}" required style="border-radius: 0 1rem 1rem 0; border-left: 0; background: #fff; font-size: 1.08rem; padding: 0.85rem 1rem;">
-                                    </div>
-                                    @error('invoice_no')
-                                        <div style="color: #D83F26; font-size: 14px; margin-top: 6px; font-weight: 500;">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label" style="font-weight: 700; color: #222; font-size: 1.08rem;">Phone <span style="color: #D83F26;">*</span></label>
-                                    <div class="input-group" style="border-radius: 1rem; overflow: hidden; box-shadow: 0 2px 8px rgba(216,63,38,0.04);">
-                                        <span class="input-group-text" style="background: #fff; border-right: 0; border-radius: 1rem 0 0 1rem; font-size: 1.2rem;">
-                                            <i class="fi-rs-smartphone" style="color: #D83F26;"></i>
-                                        </span>
-                                        <input type="number" name="phone" class="form-control" placeholder="Your phone number" value="{{ old('phone')}}" required style="border-radius: 0 1rem 1rem 0; border-left: 0; background: #fff; font-size: 1.08rem; padding: 0.85rem 1rem;">
-                                    </div>
-                                    @error('phone')
-                                        <div style="color: #D83F26; font-size: 14px; margin-top: 6px; font-weight: 500;">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="d-grid mt-4">
-                                    <button type="submit" style="background: linear-gradient(90deg, #D83F26 60%, #B9321C 100%); color: #fff; border: none; padding: 1rem 0; font-size: 1.15rem; font-weight: 800; border-radius: 1rem; box-shadow: 0 4px 16px rgba(216,63,38,0.10); transition: background 0.2s, transform 0.2s;">
-                                        <i class="fi-rs-search me-2"></i> Track My Order
-                                    </button>
-                                </div>
-                                <div class="text-center mt-4">
-                                    <p style="font-size: 1rem; color: #888;">
-                                        Need help? <a href="#" style="color: #D83F26; text-decoration: underline; font-weight: 600;">Contact our support team</a>
-                                    </p>
-                                </div>
-                            </form>
-                        </div>
+<style>
+    .rf-tracking-page {
+        background-color: #fafafa;
+        background-image: radial-gradient(#e4e4e7 1px, transparent 1px);
+        background-size: 24px 24px;
+        min-height: calc(100vh - 120px);
+        padding: 60px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    .rf-tracking-wrapper {
+        width: 100%;
+        max-width: 540px;
+        margin: 0 auto;
+    }
+
+    .rf-tracking-card {
+        background: #ffffff;
+        border: 1px solid #e4e4e7;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05), 0 0 1px rgba(0, 0, 0, 0.1);
+        padding: 42px 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .rf-tracking-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #09090b;
+    }
+
+    .rf-badge-icon {
+        width: 68px;
+        height: 68px;
+        background: #09090b;
+        color: #ffffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        border: 4px solid #f4f4f5;
+        transition: transform 0.3s ease;
+    }
+
+    .rf-tracking-card:hover .rf-badge-icon {
+        transform: translateY(-2px);
+    }
+
+    .rf-tracking-title {
+        color: #09090b;
+        font-weight: 800;
+        font-size: 26px;
+        letter-spacing: -0.5px;
+        text-align: center;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .rf-tracking-subtitle {
+        color: #71717a;
+        font-size: 14.5px;
+        text-align: center;
+        margin-bottom: 28px;
+        line-height: 1.5;
+    }
+
+    .rf-alert-box {
+        background: #09090b;
+        color: #ffffff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 13.5px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .rf-alert-box.alert-error {
+        background: #18181b;
+        border: 1px solid #27272a;
+    }
+
+    .rf-alert-box i {
+        font-size: 16px;
+        color: #f4f4f5;
+    }
+
+    .rf-form-group {
+        margin-bottom: 22px;
+    }
+
+    .rf-form-label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: #18181b;
+        margin-bottom: 8px;
+    }
+
+    .rf-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .rf-input-icon {
+        position: absolute;
+        left: 16px;
+        color: #71717a;
+        font-size: 16px;
+        pointer-events: none;
+        transition: color 0.2s ease;
+    }
+
+    .rf-input {
+        width: 100%;
+        background: #ffffff;
+        border: 1.5px solid #e4e4e7;
+        border-radius: 12px;
+        padding: 13px 16px 13px 46px;
+        font-size: 14.5px;
+        color: #09090b;
+        font-family: inherit;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .rf-input::placeholder {
+        color: #a1a1aa;
+        font-weight: 400;
+    }
+
+    .rf-input:focus {
+        border-color: #09090b;
+        box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08);
+    }
+
+    .rf-input:focus + .rf-input-icon,
+    .rf-input-wrapper:focus-within .rf-input-icon {
+        color: #09090b;
+    }
+
+    .rf-field-error {
+        color: #09090b;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .rf-btn-track {
+        width: 100%;
+        background: #09090b;
+        color: #ffffff;
+        border: 1px solid #09090b;
+        border-radius: 12px;
+        padding: 14px 24px;
+        font-size: 14.5px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.25s ease;
+        margin-top: 26px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .rf-btn-track:hover {
+        background: #27272a;
+        border-color: #27272a;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    .rf-btn-track:active {
+        transform: translateY(0);
+    }
+
+    .rf-tracking-footer {
+        margin-top: 30px;
+        padding-top: 22px;
+        border-top: 1px solid #f4f4f5;
+        text-align: center;
+    }
+
+    .rf-help-text {
+        font-size: 13.5px;
+        color: #71717a;
+        margin-bottom: 0;
+    }
+
+    .rf-help-link {
+        color: #09090b;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        transition: opacity 0.2s;
+    }
+
+    .rf-help-link:hover {
+        color: #000000;
+        opacity: 0.8;
+    }
+
+    /* Feature pills */
+    .rf-features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 26px;
+    }
+
+    .rf-feature-pill {
+        background: #ffffff;
+        border: 1px solid #e4e4e7;
+        border-radius: 12px;
+        padding: 14px 10px;
+        text-align: center;
+        transition: border-color 0.2s ease;
+    }
+
+    .rf-feature-pill:hover {
+        border-color: #09090b;
+    }
+
+    .rf-feature-icon {
+        font-size: 18px;
+        color: #09090b;
+        margin-bottom: 6px;
+    }
+
+    .rf-feature-text {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #27272a;
+        line-height: 1.3;
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 576px) {
+        .rf-tracking-page {
+            padding: 30px 15px;
+        }
+
+        .rf-tracking-card {
+            padding: 30px 20px;
+            border-radius: 16px;
+        }
+
+        .rf-tracking-title {
+            font-size: 22px;
+        }
+
+        .rf-features-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .rf-feature-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .rf-feature-icon {
+            margin-bottom: 0;
+        }
+    }
+</style>
+
+<main class="rf-tracking-page">
+    <div class="rf-tracking-wrapper">
+        <div class="rf-tracking-card">
+            <div class="rf-badge-icon">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+
+            <h1 class="rf-tracking-title">Track Your Order</h1>
+            <p class="rf-tracking-subtitle">
+                Enter your <strong>Invoice ID</strong> and registered <strong>Phone Number</strong> to check live parcel updates.
+            </p>
+
+            @if(session()->has('message'))
+                <div class="rf-alert-box alert-error" id="session-alert">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>{{ session()->get('message') }}</span>
                     </div>
+                    <button type="button" onclick="document.getElementById('session-alert').remove()" style="background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 0 4px; font-size: 14px;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
+            @endif
+
+            <form method="GET" action="{{ route('order.track') }}" autocomplete="off" id="trackingForm">
+                <div class="rf-form-group">
+                    <label for="invoice_no" class="rf-form-label">
+                        Invoice ID <span style="color: #71717a;">*</span>
+                    </label>
+                    <div class="rf-input-wrapper">
+                        <i class="fa-solid fa-receipt rf-input-icon"></i>
+                        <input 
+                            type="text" 
+                            name="invoice_no" 
+                            id="invoice_no" 
+                            class="rf-input" 
+                            placeholder="e.g. RF-8B77D3ABFFC76092682861D9" 
+                            value="{{ old('invoice_no', request('invoice_no')) }}" 
+                            required
+                        >
+                    </div>
+                    @if(isset($errors) && $errors->has('invoice_no'))
+                        <div class="rf-field-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first('invoice_no') }}
+                        </div>
+                    @endif
+                </div>
+
+                <div class="rf-form-group">
+                    <label for="phone" class="rf-form-label">
+                        Phone Number <span style="color: #71717a;">*</span>
+                    </label>
+                    <div class="rf-input-wrapper">
+                        <i class="fa-solid fa-phone rf-input-icon"></i>
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            id="phone" 
+                            class="rf-input" 
+                            placeholder="e.g. 017XXXXXXXX" 
+                            value="{{ old('phone', request('phone')) }}" 
+                            required
+                        >
+                    </div>
+                    @if(isset($errors) && $errors->has('phone'))
+                        <div class="rf-field-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first('phone') }}
+                        </div>
+                    @endif
+                </div>
+
+                <button type="submit" class="rf-btn-track" id="btnTrackSubmit">
+                    <span>Track Order</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <div class="rf-tracking-footer">
+                    <p class="rf-help-text">
+                        Need assistance? 
+                        @if(get_setting('phone') && get_setting('phone')->value)
+                            <a href="tel:{{ get_setting('phone')->value }}" class="rf-help-link">Call Support ({{ get_setting('phone')->value }})</a>
+                        @else
+                            <a href="{{ url('/contact') }}" class="rf-help-link">Contact Support</a>
+                        @endif
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Quick Info Pills -->
+        <div class="rf-features-grid">
+            <div class="rf-feature-pill">
+                <div class="rf-feature-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <p class="rf-feature-text">Live Status Tracking</p>
+            </div>
+            <div class="rf-feature-pill">
+                <div class="rf-feature-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <p class="rf-feature-text">Verified Delivery</p>
+            </div>
+            <div class="rf-feature-pill">
+                <div class="rf-feature-icon">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <p class="rf-feature-text">Dedicated Helpline</p>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 @endsection
 
 @push('js')
-    <script>
-        $(document).ready(function (){
-           const msg = $('#error_msg').text().trim();
-           if(!msg) {
-               $('#error_msg').hide();
-           } else {
-               setTimeout(function () {
-                   $('#error_msg').fadeOut(1000);
-               }, 5000);
-           }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('trackingForm');
+        const submitBtn = document.getElementById('btnTrackSubmit');
 
-           // Animated border on focus
-           $('.form-control').focus(function() {
-               $(this).css('box-shadow', '0 0 0 3px #D83F2633').css('border-color', '#D83F26');
-           }).blur(function() {
-               $(this).css('box-shadow', 'none').css('border-color', '#ced4da');
-           });
-
-           // Button hover effect
-           $('button[type="submit"]').hover(
-               function() {
-                   $(this).css('background', 'linear-gradient(90deg, #C02D15 60%, #A32212 100%)').css('transform', 'scale(1.03)');
-               },
-               function() {
-                   $(this).css('background', 'linear-gradient(90deg, #D83F26 60%, #B9321C 100%)').css('transform', 'scale(1)');
-               }
-           );
-        });
-    </script>
+        if (form && submitBtn) {
+            form.addEventListener('submit', function () {
+                submitBtn.innerHTML = '<span>Searching...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
+                submitBtn.style.opacity = '0.85';
+                submitBtn.style.pointerEvents = 'none';
+            });
+        }
+    });
+</script>
 @endpush

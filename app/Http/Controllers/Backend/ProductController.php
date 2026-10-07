@@ -123,7 +123,7 @@ class ProductController extends Controller
         if($request->hasfile('product_thumbnail')){
             $image = $request->file('product_thumbnail');
             $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-            Image::make($image)->resize(438,438)->save('upload/products/thumbnails/'.$name_gen);
+            Image::make($image)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/thumbnails/'.$name_gen);
             $save_url = 'upload/products/thumbnails/'.$name_gen;
         }else{
             $save_url = '';
@@ -174,7 +174,7 @@ class ProductController extends Controller
         if($images){
             foreach ($images as $img) {
                 $make_name = hexdec(uniqid()).'.'.$img->getClientOriginalExtension();
-                Image::make($img)->resize(917,1000)->save('upload/products/multi-image/'.$make_name);
+                Image::make($img)->resize(917,1000, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/multi-image/'.$make_name);
                 $uploadPath = 'upload/products/multi-image/'.$make_name;
 
                 MultiImg::insert([
@@ -225,7 +225,7 @@ class ProductController extends Controller
                     $image = isset($request->vimages[$i]) ? $request->vimages[$i] : null;
                     if($image && ($image instanceof \Illuminate\Http\UploadedFile) && $image->isValid()){
                         $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-                        Image::make($image)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                        Image::make($image)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/variations/'.$name_gen);
                         $save_url = 'upload/products/variations/'.$name_gen;
                     }else{
                         $save_url = '';
@@ -400,7 +400,7 @@ class ProductController extends Controller
             }
             $image = $request->file('product_thumbnail');
             $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-            Image::make($image)->resize(438,438)->save('upload/products/thumbnails/'.$name_gen);
+            Image::make($image)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/thumbnails/'.$name_gen);
             $save_url = 'upload/products/thumbnails/'.$name_gen;
         }else{
             $save_url = $product->product_thumbnail;
@@ -487,7 +487,7 @@ class ProductController extends Controller
                         } catch (Exception $e) {}
                         $file = $request->file($image_field);
                         $name_gen = hexdec(uniqid()).'.'.$file->getClientOriginalExtension();
-                        Image::make($file)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                        Image::make($file)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/variations/'.$name_gen);
                         $stock->image = 'upload/products/variations/'.$name_gen;
                         $stock->save();
                     }
@@ -508,7 +508,7 @@ class ProductController extends Controller
                             if($request->hasFile("new_vimages.$k")){
                                 $file = $request->file("new_vimages.$k");
                                 $name_gen = hexdec(uniqid()).'.'.$file->getClientOriginalExtension();
-                                Image::make($file)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                                Image::make($file)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/variations/'.$name_gen);
                                 $newStock->image = 'upload/products/variations/'.$name_gen;
                                 $newStock->save();
                             }
@@ -563,7 +563,7 @@ class ProductController extends Controller
                         $image = isset($request->vimages[$i]) ? $request->vimages[$i] : null;
                         if($image && ($image instanceof \Illuminate\Http\UploadedFile) && $image->isValid()){
                             $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-                            Image::make($image)->resize(438,438)->save('upload/products/variations/'.$name_gen);
+                            Image::make($image)->resize(438,438, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/variations/'.$name_gen);
                             $save_url = 'upload/products/variations/'.$name_gen;
                         }else{
                             $save_url = '';
@@ -608,7 +608,7 @@ class ProductController extends Controller
         }else{
             foreach ($images as $img) {
                 $make_name = hexdec(uniqid()).'.'.$img->getClientOriginalExtension();
-                Image::make($img)->resize(917,1000)->save('upload/products/multi-image/'.$make_name);
+                Image::make($img)->resize(917,1000, function ($constraint) { $constraint->aspectRatio(); $constraint->upsize(); })->save('upload/products/multi-image/'.$make_name);
                 $uploadPath = 'upload/products/multi-image/'.$make_name;
 
                 MultiImg::insert([

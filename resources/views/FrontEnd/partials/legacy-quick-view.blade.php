@@ -11,8 +11,8 @@
                                 <!-- <span class="zoom-icon"><i class="fi-rs-search"></i></span> -->
                                 <!-- MAIN SLIDES -->
                                 <div class="product-image-slider">
-                                    <figure class="border-radius-10">
-                                        <img id="pimage" src="" class="img-fluid" width="375" alt="product image" />
+                                    <figure class="border-radius-10" style="margin: 0; padding: 0; height: auto !important; max-height: none !important;">
+                                        <img id="pimage" src="" class="img-fluid" style="width: 100% !important; height: auto !important; max-height: none !important; object-fit: contain; display: block; border-radius: 8px;" alt="product image" />
                                     </figure>
                                 </div>
                                 <!-- THUMBNAILS -->

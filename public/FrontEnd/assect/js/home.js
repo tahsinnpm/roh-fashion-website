@@ -8,7 +8,7 @@
         const buttons = [-1, 1].map((direction) => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.textContent = direction < 0 ? '←' : '→';
+            button.innerHTML = direction < 0 ? '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>' : '<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
             button.setAttribute('aria-label', direction < 0 ? 'Previous items' : 'Next items');
             button.setAttribute('aria-controls', rail.id);
             button.addEventListener('click', () => rail.scrollBy({ left: direction * rail.clientWidth, behavior: reducedMotion.matches ? 'auto' : 'smooth' }));

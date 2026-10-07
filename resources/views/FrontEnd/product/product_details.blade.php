@@ -1,996 +1,920 @@
 @extends('FrontEnd.master')
-@section('title')
-{{$product->name_en}} Details
-@endsection
-@push('css')
-<style>
-    .app-figure {
-        width: 100% !important;
-        margin: 0px auto;
-        border: 0px solid red;
-        padding: 20px;
-        position: relative;
-        text-align: center;
+@section('title', $product->name_en . ' Details')
+
+@php
+    $isBangla = session('language') === 'bangla';
+    $productName = $isBangla ? ($product->name_bn ?: $product->name_en) : $product->name_en;
+    $regularPrice = (float) $product->regular_price;
+    $discountType = (int) $product->discount_type;
+    $discountValue = (float) $product->discount_price;
+    $minimumQuantity = max(1, (int) $product->minimum_buy_qty);
+
+    $productStocks = $product->stocks;
+    $hasVariants = ($product->is_varient == 1 && $productStocks && $productStocks->count() > 0);
+
+    if ($hasVariants) {
+        $sortedStocks = $productStocks->sortBy('price');
+        $firstStock = $sortedStocks->firstWhere('qty', '>', 0) ?: $sortedStocks->first();
+        $selectedVariantName = $firstStock ? $firstStock->varient : '';
+        $currentPrice = $firstStock && $firstStock->price > 0 ? (float) $firstStock->price : (float) $product->storefrontPrice();
+        $availableStock = $firstStock ? (int) ($firstStock->qty ?? 0) : 0;
+        $variantRegularPrice = $regularPrice;
+    } else {
+        $selectedVariantName = '';
+        $currentPrice = (float) $product->storefrontPrice();
+        $availableStock = (int) $product->stock_qty;
+        $variantRegularPrice = $regularPrice;
     }
 
-    .MagicZoom {
-        display: none;
-    }
+    $discountPercent = $variantRegularPrice > $currentPrice && $variantRegularPrice > 0
+        ? round(($variantRegularPrice - $currentPrice) / $variantRegularPrice * 100)
+        : 0;
 
-    .MagicZoom.Active {
-        display: block;
-    }
+    $productAttributes = json_decode($product->attribute_values ?: '[]') ?: [];
 
-    .selectors {
-        margin-top: 10px;
-    }
-
-    .selectors .mz-thumb img {
-        max-width: 56px;
-    }
-
-    .detail-qty {
-        background: #f8f9fa;
-        border-radius: 5px;
-        height: 40px;
-        min-width: 120px;
-        border: 1px solid #dee2e6;
-    }
-
-    .detail-qty .btn {
-        padding: 0;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        color: #6c757d;
-        transition: all 0.2s;
-    }
-
-    .detail-qty .btn:hover {
-        color: #000;
-        background: #e9ecef;
-        border-radius: 4px;
-    }
-
-    .detail-qty .btn:disabled {
-        color: #adb5bd;
-        cursor: not-allowed;
-    }
-
-    .detail-qty input {
-        background: transparent;
-        height: 100%;
-        font-size: 16px;
-        font-weight: 500;
-    }
-
-    .detail-qty input:focus {
-        outline: none;
-    }
-
-    #qty_stock_alert {
-        font-size: 0.875rem;
-    }
-
-    .quantity-label {
-        font-weight: 500;
-        color: #212529;
-    }
-
-    /* Responsive Related Products */
-    @media (max-width: 991.98px) {
-        .just-for-you {
-            border-left: none !important;
-            border-top: 1px solid #eee !important;
-            margin-top: 2rem !important;
+    // Variants Map for JavaScript (matching landing page dynamic.blade.php)
+    $variantsMap = [];
+    if ($hasVariants) {
+        foreach ($productStocks as $stk) {
+            $stkPrice = $stk->price > 0 ? (float) $stk->price : (float) $product->storefrontPrice();
+            $variantsMap[$stk->varient] = [
+                'id' => $stk->id,
+                'varient' => $stk->varient,
+                'price' => $stkPrice,
+                'regular_price' => $regularPrice,
+                'qty' => (int) ($stk->qty ?? 0),
+                'image' => $stk->image ? asset(ltrim($stk->image, '/')) : null,
+            ];
         }
     }
 
-    @media (max-width: 767.98px) {
-        .just-for-you {
-            margin-top: 1rem !important;
-        }
-
-        .product_card {
-            min-width: 100% !important;
-            max-width: 100% !important;
-        }
+    // Contact & Social channels
+    $fbUrl = get_setting('facebook_url')->value ?? 'https://www.facebook.com';
+    $fbChatUrl = $fbUrl;
+    if (preg_match('/id=(\d+)/', $fbUrl, $matches)) {
+        $fbChatUrl = 'https://m.me/' . $matches[1];
+    } elseif (preg_match('/facebook\.com\/([a-zA-Z0-9\.\_]+)/', $fbUrl, $matches) && !in_array($matches[1], ['profile.php', 'sharer'])) {
+        $fbChatUrl = 'https://m.me/' . $matches[1];
     }
-
-    @media (max-width: 575.98px) {
-        .just-for-you .row {
-            row-gap: 1rem !important;
-        }
-
-        .product_card {
-            min-width: 100% !important;
-            max-width: 100% !important;
-        }
+    $phoneSetting = get_setting('phone')->value ?? '01838389494';
+    $cleanPhoneForWa = preg_replace('/[^0-9]/', '', $phoneSetting);
+    if (!str_starts_with($cleanPhoneForWa, '88') && str_starts_with($cleanPhoneForWa, '01')) {
+        $cleanPhoneForWa = '88' . $cleanPhoneForWa;
     }
+    $waText = urlencode('Hello, I want to know more about: ' . $productName . ' (' . url()->current() . ')');
+    $waUrl = 'https://api.whatsapp.com/send?phone=' . $cleanPhoneForWa . '&text=' . $waText;
+    $relatedProducts = $relatedProducts ?? \App\Models\Product::with(['stocks', 'category'])->where('status', 1)->where('id', '!=', $product->id)->where('category_id', $product->category_id)->latest('id')->limit(8)->get();
+@endphp
 
-    @media screen and (max-width: 1023px) {
-        .app-figure {
-            width: 99% !important;
-            margin: 20px auto;
+@push('styles')
+    <style>
+        .pdp-page {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 24px 24px 56px;
+            color: #171717;
+        }
+
+        .pdp-breadcrumb {
+            margin: 0 0 18px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .pdp-breadcrumb a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .pdp-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+            gap: clamp(24px, 3.5vw, 48px);
+            align-items: start;
+        }
+
+        .pdp-gallery {
+            min-width: 0;
+        }
+
+        .pdp-image-frame {
+            display: grid;
+            place-items: center;
+            min-height: 420px;
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            background: #f7f7f7;
+        }
+
+        .pdp-image-frame img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .pdp-thumbnails {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+
+        .pdp-thumbnail {
+            flex: 0 0 68px;
+            width: 68px;
+            height: 82px;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .pdp-thumbnail[aria-current="true"] {
+            border: 2px solid #111;
+        }
+
+        .pdp-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pdp-info {
+            min-width: 0;
+        }
+
+        .pdp-title {
+            margin: 0 0 10px;
+            color: #171717;
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 400;
+            line-height: 1.15;
+        }
+
+        .pdp-price {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            margin: 0 0 8px;
+            font-size: 17px;
+            letter-spacing: .04em;
+        }
+
+        .pdp-price strong {
+            font-weight: 500;
+        }
+
+        .pdp-price del {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .pdp-price__save {
+            color: #555;
+            font-size: 13px;
+        }
+
+        .pdp-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 18px;
+            margin: 0 0 14px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .pdp-meta strong {
+            color: #222;
+            font-weight: 500;
+        }
+
+        .pdp-variant-block {
+            margin: 0 0 14px;
+        }
+
+        .pdp-variant-lbl {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pdp-variant-lbl strong {
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .pdp-variant-select {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 40px 10px 14px;
+            border: 1.5px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+            color: #171717;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23880e4f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 18px;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .pdp-variant-select:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(136, 14, 79, .15);
+        }
+
+        /* Quantity Selector matching image */
+        .rf-pdp-qty-wrapper {
+            margin: 0 0 14px;
+        }
+
+        .rf-pdp-qty-box {
+            display: inline-flex;
+            align-items: center;
+            border: 1.5px solid #e4e4e7;
+            border-radius: 8px;
+            background: #ffffff;
+            overflow: hidden;
+            height: 46px;
+        }
+
+        .rf-pdp-qty-btn {
+            width: 46px;
+            height: 46px;
+            border: 0;
+            background: #ffffff;
+            color: #111111;
+            font-size: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s ease;
             padding: 0;
         }
-    }
-</style>
-<link rel="stylesheet" href="{{asset('frontend/magiczoomplus/magiczoomplus.css')}}" />
+
+        .rf-pdp-qty-btn:hover {
+            background: #f4f4f5;
+        }
+
+        .rf-pdp-qty-input {
+            width: 54px;
+            height: 46px;
+            border-top: 0;
+            border-bottom: 0;
+            border-left: 1.5px solid #e4e4e7;
+            border-right: 1.5px solid #e4e4e7;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111111;
+            background: #ffffff;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        .rf-pdp-qty-input::-webkit-outer-spin-button,
+        .rf-pdp-qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Actions Stack */
+        .rf-pdp-actions-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        /* Add To Cart - Black & White Outline */
+        .rf-pdp-btn-cart {
+            width: 100%;
+            min-height: 48px;
+            border: 2px solid #09090b;
+            background: #ffffff;
+            color: #09090b;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-transform: none;
+        }
+
+        .rf-pdp-btn-cart:hover {
+            background: #09090b;
+            color: #ffffff;
+        }
+
+        /* Buy Now - Solid Black with 2-second periodic shake */
+        .rf-pdp-btn-buy {
+            width: 100%;
+            min-height: 50px;
+            border: 1px solid #09090b;
+            background: #09090b;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 16.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+            text-transform: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            animation: rf-buy-shake-2s 2s infinite ease-in-out;
+        }
+
+        .rf-pdp-btn-buy:hover {
+            background: #27272a;
+            border-color: #27272a;
+            animation-play-state: paused;
+        }
+
+        @keyframes rf-buy-shake-2s {
+
+            0%,
+            70%,
+            100% {
+                transform: translateX(0);
+            }
+
+            73% {
+                transform: translateX(-6px) rotate(-1deg);
+            }
+
+            77% {
+                transform: translateX(6px) rotate(1deg);
+            }
+
+            81% {
+                transform: translateX(-4px) rotate(-0.5deg);
+            }
+
+            85% {
+                transform: translateX(4px) rotate(0.5deg);
+            }
+
+            89% {
+                transform: translateX(-2px);
+            }
+
+            93% {
+                transform: translateX(2px);
+            }
+
+            97% {
+                transform: translateX(0);
+            }
+        }
+
+        /* Three Social Buttons Row */
+        .rf-pdp-social-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .rf-pdp-social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 46px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #ffffff !important;
+            transition: opacity 0.2s ease, transform 0.15s ease;
+            border: none;
+        }
+
+        .rf-pdp-social-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .rf-btn-chat {
+            background-color: #1877F2;
+        }
+
+        .rf-btn-whatsapp {
+            background-color: #1E984D;
+        }
+
+        .rf-btn-call {
+            background-color: #231F20;
+        }
+
+        /* Categories Box */
+        .rf-pdp-categories-box {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 14.5px;
+            color: #4b5563;
+        }
+
+        .rf-pdp-cat-link {
+            color: #000000;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.15s;
+        }
+
+        .rf-pdp-cat-link:hover {
+            color: #09090b;
+            text-decoration: underline;
+        }
+
+        .pdp-stock-alert,
+        .pdp-attribute-alert {
+            font-size: 13px;
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .pdp-stock-alert:empty,
+        .pdp-attribute-alert:empty {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 0 !important;
+            height: 0 !important;
+        }
+
+        .pdp-stock-alert:not(:empty),
+        .pdp-attribute-alert:not(:empty) {
+            display: block;
+            margin-top: 6px;
+        }
+
+        .pdp-shipping {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #ddd;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .pdp-shipping p {
+            margin: 0;
+        }
+
+        .pdp-description {
+            margin-top: 38px;
+            padding-top: 24px;
+            border-top: 1px solid #ddd;
+        }
+
+        .pdp-description h2 {
+            margin: 0 0 14px;
+            color: #171717;
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        .pdp-description__body {
+            color: #444;
+            line-height: 1.8;
+        }
+
+        .pdp-description__body img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 767px) {
+            .pdp-page {
+                padding: 14px 14px 36px;
+            }
+
+            .pdp-layout {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 22px;
+            }
+
+            .pdp-image-frame {
+                min-height: 0;
+            }
+
+            .pdp-title {
+                font-size: 29px;
+            }
+
+            .pdp-description {
+                margin-top: 28px;
+            }
+        }
+
+        /* Related Products Section */
+        .rf-related-section {
+            margin-top: 56px;
+            padding-top: 42px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .rf-related-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .rf-related-subtitle {
+            font-size: 11.5px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #71717a;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .rf-related-title {
+            font-size: clamp(22px, 2.5vw, 30px);
+            font-weight: 600;
+            color: #09090b;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+    </style>
 @endpush
+
 @section('content')
-{{-- @php dd($product->product_type) @endphp--}}
-<!-- Product Information Start -->
-<section class="custom_container  my-3  " style="border-radius: 10px;">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb breadcrumb-custom  mb-0">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}" style="color: #D83F26; text-decoration: none; transition: all 0.3s;">
-                    @if(session()->get('language') == 'bangla')
-                    হোম
-                    @else
-                    Home
-                    @endif
-                </a>
-            </li>
-            <li class="breadcrumb-item active" style=" font-weight: 600;">
-                @if(session()->get('language') == 'bangla')
-                পণ্যের বিবরণ
-                @else
-                Product Details
+    <main class="pdp-page">
+        <nav class="pdp-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ route('home') }}">Home</a><span aria-hidden="true"> / </span><span>{{ $productName }}</span>
+        </nav>
+
+        <section class="pdp-layout" aria-label="Product details">
+            <div class="pdp-gallery">
+                <div class="pdp-image-frame">
+                    <img id="product_zoom_img"
+                        src="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}"
+                        alt="{{ $productName }}" fetchpriority="high">
+                </div>
+                @if($multiImg->isNotEmpty())
+                    <div class="pdp-thumbnails" aria-label="Product images">
+                        <button type="button" class="pdp-thumbnail" aria-current="true"
+                            data-image="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}">
+                            <img src="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}"
+                                alt="{{ $productName }}">
+                        </button>
+                        @foreach($multiImg as $image)
+                            <button type="button" class="pdp-thumbnail" aria-current="false"
+                                data-image="{{ asset($image->photo_name) }}">
+                                <img src="{{ asset($image->photo_name) }}" alt="{{ $productName }} image {{ $loop->iteration }}">
+                            </button>
+                        @endforeach
+                    </div>
                 @endif
-            </li>
-        </ol>
-    </nav>
-    <div class="row g-5 m-0">
-        <?php $discount = calculateDiscount($product->id) ?>
-        <input type="hidden" id="product_id" value="{{ $product->id }}" min="1">
+            </div>
 
-        <input type="hidden" id="pname" value="{{ $product->name_en }}">
+            <div class="pdp-info">
+                <h1 class="pdp-title">{{ $productName }}</h1>
+                <div class="pdp-price" aria-live="polite">
+                    <strong class="product_price current-price">Tk {{ number_format($currentPrice, 2) }} BDT</strong>
+                    <del class="old-price" @if($discountPercent === 0) hidden @endif>Tk
+                        {{ number_format($variantRegularPrice, 2) }}</del>
+                    <span class="pdp-price__save" @if($discountPercent === 0) hidden @endif>Save
+                        {{ $discountPercent }}%</span>
+                </div>
 
-        <input type="hidden" id="product_price" value="{{ $discount['discount'] }}">
+                <div class="pdp-meta">
+                    @if($product->category)
+                        <span>Category:
+                            <strong>{{ $isBangla ? ($product->category->name_bn ?: $product->category->name_en) : $product->category->name_en }}</strong></span>
+                    @endif
+                    @if($product->brand)
+                        <span>Brand:
+                            <strong>{{ $isBangla ? ($product->brand->name_bn ?: $product->brand->name_en) : $product->brand->name_en }}</strong></span>
+                    @endif
+                    <span>Stock: <strong
+                            class="{{ $availableStock > 0 ? 'in-stock' : 'out-of-stock' }}">{{ $availableStock > 0 ? ($isBangla ? 'স্টকে আছে' : 'In stock') : ($isBangla ? 'স্টক শেষ' : 'Out of stock') }}</strong></span>
+                </div>
 
-        <input type="hidden" id="minimum_buy_qty" value="{{ $product->minimum_buy_qty }}">
-        <input type="hidden" id="stock_qty" value="{{ $product->stock_qty }}">
+                <input type="hidden" id="product_id" value="{{ $product->id }}">
+                <input type="hidden" id="pname" value="{{ $product->name_en }}">
+                <input type="hidden" id="product_price" value="{{ $currentPrice }}">
+                <input type="hidden" id="minimum_buy_qty" value="{{ $minimumQuantity }}">
+                <input type="hidden" id="stock_qty" value="{{ $availableStock }}">
+                <input type="hidden" id="pvarient" value="{{ $selectedVariantName }}">
+                <input type="hidden" id="buyNowCheck" value="0">
+                <input type="hidden" id="discount_amount" value="{{ $discountValue }}">
+                <input type="hidden" id="product_discount_type" value="{{ $discountType }}">
+                <input type="hidden" id="product_discount_value" value="{{ $discountValue }}">
+                <input type="hidden" id="{{ $product->id }}-product_pname" value="{{ $product->name_en }}">
 
-        <input type="hidden" id="pvarient" value="">
+                {{-- Unified Variant Selector matching Landing Page --}}
+                @if($hasVariants)
+                    <div class="pdp-variant-block">
+                        <label for="variantSelect" class="pdp-variant-lbl">
+                            <span>{{ $isBangla ? 'ভ্যারিয়েন্ট পছন্দ করুন:' : 'Select Variant:' }}</span>
+                            <strong id="curVarLabel">{{ $selectedVariantName }}</strong>
+                        </label>
+                        <select id="variantSelect" class="pdp-variant-select"
+                            aria-label="{{ $isBangla ? 'ভ্যারিয়েন্ট পছন্দ করুন' : 'Select Variant' }}">
+                            @foreach($productStocks->sortBy('price') as $stk)
+                                @php
+                                    $stkPrice = $stk->price > 0 ? (float) $stk->price : (float) $product->storefrontPrice();
+                                    $isOutOfStock = ($stk->qty !== null && $stk->qty <= 0);
+                                @endphp
+                                <option value="{{ $stk->varient }}" {{ $stk->varient === $selectedVariantName ? 'selected' : '' }} {{ $isOutOfStock ? 'disabled' : '' }}>
+                                    {{ $stk->varient }} @if($stkPrice > 0) — ৳{{ number_format($stkPrice) }} @endif
+                                    @if($isOutOfStock) ({{ $isBangla ? 'স্টক শেষ' : 'Out of stock' }}) @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
-        <input type="hidden" id="buyNowCheck" value="0">
-        <input type="hidden" name="" id="discount_amount" value="{{$product->regular_price - $discount['discount']}}">
-        <div class="col-md-9 bg-white p-3 " style="border-radius: 10px;">
-            <div class="row">
+                {{-- Form for Cart / Checkout data serialization --}}
+                <form id="choice_form" class="pdp-choice-form" style="display:none;">
+                    @if($hasVariants && count($productAttributes) > 0)
+                        @php
+                            $variantParts = !empty($selectedVariantName) ? explode('-', $selectedVariantName) : [];
+                        @endphp
+                        @foreach($productAttributes as $index => $attributeDefinition)
+                            @php
+                                $position = $index + 1;
+                                $attribute = get_attribute_by_id($attributeDefinition->attribute_id);
+                                $val = $variantParts[$index] ?? ($index === 0 ? $selectedVariantName : '');
+                            @endphp
+                            @if($attribute)
+                                <input type="hidden" name="attribute_ids[]" value="{{ $attributeDefinition->attribute_id }}">
+                                <input type="hidden" name="attribute_names[]" id="attribute_name_{{ $position }}"
+                                    value="{{ $attribute->name }}">
+                                <input type="hidden" id="attribute_check_{{ $position }}"
+                                    value="{{ !empty($selectedVariantName) ? 1 : 0 }}">
+                                <input type="hidden" id="attribute_check_attr_{{ $position }}" value="{{ $val }}">
+                                <input type="hidden" name="attribute_options[]" class="attr_value_{{ $position }}"
+                                    data-variant-option="{{ $position }}" value="{{ $val }}">
+                            @endif
+                        @endforeach
+                        <input type="hidden" id="total_attributes" value="{{ count($productAttributes) }}">
+                    @else
+                        <input type="hidden" id="total_attributes" value="0">
+                    @endif
+                </form>
+                <div id="attribute_alert" class="pdp-attribute-alert" role="status"></div>
 
-                <div class="col-md-4 ">
-                    <!-- default start -->
-                    <section id="default" class="padding-top0">
-                        <div class="">
-                            <div class="">
-                                <div class="xzoom-container">
-                                    <img class="xzoom w-100" style="border-radius: 8px" id="xzoom-default" src="{{asset($product->product_thumbnail)}}"
-                                        xoriginal="{{asset($product->product_thumbnail)}}" width="300px" height="300px" />
-                                    <div class="xzoom-thumbs mt-4 m-auto">
-                                        <a href="{{asset($product->product_thumbnail)}}"><img class="xzoom-gallery"
-                                                width="40" src="{{asset($product->product_thumbnail)}}"
-                                                xpreview="{{asset($product->product_thumbnail)}}"></a>
-                                        @foreach($multiImg as $image)
-                                        <a href="{{asset($image->photo_name)}}"><img class="xzoom-gallery"
-                                                width="40" src="{{asset($image->photo_name)}}"></a>
-                                        @endforeach
+                {{-- Quantity Selector matching screenshot --}}
+                <div class="rf-pdp-qty-wrapper">
+                    <div class="rf-pdp-qty-box">
+                        <button type="button" class="rf-pdp-qty-btn qty-down"
+                            aria-label="Decrease quantity">&#8722;</button>
+                        <input type="number" id="qty" class="rf-pdp-qty-input qty-val" value="{{ $minimumQuantity }}"
+                            min="{{ $minimumQuantity }}" max="{{ $availableStock }}" readonly>
+                        <button type="button" class="rf-pdp-qty-btn qty-up" aria-label="Increase quantity">+</button>
+                    </div>
+                    <div id="qty_stock_alert" class="pdp-stock-alert" role="status"></div>
+                </div>
 
-                                    </div>
-                                </div>
-                            </div>
+                {{-- Action Buttons: Add To Cart & 2s Periodic Shake Buy Now --}}
+                <div class="rf-pdp-actions-stack">
+                    <button type="button" class="rf-pdp-btn-cart pdp-action" onclick="$('#buyNowCheck').val(0); test();">
+                        Add To Cart
+                    </button>
+                    <button type="button" class="rf-pdp-btn-buy pdp-action pdp-action--primary" onclick="buyProduct()">
+                        অর্ডার করতে এই বাটনে ক্লিক করুন
+                    </button>
+                </div>
+
+                {{-- Social & Call Actions matching image --}}
+                <div class="rf-pdp-social-grid">
+                    <a href="{{ $fbChatUrl }}" target="_blank" rel="noopener noreferrer"
+                        class="rf-pdp-social-btn rf-btn-chat">
+                        <i class="fa-brands fa-facebook-messenger"></i>
+                        <span>Chat with Us</span>
+                    </a>
+                    <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer"
+                        class="rf-pdp-social-btn rf-btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>WhatsApp Us</span>
+                    </a>
+                    <a href="tel:{{ $phoneSetting }}" class="rf-pdp-social-btn rf-btn-call">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Call Us</span>
+                    </a>
+                </div>
+
+                {{-- Categories Box matching image --}}
+                @if($product->category)
+                    <div class="rf-pdp-categories-box">
+                        <span>Categories: </span>
+                        <a href="{{ route('product.category', $product->category->slug) }}" class="rf-pdp-cat-link">
+                            {{ $isBangla ? ($product->category->name_bn ?: $product->category->name_en) : $product->category->name_en }}
+                        </a>
+                        @if($product->sub_category)
+                            <span style="color: #9ca3af; margin: 0 4px;">/</span>
+                            <a href="{{ route('product.category', $product->sub_category->slug) }}" class="rf-pdp-cat-link">
+                                {{ $isBangla ? ($product->sub_category->name_bn ?: $product->sub_category->name_en) : $product->sub_category->name_en }}
+                            </a>
+                        @endif
+                    </div>
+                @endif
+
+                @if($product->description_en || $product->description_bn)
+                    <section class="pdp-description" aria-labelledby="pdp-description-title">
+                        <h2 id="pdp-description-title">Product details</h2>
+                        <div class="pdp-description__body">
+                            {!! $isBangla ? ($product->description_bn ?: $product->description_en) : ($product->description_en ?: $product->description_bn) !!}
                         </div>
                     </section>
-                    <!-- default end -->
-                </div>
-
-                <div class="col-md-8" style="position: relative;">
-                    <h1 class="product-title" style="color:#4a4a4a !important">
-                        @if(session()->get('language') == 'bangla')
-                        {{$product->name_bn}}
-                        @else
-                        {{$product->name_en}}
-                        @endif
-                    </h1>
-                    <div class="{{$discount['discount'] == $product->regular_price ? 'd-none':''}}" style="background-color: #D83F26 ; color: #f8f9fa; border-radius: 5px; width: 70px; position: absolute; top: 0; left: -330px; padding: 5px 10px; font-size: 12px; text-align: center; z-index: 50;">
-                        <small class="m-1 text-center">{{$discount['text']}}</small>
-                    </div>
-                    {{-- <span class="stock-status out-stock"> ৳{{  $discount }} Off </span>--}}
-
-                    <div>
-                        <div style="background-color: rgba(247,147,41,0.1); border-radius: 30px; padding: 5px 15px; margin: 10px 0; color: #ff00c3; width: 50%;">
-                            <small style="color: #f9A11E;">
-                                <i class="fa fa-star" style="margin-right: 5px"></i>
-                                {{$product->points}}
-                                @if(session()->get('language') == 'bangla')
-                                স্টার পয়েন্ট
-                                @else
-                                Start Points
-                                @endif
-
-                            </small>
-                        </div>
-                        <h4 class="price">
-                            @if(session()->get('language') == 'bangla')
-                            মূল্য:
-                            @else
-                            Price:
-                            @endif
-                            <span class="product_price current-price">{{$discount['discount']}}TK</span>
-                            @if($discount['discount'] != $product->regular_price)
-                            <del class="old-price {{$discount['discount'] == 0 ? 'd-none':''}}" style="color: grey"> {{$product->regular_price}} TK</del>
-                            @endif
-
-
-                        </h4>
-                        <p class="">
-                            <small>
-                                @if(session()->get('language') == 'bangla')
-                                ক্যাটাগোরি: {{$product->category->name_bn??''}}
-                                @else
-                                Product Category: {{$product->category->name_en??''}}
-                                @endif
-
-                            </small><br>
-                            @if($product->product_type == 2 && count($group_products) >0)
-                            <strong>
-                                @if(session()->get('language') == 'bangla')
-                                প্যাকেজের পণ্য সমূহ
-                                @else
-                                Package Items
-                                @endif
-                                :</strong>
-                            @foreach($group_products as $item)
-                        <div class="row mb-1">
-                            <div class="col-md-1">
-                                <a href="{{route('product.details', $item->product->slug)}}">
-                                    <img src="{{asset($item->product->product_thumbnail)}}" alt="" height="30px" width="30px">
-                                </a>
-                            </div>
-                            <div class="col-md-11">
-                                <a href="{{route('product.details', $item->product->slug)}}">
-                                    <small>
-                                        @if(session()->get('language') == 'bangla')
-                                        {{$item->product->name_bn}}
-                                        @else
-                                        {{$item->product->name_en}}
-                                        @endif
-                                    </small>
-                                </a>
-                            </div>
-                        </div>
-                        @endforeach
-                        <br>
-                        @else
-                        <small>
-                            @if(session()->get('language') == 'bangla')
-                            ব্র্যান্ড: {{$product->brand->name_bn ?? ''}}
-                            @else
-                            Brand:
-                            {{$product->brand->name_en ?? 'N/A'}}
-                            @endif
-
-
-                        </small><br>
-                        @endif
-                        <small>
-                            @if(session()->get('language') == 'bangla')
-                            স্টক:
-                            @else
-                            Stock:
-                            @endif
-                            <span class="{{$product->stock_qty > 0 ? 'text-success': 'text-danger'}}">
-                                @if(session()->get('language') == 'bangla')
-                                {{$product->stock_qty > 0 ? 'স্টকে আছে':'স্টক আউট'}}
-                                @else
-                                {{$product->stock_qty > 0 ? 'In Stock':'Out of Stock'}}
-                                @endif
-
-                            </span>
-                            <span id="stock_qty">{{$product->stock_qty != 0 ? '('.$product->stock_qty.')':''}}</span></small><br>
-
-
-                        </p>
-                    </div>
-                    <form id="choice_form">
-                        <div class="row " id="choice_attributes">
-                            @if($product->is_varient)
-                            {{-- @php dd($product->attribute_values->attribute_id)  @endphp--}}
-                            @php $i=0; @endphp
-                            @foreach(json_decode($product->attribute_values) as $attribute)
-                            @php
-                            $attr = get_attribute_by_id($attribute->attribute_id);
-                            $i++;
-                            // dd($attribute->attribute_id, $attr->name, $attribute->values[0], $product->id, 1)
-                            @endphp
-                            <input type="hidden" name="" onload="selectAttribute('{{$attribute->attribute_id}}', '{{$attr->name}}', '{{$attribute->values[0]}}', '{{$product->id}}', '1')">
-                            <div class="attr-detail attr-size mb-3">
-                                <strong class="mr-10">{{ $attr->name }}: </strong>
-                                <input type="hidden" name="attribute_ids[]" id="attribute_id_{{ $i }}" value="{{ $attribute->attribute_id }}">
-                                <input type="hidden" name="attribute_names[]" id="attribute_name_{{ $i }}" value="{{ $attr->name }}">
-                                <input type="hidden" id="attribute_check_{{ $i }}" value="0">
-                                <input type="hidden" id="attribute_check_attr_{{ $i }}" value="0">
-                                <ul class="list-filter size-filter font-small">
-                                    @foreach($attribute->values as $key=> $value)
-
-                                    <label class="radio-inline">
-                                        <input type="radio" class="m-2"
-                                            onclick="selectAttribute('{{ $attribute->attribute_id }}{{ $attr->name }}', '{{ $value }}', '{{ $product->id }}', '{{ $i }}')"
-                                            name="option_{{$i}}">{{$value}}
-                                    </label>
-                                    @php $key++; @endphp
-                                    @endforeach
-                                    <input type="hidden" name="attribute_options[]" id="{{ $attribute->attribute_id }}{{ $attr->name }}" class="attr_value_{{ $i }}">
-                                </ul>
-                            </div>
-                            @endforeach
-                            <input type="hidden" id="total_attributes" value="{{ count(json_decode($product->attribute_values)) }}">
-                            @endif
-                        </div>
-                    </form>
-
-                    <!-- <div class="row" id="attribute_alert">
-
-                    </div> -->
-                    @if($product->stock_qty > 0)
-                    <div class="detail-extralink mb-3 align-items-baseline d-flex">
-                        <div class="mr-10">
-                            <span class="quantity-label">
-                                @if(session()->get('language') == 'bangla')
-                                পরিমাণ:
-                                @else
-                                Quantity:
-                                @endif
-                            </span>
-                        </div>
-
-                        <div class="detail-qty  radius mx-2 py-1 border px-1 d-flex align-items-center" style="border-radius: 6px;">
-                            <button type="button" class="qty-down btn btn-sm border"><i class="fa fa-minus"></i></button>
-                            <input type="text"
-                                name="quantity"
-                                class="qty-val mx-2"
-                                value="{{$product->minimum_buy_qty}}"
-                                min="{{$product->minimum_buy_qty}}"
-                                max="{{$product->stock_qty}}"
-                                id="qty"
-                                style="border: none; width: 40px; text-align: center"
-                                readonly>
-                            <button type="button" class="qty-up btn btn-sm border"><i class="fa fa-plus"></i></button>
-                        </div>
-
-                        <div id="qty_stock_alert" class="text-danger ms-2"></div>
-                    </div>
-
-                    <div class="d-flex">
-                        <input type="hidden" id="pfrom" value="direct">
-                        <input type="hidden" id="product_id" value="{{ $product->id }}" min="1">
-                        <input type="hidden" id="{{ $product->id }}-product_pname"
-                            value="{{ $product->name_en }}">
-                        <button class="buy_now" id="{{$product->is_varient == 1 ? '':'buy_now'}}" type="button" onclick="{{$product->is_varient == 1 ? 'buyProduct()':''}}" style="width:120px; font-size: 15px; color: white !important;">
-                            @if(session()->get('language') == 'bangla')
-                            এখুনি কিনুন
-                            @else
-                            Buy Now
-                            @endif
-                        </button>
-                        {{-- <button class="like btn" style="margin-left: 5px" type="button" onclick="addToCartDirect({{$product->id}})">Add to cart</button> --}}
-                        <button class="add_to_cart" style="width:120px; margin-left: 5px; margin-bottom: px; background-color: white; font-size: 15px; " type="button" onclick="test()">
-                            @if(session()->get('language') == 'bangla')
-                            কার্টে যোগ করুন
-                            @else
-                            Add to cart
-                            @endif
-                        </button>
-                    </div>
-
-
-                    @endif
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="ml-3 h-100 bg-white p-3 " style="border-radius: 10px;">
-
-                <div>
-                    <div class="d-flex justify-content-between">
-                        <p><i class="fa-solid fa-truck-fast"></i>
-                            @if(session()->get('language') == 'bangla')
-                            স্ট্যান্ডার্ড ডেলিভারি
-                            @else
-                            Standard Delivery
-                            @endif
-                        </p>
-                        <p>৳{{$shipping_charge->shipping_charge}}</p>
-                    </div>
-                    <small>
-                        @if(session()->get('language') == 'bangla')
-                        ৩ - ৭ দিন
-                        @else
-                        3 - 7 day(s)
-                        @endif
-
-                    </small>
-                    <p><i class="fa-regular fa-handshake"></i>
-                        @if(session()->get('language') == 'bangla')
-                        ক্যাশ অন ডেলিভারি পাওয়া যাচ্ছে
-                        @else
-                        Cash on Delivery Available
-                        @endif
-                    </p>
-                </div>
-                <hr class="">
-                <div class="">
-                    @if($product->is_replaceable == 1)
-                    <small>{{session()->get('language') == 'bangla' ? 'পণ্য প্রতিস্থাপন'. get_setting('order_return_duration')->value. 'দিনের আগে প্রযোজ্য':'Replacement Applicable Before '.get_setting('order_return_duration')->value.' Days'}}</small>
-                    @else
-                    <small>{{session()->get('language') == 'bangla' ? 'পণ্য প্রতিস্থাপন প্রযোজ্য নয়':'Product Replacement Not Applicable'}}</small>
-                    @endif
-
-                    <p>
-                        <i class="fa-solid fa-gears"></i>
-                        {{session()->get('language') == 'bangla' ? 'ওয়ারেন্টি পাওয়া যাবে না':' Warranty Not Available'}}
-                    </p>
-                </div>
-                <hr>
-                <div>
-                    <small>
-                        @if(session()->get('language') == 'bangla')
-                        বিক্রেতা
-                        @else
-                        Sold By
-                        @endif
-
-                    </small>
-                    <div class="d-flex justify-content-between">
-                        <p><i class="fa-solid fa-shop"></i> {{$product->vendor_id != 0 ? $product->vendor->shop_name:get_setting('business_name')->value}}</p>
-                        {{-- <a href="#"><i class="fa-regular fa-message"></i> CHAT</a>--}}
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</section>
-<!-- Product Information End -->
-<!-- Description Part Start -->
-<section class="custom_container mb-5">
-    <div class="row g-3">
-        <div class="col-md-8 bg-white">
-            <div class="p-4">
-                <h4>
-                    @if(session()->get('language') == 'bangla')
-                    পণ্যের বিবরণ
-                    @else
-                    About this item
-                    @endif
-
-                </h4>
-                <hr>
-                <h6 class="mb-2">Product details</h6>
-                @if(session()->get('language') == 'bangla')
-                {!! $product->description_bn !!}
-                @else
-                {!! $product->description_en !!}
                 @endif
-
-
-                <h5 class="font-weight-bold mb-4 mt-3">Ratings & Reviews of {{ $product->name_en }}</h5>
-
-                <div class="row">
-                    <!-- Left: Average Rating -->
-                    <div class="col-md-4 d-flex flex-column align-items-start">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="display-4 font-weight-bold mr-2">{{ number_format($average_rating, 1) }}</div>
-                            <div>/5</div>
-                        </div>
-                        <div class="mb-2">
-                            @for($i = 1; $i <= 5; $i++)
-                                <i class="fa fa-star{{ $i <= round($average_rating) ? '' : '-o' }} text-warning"></i>
-                                @endfor
-                        </div>
-                        <div class="text-muted">{{ $total_ratings }} Ratings</div>
-                    </div>
-
-                    <!-- Right: Star Breakdown -->
-                    <div class="col-md-8">
-                        @foreach($formattedCounts as $star => $count)
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="mr-2" style="width: 110px;">
-                                {{-- Show full stars --}}
-                                @for($i = 0; $i < $star; $i++)
-                                    <i class="fa fa-star text-warning"></i>
-                                    @endfor
-
-                                    {{-- Show empty stars for the remainder --}}
-                                    @for($i = $star; $i < 5; $i++)
-                                        <i class="fa fa-star-o text-muted"></i> {{-- fa-star-o is empty star --}}
-                                        @endfor
-                            </div>
-                            <div class="progress flex-grow-1 mx-2" style="height: 10px;">
-                                <div class="progress-bar bg-warning" role="progressbar"
-                                    style="width: {{ $total_ratings > 0 ? ($count / $total_ratings) * 100 : 0 }}%;"
-                                    aria-valuenow="{{ $count }}" aria-valuemin="0" aria-valuemax="{{ $total_ratings }}"></div>
-                            </div>
-                            <div style="width: 10px;">{{ $count }}</div>
-                        </div>
-                        @endforeach
-                    </div>
-
-                </div>
-
-                <!-- Divider -->
-                <hr class="my-4">
-
-                <!-- Product Reviews Header -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Product Reviews</h6>
-                    <div class="d-flex gap-3 align-items-center">
-
-                        <div>
-                            Sort:
-                            <select id="sortReviews" class="form-select form-select-sm">
-                                <option value="relevance" selected>Relevance</option>
-                                <option value="recent">Recent</option>
-                                <option value="rating_desc">Rating: High to Low</option>
-                                <option value="rating_asc">Rating: Low to High</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            Filter:
-                            <select id="filterReviews" class="form-select form-select-sm">
-                                <option value="all" selected>All Stars</option>
-                                @for ($star = 1; $star <= 5; $star++)
-                                    <option value="{{ $star }}">{{ $star }} Star{{ $star > 1 ? 's' : '' }}</option>
-                                    @endfor
-                            </select>
-                        </div>
-
-                    </div>
-                </div>
-
-
-                <!-- Dynamic Reviews List -->
-                <!-- Dynamic Reviews List -->
-                <div id="reviewsContainer">
-                    @include('FrontEnd.product.partials.reviews_list', ['reviews' => $reviews])
-                </div>
-
             </div>
+        </section>
 
-
-        </div>
-        <div class="just-for-you col-md-4 mt-1">
-            <div class="">
-                <h5 class="my-2 ">
-                    @if(session()->get('language') == 'bangla')
-                    সংশ্লিষ্ট পণ্য
-                    @else
-                    Related Products
-                    @endif
-                </h5>
-                <!-- Responsive grid: 2 columns on xs/sm, 3 on md, 2 on lg+ -->
-                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-2 g-4">
-                    @if(count($relatedProduct) >0)
-                    @foreach ($relatedProduct as $product_trending )
-                    <?php $data = calculateDiscount($product_trending->id) ?>
-                    <div class="col d-flex">
-                        <div class="product_card flex-fill" data-index="{{ $product_trending->id }}" style="
-                                min-width: 0;
-                                max-width: 100%;
-                                background: rgba(255, 255, 255, 0.95);
-                                border-radius: 15px;
-                                overflow: hidden;
-                                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-                                transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                                position: relative;
-                                border: 1px solid rgba(255, 255, 255, 0.3);
-                            " 
-                            onmouseover="this.style.transform='translateY(-8px) scale(1.02)';this.style.boxShadow='0 20px 40px rgba(0, 0, 0, 0.15)';" 
-                            onmouseout="this.style.transform='translateY(0) scale(1)';this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.08)';">
-                            @if($data['discount'] && $product_trending->regular_price != $data['discount'])
-                            <div style="
-                                        position: absolute;
-                                        top: 10px;
-                                        left: 10px;
-                                        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-                                        color: white;
-                                        padding: 4px 8px;
-                                        border-radius: 12px;
-                                        font-size: 10px;
-                                        font-weight: 700;
-                                        z-index: 3;
-                                        text-transform: uppercase;
-                                        letter-spacing: 0.3px;
-                                        box-shadow: 0 3px 10px rgba(238, 90, 36, 0.3);
-                                    ">
-                                Save {{ $data['text'] }}
-                            </div>
-                            @endif
-    
-                            <div style="
-                                    position: relative;
-                                    height: 150px;
-                                    overflow: hidden;
-                                    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-                                ">
-                                <a href="{{ route('product.details', $product_trending->slug) }}" style="
-                                        display: block;
-                                        height: 100%;
-                                        position: relative; 
-                                    ">
-                                    <img src="{{ asset($product_trending->product_thumbnail) }}" alt="Product Image" style="
-                                            width: 100%;
-                                            height: 100%;
-                                            object-fit: cover;
-                                            transition: transform 0.4s ease;
-                                        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                </a>
-                            </div>
-    
-                            <div style="padding: 15px; position: relative;">
-                                <a href="{{ route('product.details', $product_trending->slug) }}" style="
-                                        text-decoration: none;
-                                        color: inherit;
-                                    ">
-                                    <h3 style="
-                                            font-size: 14px;
-                                            font-weight: 600;
-                                            color: #2c3e50;
-                                            margin-top: 5px;
-                                            line-height: 1.3;
-                                            transition: color 0.3s ease;
-                                            display: -webkit-box;
-                                            -webkit-line-clamp: 2;
-                                            -webkit-box-orient: vertical;
-                                            overflow: hidden;
-                                            height: 36px;
-                                        " onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#2c3e50'">
-                                        @if(session()->get('language') == 'bangla')
-                                        {{ $product_trending->name_bn }}
-                                        @else
-                                        {{ $product_trending->name_en }}
-                                        @endif
-                                    </h3>
-                                </a>
-    
-                                <div style="
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 8px;
-                                        margin-bottom: 10px;
-                                    ">
-                                    <h4 style="
-                                            font-size: 16px;
-                                            font-weight: 700;
-                                            color: #D83F26;
-                                            margin: 0;
-                                        ">{{ $data['discount'] }} TK</h4>
-                                    @if($product_trending->regular_price != $data['discount'])
-                                    <span style="
-                                                font-size: 12px;
-                                                color: #95a5a6;
-                                                text-decoration: line-through;
-                                                font-weight: 400;
-                                            ">{{ $product_trending->regular_price }} TK</span>
-                                    @endif
-                                </div>
-    
-                                <div style="
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 5px;
-                                        margin-bottom: 12px;
-                                    ">
-                                    <div style="display: flex; gap: 1px;">
-                                        @for($i = 0; $i < 4; $i++)
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#ffc107">
-                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                            </svg>
-                                            @endfor
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#e0e0e0">
-                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                            </svg>
-                                    </div>
-                                    <span style="
-                                            font-size: 11px;
-                                            color: #7f8c8d;
-                                            font-weight: 500;
-                                        ">(4.0)</span>
-                                </div>
-    
-                                <div style="display: flex; justify-content: space-around; gap: 6px;">
-                                    @if($product_trending->stock_qty > 0)
-                                    @if($product_trending->is_varient == 1)
-                                    <button onclick="productView({{ $product_trending->id }})" data-bs-toggle="modal" data-bs-target="#quickViewModal" style="
-                                                    background: #D83F26;
-                                                    color: white;
-                                                    border: none;
-                                                    padding: 2px 12px;
-                                                    border-radius: 6px;
-                                                    font-weight: 600;
-                                                    font-size: 11px;
-                                                    cursor: pointer;
-                                                    transition: all 0.3s ease;
-                                                    box-shadow: 0 3px 10px rgba(216, 63, 38, 0.3);
-                                                " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(216, 63, 38, 0.4)'"
-                                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(216, 63, 38, 0.3)'">
-                                        @if(session()->get('language') == 'bangla') এখনি কিনুন @else Buy Now @endif
-                                    </button>
-                                    <button onclick="productView({{ $product_trending->id }})" data-bs-toggle="modal" data-bs-target="#quickViewModal" style="
-                                                    background: white;
-                                                    color: #D83F26;
-                                                    border: 2px solid #D83F26;
-                                                    padding: 2px 4px;
-                                                    border-radius: 6px;
-                                                    font-weight: 600;
-                                                    font-size: 11px;
-                                                    cursor: pointer;
-                                                    transition: all 0.3s ease;
-                                                " onmouseover="this.style.background='#D83F26'; this.style.color='white'; this.style.transform='translateY(-1px)'"
-                                        onmouseout="this.style.background='white'; this.style.color='#D83F26'; this.style.transform='translateY(0)'">
-                                        @if(session()->get('language') == 'bangla') কার্টে যোগ করুন @else Add to Cart @endif
-                                    </button>
-                                    @else
-                                    <button onclick="buyNow({{ $product_trending->id }})" style="
-                                                    background: #D83F26;
-                                                    color: white;
-                                                    border: none;
-                                                    padding: 2px 12px;
-                                                    border-radius: 6px;
-                                                    font-weight: 600;
-                                                    font-size: 11px;
-                                                    cursor: pointer;
-                                                    transition: all 0.3s ease;
-                                                    box-shadow: 0 3px 10px rgba(216, 63, 38, 0.3);
-                                                " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(216, 63, 38, 0.4)'"
-                                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(216, 63, 38, 0.3)'">
-                                        @if(session()->get('language') == 'bangla') এখনি কিনুন @else Buy Now @endif
-                                    </button>
-    
-                                    <input type="hidden" id="pfrom" value="direct">
-                                    <input type="hidden" id="product_product_id" value="{{ $product_trending->id }}" min="1">
-                                    <input type="hidden" id="{{ $product_trending->id }}-product_pname" value="{{ $product_trending->name_en }}">
-    
-                                    <button onclick="addToCartDirect({{ $product_trending->id }})" style="
-                                                    background: white;
-                                                    color: #D83F26;
-                                                    border: 2px solid #D83F26;
-                                                    padding: 2px 4px;
-                                                    border-radius: 6px;
-                                                    font-weight: 600;
-                                                    font-size: 11px;
-                                                    cursor: pointer;
-                                                    transition: all 0.3s ease;
-                                                " onmouseover="this.style.background='#D83F26'; this.style.color='white'; this.style.transform='translateY(-1px)'"
-                                        onmouseout="this.style.background='white'; this.style.color='#D83F26'; this.style.transform='translateY(0)'">
-                                        @if(session()->get('language') == 'bangla') কার্টে যোগ করুন @else Add to Cart @endif
-                                    </button>
-                                    @endif
-                                    @else
-                                    <div style="
-                                                width: 100%;
-                                                background: linear-gradient(45deg, #f2f2f2, #e6e6e6);
-                                                color: #999;
-                                                text-align: center;
-                                                border-radius: 10px;
-                                                padding: 12px 0;
-                                                font-weight: 600;
-                                                letter-spacing: 0.5px;
-                                            ">
-                                        @if(session()->get('language') == 'bangla') স্টক আউট @else Out of Stock @endif
-                                    </div>
-                                    @endif
-                                </div>
-    
-                                @if($product_trending->stock_qty > 0)
-                                <div class="stock-indicator" style="
-                                            position: absolute;
-                                            top: -5px;
-                                            left: 12px;
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 5px;
-                                        ">
-                                    <span style="
-                                                width: 8px;
-                                                height: 8px;
-                                                border-radius: 50%;
-                                                background-color: #4caf50;
-                                                display: inline-block;
-                                            "></span>
-                                    <span style="font-size: 12px; color: #666;">In Stock</span>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+        {{-- Related Products Section --}}
+        @if($relatedProducts && $relatedProducts->isNotEmpty())
+            <section class="rf-related-section" aria-labelledby="related-products-heading">
+                <div class="rf-related-header">
+                    <span class="rf-related-subtitle">{{ $isBangla ? 'আপনার পছন্দের আরও পণ্য' : 'SIMILAR PRODUCTS' }}</span>
+                    <h2 id="related-products-heading" class="rf-related-title">{{ $isBangla ? 'সম্পর্কিত পণ্যসমূহ' : 'Related Products' }}</h2>
+                </div>
+                <div class="product-grid rf-related-grid">
+                    @foreach($relatedProducts as $relatedProduct)
+                        <x-product-card :product="$relatedProduct" />
                     @endforeach
-                    @else
-                    <p>No Products Found</p>
-                    @endif
                 </div>
-            </div>
-        </div>
-    </div>
+            </section>
+        @endif
 
-</section>
-
+    </main>
 @endsection
 
 @push('js')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sortSelect = document.getElementById('sortReviews');
-        const filterSelect = document.getElementById('filterReviews');
-        const reviewsContainer = document.getElementById('reviewsContainer');
-        const productSlug = "{{ $product->slug }}";
+    <script>
+        (() => {
+            const mainImage = document.querySelector('#product_zoom_img');
+            document.querySelectorAll('.pdp-thumbnail').forEach((thumbnail) => {
+                thumbnail.addEventListener('click', () => {
+                    mainImage.src = thumbnail.dataset.image;
+                    document.querySelectorAll('.pdp-thumbnail').forEach((item) => item.setAttribute('aria-current', 'false'));
+                    thumbnail.setAttribute('aria-current', 'true');
+                });
+            });
 
-        function fetchReviews() {
-            const sort = sortSelect.value;
-            const filter = filterSelect.value;
+            const quantity = document.querySelector('#qty');
+            if (quantity) {
+                const min = Number(quantity.min);
+                document.querySelector('.qty-down').addEventListener('click', () => {
+                    quantity.value = Math.max(min, Number(quantity.value) - 1);
+                });
+                document.querySelector('.qty-up').addEventListener('click', () => {
+                    const max = Number(quantity.max);
+                    quantity.value = Math.min(max, Number(quantity.value) + 1);
+                });
+            }
 
-            fetch(`/product/${productSlug}/reviews?sort=${sort}&filter=${filter}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+            const variantsMap = @json($variantsMap);
+            const hasVariants = {{ $hasVariants ? 'true' : 'false' }};
+            const baseRegularPrice = {{ $regularPrice }};
+            const isBangla = {{ $isBangla ? 'true' : 'false' }};
+            const minQty = {{ $minimumQuantity }};
+
+            function selectVariant(vName) {
+                if (!hasVariants || !variantsMap || !variantsMap[vName]) return;
+                const vData = variantsMap[vName];
+                const price = Number(vData.price);
+                const regPrice = Number(vData.regular_price || baseRegularPrice);
+                const stock = Number(vData.qty);
+
+                // Update hidden inputs
+                const pvarientInput = document.querySelector('#pvarient');
+                if (pvarientInput) pvarientInput.value = vName;
+
+                const priceInput = document.querySelector('#product_price');
+                if (priceInput) priceInput.value = price;
+
+                const stockInput = document.querySelector('#stock_qty');
+                if (stockInput) stockInput.value = stock;
+
+                // Update UI label
+                const curVarLbl = document.querySelector('#curVarLabel');
+                if (curVarLbl) curVarLbl.textContent = vName;
+
+                // Update price UI
+                const curPriceEl = document.querySelector('.current-price');
+                if (curPriceEl) curPriceEl.textContent = `Tk ${price.toFixed(2)} BDT`;
+
+                const oldPriceEl = document.querySelector('.old-price');
+                const saveEl = document.querySelector('.pdp-price__save');
+                if (oldPriceEl && saveEl) {
+                    if (regPrice > price) {
+                        oldPriceEl.textContent = `Tk ${regPrice.toFixed(2)}`;
+                        oldPriceEl.hidden = false;
+                        const pct = Math.round(((regPrice - price) / regPrice) * 100);
+                        saveEl.textContent = `Save ${pct}%`;
+                        saveEl.hidden = false;
+                    } else {
+                        oldPriceEl.hidden = true;
+                        saveEl.hidden = true;
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    reviewsContainer.innerHTML = data.html;
-                })
-                .catch(error => {
-                    console.error('Error fetching reviews:', error);
-                });
-        }
-
-        sortSelect.addEventListener('change', fetchReviews);
-        filterSelect.addEventListener('change', fetchReviews);
-    });
-</script>
-
-<script>
-    //Qty Up-Down
-    $('.detail-qty').each(function() {
-        var qtyval = parseInt($(this).find(".qty-val").val(), 10);
-
-        $('.qty-up').on('click', function(event) {
-            event.preventDefault();
-            qtyval = qtyval + 1;
-            $(this).prev().val(qtyval);
-        });
-
-        $(".qty-down").on("click", function(event) {
-            event.preventDefault();
-            qtyval = qtyval - 1;
-            if (qtyval > 1) {
-                $(this).next().val(qtyval);
-            } else {
-                qtyval = 1;
-                $(this).next().val(qtyval);
-            }
-        });
-    });
-
-    function addCart(id) {
-        var qty = $('.qty-val').val();
-        addToCartDirect(id, false, qty);
-    }
-
-
-    {
-        {
-            --$('#buy_now').on('click', function() {
-                    --
                 }
-            } {
-                {
-                    --
-                    var qty = $('.qty-val').val();
-                    --
+
+                // Update stock UI & quantity limits
+                const stockStatus = document.querySelector('.pdp-meta strong.in-stock, .pdp-meta strong.out-of-stock');
+                if (stockStatus) {
+                    stockStatus.textContent = stock > 0 ? (isBangla ? 'স্টকে আছে' : 'In stock') : (isBangla ? 'স্টক শেষ' : 'Out of stock');
+                    stockStatus.className = stock > 0 ? 'in-stock' : 'out-of-stock';
                 }
-            } {
-                {
-                    --
-                    var id = {
-                        {
-                            $product - > id
+
+                const stockAlert = document.querySelector('#qty_stock_alert');
+                const qtyInput = document.querySelector('#qty');
+                const actionButtons = document.querySelectorAll('.pdp-action');
+
+                if (stock <= 0) {
+                    if (stockAlert) stockAlert.textContent = isBangla ? 'এই ভ্যারিয়েন্টটির স্টক শেষ।' : 'This variant is out of stock.';
+                    actionButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                } else {
+                    if (stockAlert) stockAlert.textContent = '';
+                    actionButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    });
+                }
+
+                if (qtyInput) {
+                    qtyInput.max = stock;
+                    if (Number(qtyInput.value) > stock) {
+                        qtyInput.value = Math.max(minQty, stock);
+                    }
+                }
+
+                // Update hidden choice_form inputs for CartController and test()
+                const parts = vName.split('-');
+                const totalAttrs = parseInt(document.querySelector('#total_attributes')?.value || 0);
+                for (let i = 1; i <= Math.max(totalAttrs, parts.length); i++) {
+                    const checkInput = document.querySelector(`#attribute_check_${i}`);
+                    if (checkInput) checkInput.value = '1';
+
+                    const optInput = document.querySelector(`.attr_value_${i}`);
+                    if (optInput) {
+                        const partVal = parts[i - 1];
+                        optInput.value = (partVal !== undefined) ? partVal : (i === 1 ? vName : '');
+                    }
+
+                    const checkAttr = document.querySelector(`#attribute_check_attr_${i}`);
+                    if (checkAttr) {
+                        const partVal = parts[i - 1];
+                        checkAttr.value = (partVal !== undefined) ? partVal : (i === 1 ? vName : '');
+                    }
+                }
+
+                // Update main image if variant has image
+                if (vData.image && mainImage) {
+                    mainImage.src = vData.image;
+                    document.querySelectorAll('.pdp-thumbnail').forEach((thumb) => {
+                        if (thumb.dataset.image === vData.image) {
+                            thumb.setAttribute('aria-current', 'true');
+                        } else {
+                            thumb.setAttribute('aria-current', 'false');
                         }
-                    };
-                    --
-                }
-            } {
-                {
-                    --buyNow(id, qty);
-                    --
+                    });
                 }
             }
 
-            {
-                {
-                    --
+            const variantSelect = document.querySelector('#variantSelect');
+            if (variantSelect) {
+                variantSelect.addEventListener('change', function () {
+                    selectVariant(this.value);
                 });
-            --
-        }
-    }
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get DOM elements
-        const qtyContainer = document.querySelector('.detail-qty');
-        const qtyInput = qtyContainer.querySelector('.qty-val');
-        const qtyDownBtn = qtyContainer.querySelector('.qty-down');
-        const qtyUpBtn = qtyContainer.querySelector('.qty-up');
-        const alertDiv = document.getElementById('qty_stock_alert');
-
-        // Get quantity constraints
-        const minQty = parseInt(qtyInput.getAttribute('min'));
-        const maxQty = parseInt(qtyInput.getAttribute('max'));
-        let currentQty = parseInt(qtyInput.value);
-
-        // Update quantity display and controls
-        function updateQuantity(qty) {
-            currentQty = qty;
-            qtyInput.value = qty;
-
-            // Update button states
-            qtyDownBtn.disabled = qty <= minQty;
-            qtyUpBtn.disabled = qty >= maxQty;
-
-            // Show appropriate alerts
-            if (qty >= maxQty) {
-                alertDiv.textContent = '';
-            } else if (qty <= minQty) {
-                alertDiv.textContent = '';
-            } else {
-                alertDiv.textContent = '';
+                // Synchronize with initial selected variant
+                if (variantSelect.value) {
+                    selectVariant(variantSelect.value);
+                }
             }
-        }
-
-        // Initialize
-        updateQuantity(currentQty);
-
-        // Event Listeners
-        qtyUpBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (currentQty < maxQty) {
-                updateQuantity(currentQty + 1);
-            }
-        });
-
-        qtyDownBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (currentQty > minQty) {
-                updateQuantity(currentQty - 1);
-            }
-        });
-
-        // Update cart/buy functions to use quantity
-        window.addCart = function(id) {
-            const qty = parseInt(qtyInput.value);
-            addToCartDirect(id, false, qty);
-        }
-
-        window.buyNow = function(id) {
-            const qty = parseInt(qtyInput.value);
-            buyProduct(id, qty);
-        }
-    });
-</script>
-<script src="{{asset('FrontEnd')}}/assect/js/xzoom.js"></script>
-<script src="{{asset('FrontEnd')}}/assect/js/magnific-popup.js"></script>
-<script src="{{asset('FrontEnd')}}/assect/js/setup.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-    crossorigin="anonymous"></script>
+        })();
+    </script>
 @endpush

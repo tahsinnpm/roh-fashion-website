@@ -1,36 +1,343 @@
-.roh-mobile-nav { display: none; }
-.roh-category-drawer { position: fixed; inset: 0 auto 0 0; margin: 0; padding: 0; width: min(350px, 90vw); max-width: 100%; height: 100dvh; max-height: 100dvh; background: #fff; color: #302630; border: 0; border-radius: 0; overflow: hidden; transform: translateX(-100%); transition: transform 220ms ease; font-family: inherit; }
-.roh-category-drawer[open] { display: flex; flex-direction: column; }
-.roh-category-drawer.is-open { transform: translateX(0); }
-.roh-category-drawer::backdrop { background: rgb(33 24 32 / 45%); }
-body:has(.roh-category-drawer[open]) { overflow: hidden; }
-.roh-category-drawer *, .roh-mobile-nav * { box-sizing: border-box; border-radius: 0; }
-.roh-category-drawer header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 24px 20px; background: #fff0f6; border-bottom: 1px solid #eed9e2; }
-.roh-category-drawer header span { color: #a92154; font-size: 10px; letter-spacing: 2px; }
-.roh-category-drawer h2 { margin: 7px 0 0; font-size: 21px; color: #302630; }
-.roh-category-drawer header button { width: 38px; height: 38px; border: 1px solid #ead1dc; background: #fff; color: #302630; font-size: 26px; cursor: pointer; }
-.roh-category-drawer__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 20px max(24px, env(safe-area-inset-bottom)); }
-.roh-category-drawer a { color: #302630; text-decoration: none; }
-.roh-category-drawer a.roh-category-drawer__all { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 12px; margin-bottom: 12px; background: #f95490; font-size: 13px; font-weight: 600; }
-.roh-category-tree { list-style: none; margin: 0; padding: 0; }
-.roh-category-tree > li { border-bottom: 1px solid #f0e7ec; }
-.roh-category-tree a, .roh-category-tree summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; min-height: 48px; font-size: 13px; line-height: 1.5; cursor: pointer; }
-.roh-category-tree summary { list-style: none; }
-.roh-category-tree summary::-webkit-details-marker { display: none; }
-.roh-category-tree i { font-size: 10px; color: #a92154; }
-.roh-category-tree details[open] > summary i { transform: rotate(180deg); }
-.roh-category-tree .roh-category-tree { padding-left: 14px; border-left: 2px solid #f9d6e4; margin-bottom: 10px; }
-.roh-category-tree a.roh-category-tree__all { font-size: 12px; color: #a92154; }
-.roh-category-drawer :is(a, button, summary):focus-visible, .roh-mobile-nav :is(a, button):focus-visible { outline: 2px solid #a92154; outline-offset: -2px; }
-@media (max-width: 767px) {
-    body { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
-    .rf-home-page .roh-category-section, .rf-home-page .rf-categories-panel { display: none; }
-    .roh-mobile-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; inset: auto 0 0; z-index: 1040; min-height: 66px; padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid #efdbe4; box-shadow: 0 -3px 16px rgb(48 38 48 / 5%); }
-    .roh-mobile-nav > a, .roh-mobile-nav > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 65px; padding: 8px 2px; border: 0; background: transparent; color: #554650; font: inherit; font-size: 10px; text-decoration: none; cursor: pointer; }
-    .roh-mobile-nav i { font-size: 19px; }
-    .roh-mobile-nav [aria-current="page"], .roh-mobile-nav [aria-expanded="true"] { color: #a92154; background: #fff1f7; box-shadow: inset 0 2px #f95490; }
-    .roh-mobile-nav__cart { position: relative; }
-    .roh-mobile-nav .cartQty { position: absolute; top: -7px; left: 15px; min-width: 15px; padding: 1px 3px; background: #f95490; color: #302630; font-size: 9px; line-height: 13px; text-align: center; }
-    .rf-cart-notice { bottom: calc(80px + env(safe-area-inset-bottom)); }
+/* ==========================================================================
+   Mobile Navigation & Slide-out Drawer Styles
+   ========================================================================== */
+
+/* Bottom navigation completely disabled per design */
+.roh-mobile-nav {
+    display: none !important;
 }
-@media (prefers-reduced-motion: reduce) { .roh-category-drawer { transition: none; } }
+
+/* Slide-out Mobile Drawer */
+.roh-category-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    margin: 0;
+    padding: 0;
+    width: min(340px, 86vw);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    background: #ffffff;
+    color: #111111;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+    transform: translateX(-100%);
+    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.25);
+    z-index: 1060;
+}
+
+.roh-category-drawer[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.roh-category-drawer.is-open {
+    transform: translateX(0);
+}
+
+.roh-category-drawer::backdrop {
+    background: rgba(15, 15, 20, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+body:has(.roh-category-drawer[open]) {
+    overflow: hidden;
+}
+
+.roh-category-drawer * {
+    box-sizing: border-box;
+}
+
+/* Drawer Header */
+.roh-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.roh-drawer-logo img {
+    display: block;
+    width: 96px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.roh-drawer-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #e4e4e7;
+    background: #f4f4f5;
+    color: #18181b;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.roh-drawer-close:hover {
+    background: #09090b;
+    color: #ffffff;
+    border-color: #09090b;
+}
+
+/* Drawer Scroll Body */
+.roh-drawer-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 10px 0 32px;
+}
+
+/* Drawer Groups */
+.roh-drawer-group {
+    padding: 10px 18px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.roh-drawer-group--primary {
+    padding-top: 6px;
+}
+
+.roh-drawer-group--footer {
+    border-bottom: 0;
+    background: #fafafa;
+    margin-top: 10px;
+    padding-top: 16px;
+}
+
+.roh-drawer-heading {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-left: 4px;
+}
+
+.roh-drawer-subheading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 8px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+/* Navigation Lists */
+.roh-drawer-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.roh-drawer-nav-list li {
+    margin-bottom: 3px;
+}
+
+.roh-drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #18181b;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.roh-drawer-link:hover,
+.roh-drawer-link.is-active {
+    background: #f4f4f5;
+    color: #09090b;
+}
+
+.roh-drawer-link i:first-child {
+    width: 20px;
+    font-size: 15px;
+    color: #71717a;
+    text-align: center;
+}
+
+.roh-drawer-link:hover i:first-child,
+.roh-drawer-link.is-active i:first-child {
+    color: #09090b;
+}
+
+.roh-drawer-emoji {
+    font-size: 16px;
+    line-height: 1;
+    width: 20px;
+    text-align: center;
+}
+
+.roh-drawer-link__arrow {
+    margin-left: auto;
+    font-size: 13px;
+    color: #a1a1aa;
+    transition: transform 0.15s ease;
+}
+
+.roh-drawer-link:hover .roh-drawer-link__arrow {
+    transform: translateX(2px);
+    color: #09090b;
+}
+
+.roh-drawer-badge {
+    margin-left: auto;
+    margin-right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: #f4f4f5;
+    color: #27272a;
+}
+
+.roh-drawer-badge--hot {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Category Tree in Drawer (Vertical List with Clean Arrows) */
+.roh-drawer-categories {
+    margin-top: 4px;
+}
+
+.roh-drawer-categories .roh-category-tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.roh-drawer-categories .roh-category-tree > li {
+    border-bottom: 1px solid #f4f4f5;
+}
+
+.roh-drawer-categories .roh-category-tree > li:last-child {
+    border-bottom: 0;
+}
+
+.roh-drawer-categories .roh-category-link,
+.roh-drawer-categories .roh-category-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: #27272a;
+    font-size: 14.5px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.roh-drawer-categories .roh-category-link:hover,
+.roh-drawer-categories .roh-category-summary:hover {
+    background: #f4f4f5;
+    color: #09090b;
+}
+
+.roh-drawer-categories .roh-category-summary {
+    list-style: none;
+}
+
+.roh-drawer-categories .roh-category-summary::-webkit-details-marker {
+    display: none;
+}
+
+.roh-drawer-categories .roh-category-arrow {
+    font-size: 12px;
+    color: #a1a1aa;
+    margin-left: auto;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+}
+
+.roh-drawer-categories details[open] > .roh-category-summary {
+    font-weight: 600;
+    color: #e11d48;
+}
+
+.roh-drawer-categories details[open] > .roh-category-summary .roh-category-arrow {
+    transform: rotate(90deg);
+    color: #e11d48;
+}
+
+.roh-drawer-categories .roh-category-children {
+    padding-left: 12px;
+    margin: 2px 0 8px 10px;
+    border-left: 2px solid #e4e4e7;
+}
+
+.roh-drawer-categories a.roh-category-tree__all {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 38px;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    font-size: 12.5px;
+    color: #e11d48;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+}
+
+.roh-drawer-categories a.roh-category-tree__all:hover {
+    background: #fef2f2;
+}
+
+.roh-drawer-categories a.roh-category-tree__all i {
+    font-size: 11px;
+}
+
+.roh-drawer-categories .roh-category-children .roh-category-link {
+    font-size: 13.5px;
+    padding: 8px 10px;
+    min-height: 38px;
+}
+
+@media (max-width: 767px) {
+    body {
+        padding-bottom: 0 !important;
+    }
+
+    .roh-mobile-nav {
+        display: none !important;
+    }
+
+    .rf-cart-notice {
+        bottom: 24px !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .roh-category-drawer {
+        transition: none;
+    }
+}

@@ -305,7 +305,7 @@
                 </a>
             </li>
 
-            <!-- <li class="menu-item has-submenu
+            <li class="menu-item has-submenu
                 {{ ($route == 'slider.index')? 'active':'' }}
                 {{ ($route == 'slider.edit')? 'active':'' }}
                 {{ ($route == 'slider.create')? 'active':'' }}
@@ -324,7 +324,7 @@
                         <a class="{{ ($route == 'slider.create') ? 'active':'' }}" href="{{ route('slider.create') }}">Slider Add</a>
                     @endif
                 </div>
-            </li> -->
+            </li>
 
             <li class="menu-item has-submenu
                 {{ ($prefix == 'admin/product') || ($prefix == 'admin/category')|| ($prefix == 'admin/unit') || ($route == 'attribute.index') || ($prefix == 'admin/brand') ? 'active' : '' }}
@@ -370,6 +370,17 @@
                 <div class="submenu">
                     <a class="{{ ($route == 'landing.page.index') ? 'active':'' }}" href="{{ route('landing.page.index') }}">Landing Page List</a>
                     <a class="{{ ($route == 'landing.page.create') ? 'active':'' }}" href="{{ route('landing.page.create') }}">Create Landing Page</a>
+                </div>
+            </li>
+
+            <li class="menu-item has-submenu {{ ($prefix == 'admin/dynamic-sections') || \Illuminate\Support\Str::startsWith($route, 'dynamic-section.') ? 'active' : '' }}">
+                <a class="menu-link" href="#">
+                    <i class="fa-solid fa-layer-group fontawesome_icon_custom"></i>
+                    <span class="text">Dynamic Sections</span>
+                </a>
+                <div class="submenu">
+                    <a class="{{ ($route == 'dynamic-section.index') ? 'active':'' }}" href="{{ route('dynamic-section.index') }}">Sections List</a>
+                    <a class="{{ ($route == 'dynamic-section.create') ? 'active':'' }}" href="{{ route('dynamic-section.create') }}">Add New Section</a>
                 </div>
             </li>
 
@@ -423,7 +434,7 @@
                 </li>
             @endif -->
 
-            <!-- <li class="menu-item has-submenu
+            <li class="menu-item has-submenu
                 {{ ($route == 'campaing.index')? 'active':'' }}
                 {{ ($route == 'campaing.create')? 'active':'' }}
                 {{ ($route == 'campaing.edit')? 'active':'' }}
@@ -442,9 +453,9 @@
                         <a class="{{ ($route == 'campaing.create') ? 'active':'' }}" href="{{ route('campaing.create') }}">Campaign Add</a>
                     @endif
                 </div>
-            </li> -->
+            </li>
 
-            <!-- @if(Auth::guard('admin')->user()->role == '1')
+            @if(Auth::guard('admin')->user()->role == '1')
             <li class="menu-item has-submenu
                 {{ ($route == 'coupons.index')? 'active':'' }}
                 {{ ($route == 'coupons.create')? 'active':'' }}
@@ -459,7 +470,7 @@
                     <a class="{{ ($route == 'coupons.create') ? 'active':'' }}" href="{{ route('coupons.create') }}">Coupon Add</a>
                 </div>
             </li>
-            @endif -->
+            @endif
 
             <!-- <li class="menu-item has-submenu {{ ($prefix == 'admin/supplier')?'active':'' }}">
                 @if(Auth::guard('admin')->user()->role == '1' || in_array('45', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))

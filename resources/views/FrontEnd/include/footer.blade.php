@@ -59,11 +59,11 @@
                         @endif</a>
 
 
-                        @if(session()->get('language') == 'bangla')
+                        <!-- @if(session()->get('language') == 'bangla')
                 <a class="btn btn-link" href="{{route('page.affiliate')}}">আফিলিয়েট হিসেবে জয়েন </a>
                 @else
                 <a class="btn btn-link" href="{{route('page.affiliate')}}">Join as Affiliate</a>
-                @endif
+                @endif -->
 
                 @if(session()->get('language') == 'bangla')
                 <a class="btn btn-link" href="{{route('page.about')}}">আমাদের সম্পর্কে</a>
@@ -167,9 +167,7 @@
         <div class="copyright">
             <div class="row">
                 <div class="col-md-7 text-center text-md-start mb-3 mb-md-0">
-                    &copy; <a class="border-bottom" href="{{route('home')}}">{{get_setting('business_name')->value}}</a> | All Right Reserved |
-
-                    Developed By <a class="border-bottom" href="" target="_blank">ITBD Solution</a>
+                    &copy; <a class="border-bottom" href="{{route('home')}}">{{get_setting('business_name')->value}}</a> | All Right Reserved 
                 </div>
                 <div class="col-md-3 text-center text-md-end">
                     <div class="d-flex payment-section justify-content-md-end justify-content-center">

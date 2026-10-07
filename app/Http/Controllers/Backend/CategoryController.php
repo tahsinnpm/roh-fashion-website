@@ -114,6 +114,7 @@ class CategoryController extends Controller
             $request->is_featured = 0;
         }
         $category->is_featured = $request->is_featured;
+        $category->is_header = $request->boolean('is_header');
         $category->image = $save_url;
         $category->icon = $save_url_icon;
         $category->created_by = Auth::guard('admin')->user()->id;
@@ -232,6 +233,7 @@ class CategoryController extends Controller
         }
 
         $category->is_featured = $request->is_featured;
+        $category->is_header = $request->boolean('is_header');
         $category->created_by = Auth::guard('admin')->user()->id;
 
         $category->updated_at = Carbon::now();

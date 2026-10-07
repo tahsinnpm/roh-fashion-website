@@ -11,11 +11,11 @@ use App\Models\Brand;
 use App\Models\Order;
 use App\Models\Banner;
 use App\Models\Coupon;
-use App\Models\Review;
 use App\Models\Slider;
 use App\Models\Vendor;
 use App\Models\Product;
 use App\Models\Campaing;
+use App\Models\DynamicSection;
 use App\Models\Category;
 use App\Models\MultiImg;
 use App\Models\Shipping;
@@ -24,7 +24,6 @@ use App\Models\Attribute;
 use App\Models\OrderDetail;
 use Illuminate\Support\Str;
 //use Auth;
-use App\Models\GroupProduct;
 use Illuminate\Http\Request;
 use App\Models\CampaingProduct;
 use App\Utility\CategoryUtility;
@@ -53,7 +52,14 @@ class FrontendController extends Controller
         $end_diff2 = $campaign ? date_diff(date_create(date('d-m-Y H:i:s')), date_create($campaign->flash_end)) : null;
 
         // return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
-        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2'));
+        $dynamic_sections = DynamicSection::where('status', 1)
+            ->orderBy('position', 'asc')
+            ->with(['products' => function($q) {
+                $q->where('status', 1)->with('stocks');
+            }])
+            ->get();
+
+        return view('FrontEnd.home.index2', compact('categories', 'featured_category', 'sliders', 'product_trendings', 'product_featured', 'home_banners', 'campaign', 'campaignStart', 'campaignEnd', 'start_diff2', 'end_diff2', 'dynamic_sections'));
     }
 
     public function index2(Request $request)
@@ -126,59 +132,39 @@ class FrontendController extends Controller
     }
     public function productDetails($slug)
     {
-
-        $product = Product::where('slug', $slug)->first();
+        $product = Product::with(['stocks', 'category', 'brand', 'sub_category'])->where('slug', $slug)->first();
         if ($product) {
-            if ($product->id) {
-                $multiImg = MultiImg::where('product_id', $product->id)->limit(3)->get();
-            }
-
-            /* ================= Product Color Eng ================== */
-            $color_en = $product->product_color_en;
-            $product_color_en = explode(',', $color_en);
-
-            /* ================= Product Size Eng =================== */
-            $size_en = $product->product_size_en;
-            $product_size_en = explode(',', $size_en);
-
-            /* ================= Realted Product =============== */
-            $cat_id = $product->category_id;
-
-            $reviews = Review::where('product_id', $product->id)
-                ->where('status', 1)
-                ->where('verified_purchase', 1)
-                ->get();
-
-            $total_ratings = $reviews->count();
-
-            // Average rating
-            $average_rating = $total_ratings > 0 ? $reviews->avg('rating') : 0;
-
-            // Ratings grouped by star (5 to 1)
-               $ratingCounts = $reviews->groupBy(function($review) {
-                return (int) $review->rating;
-            })->map->count();
-
-            $formattedCounts = [];
-            foreach ([5, 4, 3, 2, 1] as $star) {
-                $formattedCounts[$star] = $ratingCounts->get($star, 0);
-            }
-
-            $relatedProduct = Product::where('category_id', $cat_id)->where('id', '!=', $product->id)->orderBy('id', 'DESC')->get();
-
-            $categories = Category::orderBy('name_en', 'ASC')->where('status', '=', 1)->limit(5)->get();
-            $new_products = Product::orderBy('name_en')->where('status', '=', 1)->limit(3)->latest()->get();
+            $multiImg = MultiImg::where('product_id', $product->id)->limit(3)->get();
             $shipping_charge = Shipping::where('type', 1)->first();
 
-            if ($product->product_type == 2) {
+            // Fetch related products (same sub_category or category, active, excluding current product)
+            $relatedProducts = Product::with(['stocks', 'category'])
+                ->where('status', 1)
+                ->where('id', '!=', $product->id)
+                ->where(function ($query) use ($product) {
+                    if ($product->sub_category_id) {
+                        $query->where('sub_category_id', $product->sub_category_id)
+                              ->orWhere('category_id', $product->category_id);
+                    } elseif ($product->category_id) {
+                        $query->where('category_id', $product->category_id);
+                    }
+                })
+                ->latest('id')
+                ->limit(8)
+                ->get();
 
-                $group_products = GroupProduct::where('product_id', $product->id)->get();
-                //                return $group_products;
-            } else {
-                $group_products = [];
+            if ($relatedProducts->count() < 4) {
+                $additional = Product::with(['stocks', 'category'])
+                    ->where('status', 1)
+                    ->where('id', '!=', $product->id)
+                    ->whereNotIn('id', $relatedProducts->pluck('id'))
+                    ->latest('id')
+                    ->limit(8 - $relatedProducts->count())
+                    ->get();
+                $relatedProducts = $relatedProducts->concat($additional);
             }
 
-            return view('FrontEnd.product.product_details', compact('group_products', 'shipping_charge', 'product', 'multiImg', 'categories', 'new_products', 'product_color_en', 'product_size_en', 'relatedProduct', 'reviews', 'total_ratings', 'average_rating', 'formattedCounts'));
+            return view('FrontEnd.product.product_details', compact('shipping_charge', 'product', 'multiImg', 'relatedProducts'));
         }
 
         return view('FrontEnd.product.productNotFound');
@@ -187,11 +173,8 @@ class FrontendController extends Controller
     /* ========== Start CatWiseProduct Method ======== */
     public function CatWiseProduct(Request $request, $slug)
     {
+        $category = Category::where('slug', $slug)->firstOrFail();
 
-        $category = Category::where('slug', $slug)->first();
-        // dd($category);
-
-        // Top filter Start
         $sort_by = $request->sort_by;
         $brand_id = $request->brand;
 
@@ -200,42 +183,20 @@ class FrontendController extends Controller
         if ($brand_id != null) {
             $conditions = array_merge($conditions, ['brand_id' => $brand_id]);
         } elseif ($request->brand != null) {
-            $brand_id = (Brand::where('slug', $request->brand)->first() != null) ? Brand::where('slug', $request->brand)->first()->id : null;
-            $conditions = array_merge($conditions, ['brand_id' => $brand_id]);
+            $matchedBrand = Brand::where('slug', $request->brand)->first();
+            if ($matchedBrand) {
+                $conditions = array_merge($conditions, ['brand_id' => $matchedBrand->id]);
+            }
         }
-
-        $products_sort_by = Product::where($conditions);
-
-        switch ($sort_by) {
-            case 'newest':
-                $products_sort_by->orderBy('created_at', 'desc')->paginate(10);
-                break;
-            case 'oldest':
-                $products_sort_by->orderBy('created_at', 'asc')->paginate(10);
-                break;
-            case 'price-asc':
-                $products_sort_by->orderBy('regular_price', 'asc')->paginate(10);
-                break;
-            case 'price-desc':
-                $products_sort_by->orderBy('regular_price', 'desc')->paginate(10);
-                break;
-            default:
-                $products_sort_by->orderBy('id', 'desc')->paginate(10);
-                break;
-        }
-        // Top filter End
-
-        $min_price = $request->get('filter_price_start');
-        $max_price = $request->get('filter_price_end');
-
-        $conditions = ['status' => 1];
 
         if ($request->brand_id != null && $request->brand_id > 0) {
             $conditions = array_merge($conditions, ['brand_id' => $request->brand_id]);
         }
 
-        $products = Product::where($conditions);
+        $products = Product::where($conditions)->with(['stocks']);
 
+        $min_price = $request->get('filter_price_start');
+        $max_price = $request->get('filter_price_end');
         if ($min_price != null && $max_price != null) {
             $products->where('regular_price', '>=', $min_price)->where('regular_price', '<=', $max_price);
         }
@@ -244,10 +205,27 @@ class FrontendController extends Controller
         $category_ids[] = $category->id;
         $products->whereIn('category_id', $category_ids);
 
-        $products = $products->orderBy('created_at', 'desc')->paginate(12);
+        switch ($sort_by) {
+            case 'newest':
+                $products->orderBy('created_at', 'desc');
+                break;
+            case 'oldest':
+                $products->orderBy('created_at', 'asc');
+                break;
+            case 'price-asc':
+                $products->orderBy('regular_price', 'asc');
+                break;
+            case 'price-desc':
+                $products->orderBy('regular_price', 'desc');
+                break;
+            default:
+                $products->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $products = $products->paginate(15)->appends($request->query());
 
         $categories = Category::orderBy('name_en', 'ASC')->where('status', '=', 1)->get();
-        // dd($products);
         $subcategories = Category::orderBy('name_en', 'ASC')->where('status', 1)->where('parent_id', $category->id)->get();
 
         return view('FrontEnd.product.category_view', compact('products', 'categories', 'category', 'sort_by', 'brand_id', 'subcategories'));
@@ -311,10 +289,11 @@ class FrontendController extends Controller
             'product' => $product,
             'attributes' => $attributes,
             'price' => $product->storefrontPrice(),
+            'regular_price' => (float)$product->regular_price,
             'details_url' => route('product.details', $product->slug),
             'description' => strip_tags(session('language') === 'bangla' ? ($product->short_description_bn ?: $product->short_description_en) : $product->short_description_en),
-            'variants' => $product->stocks->map(function ($stock) use ($product) {
-                return ['varient' => $stock->varient, 'qty' => $stock->qty, 'price' => $product->storefrontPrice($stock->price), 'image' => $stock->image];
+            'variants' => $product->stocks->sortBy('price')->values()->map(function ($stock) use ($product) {
+                return ['varient' => $stock->varient, 'qty' => $stock->qty, 'price' => (float)($stock->price > 0 ? $stock->price : $product->storefrontPrice()), 'regular_price' => (float)$product->regular_price, 'image' => $stock->image];
             }),
         ]);
     }
@@ -605,15 +584,28 @@ class FrontendController extends Controller
             'invoice_no' => 'required',
             'phone' => 'required',
         ]);
-        $order = Order::where('invoice_no', $request->invoice_no)->where('phone', $request->phone)->first();
+        $invoiceNo = trim((string) $request->invoice_no);
+        $phoneInput = trim((string) $request->phone);
+        $cleanPhone = preg_replace('/[\s()-]+/', '', $phoneInput);
+        $shortPhone = preg_replace('/^(?:\+88|88)/', '', $cleanPhone);
+
+        $order = Order::with(['order_details.product'])
+            ->where('invoice_no', $invoiceNo)
+            ->where(function ($query) use ($phoneInput, $cleanPhone, $shortPhone) {
+                $query->where('phone', $phoneInput)
+                    ->orWhere('phone', $cleanPhone)
+                    ->orWhere('phone', $shortPhone)
+                    ->orWhere('phone', '0' . ltrim($shortPhone, '0'));
+            })
+            ->first();
+
         if (!$order) {
             $notification = array(
-                'message' => 'Required Data Not Found.',
+                'message' => 'No order found with the provided Invoice ID and Phone number.',
                 'alert-type' => 'error'
             );
-            return redirect()->back()->with($notification);
+            return redirect()->back()->withInput()->with($notification);
         }
-        // dd($order);
         return view('FrontEnd.page.track', compact('order'));
     }
 

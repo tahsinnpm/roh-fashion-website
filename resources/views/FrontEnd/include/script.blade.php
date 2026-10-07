@@ -648,21 +648,26 @@
     function test() {
 
         var total_attributes = parseInt($('#total_attributes').val());
+        var varient = $('#pvarient').val() || ($('#variantSelect').length ? $('#variantSelect').val() : '');
+        if (varient) {
+            $('#pvarient').val(varient);
+        }
 
-        // alert(total_attributes);
         var checkNotSelected = 0;
         var checkAlertHtml = '';
-        for (var i = 1; i <= total_attributes; i++) {
-            var checkSelected = parseInt($('#attribute_check_' + i).val());
-            if (checkSelected == 0) {
-                checkNotSelected = 1;
-                checkAlertHtml += `<div class="attr-detail mb-5">
+        if (!varient) {
+            for (var i = 1; i <= total_attributes; i++) {
+                var checkSelected = parseInt($('#attribute_check_' + i).val());
+                if (checkSelected == 0) {
+                    checkNotSelected = 1;
+                    checkAlertHtml += `<div class="attr-detail mb-5">
         								<div class="alert alert-danger d-flex align-items-center" role="alert">
         									<div>
         										<i class="fa fa-warning mr-10"></i> <span> Select ` + $('#attribute_name_' + i).val() + `</span>
         									</div>
         								</div>
         							</div>`;
+                }
             }
         }
         $('.size-filter li').removeClass("active");
@@ -672,7 +677,6 @@
         var color = $('#color option:selected').val();
         var size = $('#size option:selected').val();
         var quantity = $('#qty').val();
-        var varient = $('#pvarient').val();
 
         console.log(price);
         if (checkNotSelected == 1) {
@@ -775,10 +779,17 @@
                     })
 
                     $('#qty').val(min_qty);
-                    $('#pvarient').val('');
-
-                    for (var i = 1; i <= total_attributes; i++) {
-                        $('#attribute_check_' + i).val(0);
+                    var vSel = document.querySelector('#variantSelect');
+                    if (vSel && vSel.value) {
+                        $('#pvarient').val(vSel.value);
+                        for (var i = 1; i <= total_attributes; i++) {
+                            $('#attribute_check_' + i).val(1);
+                        }
+                    } else {
+                        $('#pvarient').val('');
+                        for (var i = 1; i <= total_attributes; i++) {
+                            $('#attribute_check_' + i).val(0);
+                        }
                     }
 
                 } else {
@@ -787,29 +798,38 @@
                         position: 'top-end',
                         icon: 'error',
                         showConfirmButton: false,
-                        timer: 1200
+                        timer: 1800
                     })
 
                     Toast.fire({
                         type: 'error',
                         title: data.error
                     })
-
-                    $('#qty').val(min_qty);
-                    $('#pvarient').val('');
-
-                    for (var i = 1; i <= total_attributes; i++) {
-                        $('#attribute_check_' + i).val(0);
-                    }
                 }
                 // Start Sweertaleart Message
                 var buyNowCheck = $('#buyNowCheck').val();
-                //alert(buyNowCheck);
                 if (buyNowCheck && buyNowCheck == 1) {
                     $('#buyNowCheck').val(0);
-                    window.location.href = '/login-status/check';
+                    if (typeof $ !== 'undefined' && $('#quickViewModal').length) {
+                        $('#quickViewModal').modal('hide');
+                    }
+                    document.dispatchEvent(new CustomEvent('checkout:open'));
                 }
 
+            },
+            error: function (xhr) {
+                var err = (xhr.responseJSON && xhr.responseJSON.error) || (xhr.responseJSON && xhr.responseJSON.message) || 'Error adding to cart';
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+                Toast.fire({
+                    type: 'error',
+                    title: err
+                });
             }
         });
     }
