@@ -48,12 +48,22 @@
 		                            <textarea name="description_bn" id="description_bn" cols="5" placeholder="Write Slider description english" class="form-control ">{{old('description_bn')}}</textarea>
 		                        </div>
 		                        <div class="mb-4">
-		                         	<img id="showImage" class="rounded avatar-lg" src="{{ (!empty($editData->profile_image))? url('upload/admin_images/'.$editData->profile_image):url('upload/no_image.jpg') }}" alt="Card image cap" width="100px" height="80px;">
+                                <label for="image" class="form-label fw-bold">Desktop Slider Image (required):</label>
+                                    <input name="slider_img" class="form-control" type="file" id="image" accept="image/jpeg,image/png,image/webp" required>
+                                    <small class="form-text text-muted">Wide image for desktop screens. JPG, PNG, or WebP; maximum 20 MB.</small>
+                                    @error('slider_img')
+                                        <span class="text-danger d-block">{{ $message }}</span>
+                                    @enderror
 		                        </div>
-		                        <div class="mb-4">
-		                         	<label for="image" class="col-form-label col-md-2" style="font-weight: bold;">Cover Photo:</label>
-		                            <input name="slider_img" class="form-control" type="file"  id="image" >
-		                        </div>
+
+                                <div class="mb-4">
+                                    <label for="mobile_image" class="form-label fw-bold">Mobile Slider Image (optional):</label>
+                                    <input name="slider_img_mobile" class="form-control" type="file" id="mobile_image" accept="image/jpeg,image/png,image/webp">
+                                    <small class="form-text text-muted">Portrait image for mobile screens. If omitted, the desktop image is used.</small>
+                                    @error('slider_img_mobile')
+                                        <span class="text-danger d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
 		                        <div class="mb-4">
                                     <div class="custom-control custom-switch">

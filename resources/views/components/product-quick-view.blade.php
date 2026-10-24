@@ -7,7 +7,7 @@
             <div class="rf-quick__gallery" data-quick-gallery></div>
         </div>
         <form class="rf-quick__form" data-quick-form>
-            <span class="rf-quick__eyebrow">ROH FASHION</span>
+            <span class="rf-quick__eyebrow">Shinduk Fashion</span>
             <h2 id="rf-quick-title" data-quick-title>{{ session('language') === 'bangla' ? 'পণ্যের তথ্য' : 'Product details' }}</h2>
             <div class="rf-quick__price" data-quick-price></div>
             <p class="rf-quick__stock" data-quick-stock></p>
@@ -30,4 +30,4 @@
         </form>
     </div>
 </dialog>
-<div class="rf-cart-notice" data-cart-notice role="status" hidden></div>
+<div class="rf-cart-notice" data-cart-notice role="status" aria-live="polite" aria-atomic="true" hidden></div>

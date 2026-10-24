@@ -18,11 +18,13 @@ class AdminAccessMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $userRole = Auth::guard('admin')->user()->role;
         if(Auth::guard('admin')->check()){
+            $userRole = Auth::guard('admin')->user()->role;
             if ($userRole != 1) {
                 abort(404);
             }
+        } else {
+            return redirect()->route('login_form');
         }
         return $next($request);
     }

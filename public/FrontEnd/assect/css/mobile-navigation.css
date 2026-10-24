@@ -64,8 +64,8 @@ body:has(.roh-category-drawer[open]) {
 
 .roh-drawer-logo img {
     display: block;
-    width: 96px;
-    height: 48px;
+    width: 128px;
+    height: 60px;
     object-fit: contain;
 }
 

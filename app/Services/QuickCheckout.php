@@ -42,7 +42,12 @@ class QuickCheckout
             $items[] = ['product' => $product, 'stock' => $variant, 'row' => $row, 'price' => $price, 'total' => round($price * $row->qty, 2)];
         }
         $subtotal = round(array_sum(array_column($items, 'total')), 2);
-        $couponQuery = Coupon::where('id', session('couponId'))->where('status', 1)->where('total_use_limit', '>', 0)->where('expire_date', '>=', now());
+        $couponQuery = Coupon::where('id', session('couponId'))
+            ->where('status', 1)
+            ->where('total_use_limit', '>', 0)
+            ->where(function ($query) {
+                $query->whereNull('expire_date')->orWhereDate('expire_date', '>=', today());
+            });
         $coupon = ($lock ? $couponQuery->lockForUpdate() : $couponQuery)->first();
         $discount = $coupon ? min($subtotal, max(0, round($coupon->discount_type == 0 ? $subtotal * $coupon->discount / 100 : $coupon->discount, 2))) : 0;
         return compact('items', 'subtotal', 'coupon', 'discount');
@@ -53,7 +58,8 @@ class QuickCheckout
         return DB::transaction(function () use ($data, $token, $authenticatedUser) {
             // Serialize order ledger writes and repeated submissions before checking stock.
             AccountHead::whereKey(2)->lockForUpdate()->firstOrFail();
-            $invoice = 'RF-'.strtoupper(substr(hash('sha256', $token), 0, 24));
+            // Keep the order number short while retaining a stable, retry-safe token-derived value.
+            $invoice = 'SHF-'.strtoupper(substr(hash('sha256', $token), 0, 12));
             $existingOrder = Order::where('invoice_no', $invoice)->first();
             if ($existingOrder) return ['order' => $existingOrder, 'account_created' => false];
 
@@ -78,8 +84,10 @@ class QuickCheckout
             }
             $charge = max(0, (float) $shipping->shipping_charge);
             $order = Order::create([
-                'user_id' => $user->id, 'name' => $data['name'], 'phone' => $data['phone'], 'address' => $data['address'],
-                'email' => !empty($data['email']) ? $data['email'] : null,
+                'user_id' => $user->id,
+                'name' => $data['name'], 'phone' => $data['phone'], 'address' => $data['address'],
+                // The legacy orders.email column is NOT NULL; keep it empty when checkout collects no email.
+                'email' => !empty($data['email']) ? $data['email'] : '',
                 'comment' => !empty($data['comment']) ? $data['comment'] : null,
                 'affiliate_id' => session('affiliate_ref') ? Affiliate::where('referral_code', session('affiliate_ref'))->value('id') : null,
                 'invoice_no' => $invoice, 'sub_total' => $quote['subtotal'], 'discount' => $quote['discount'],

@@ -306,11 +306,16 @@ class FrontendController extends Controller
 
     public function ajaxSearch(Request $request)
     {
-        $search = $request->search;
+        $search = trim((string) $request->query('search', ''));
 
-        $products = Product::where('name_en', 'LIKE', "%{$search}%")
+        $products = Product::query()
             ->where('status', 1)
-            ->limit(5)
+            ->where(function ($query) use ($search) {
+                $query->where('name_en', 'LIKE', "%{$search}%")
+                    ->orWhere('name_bn', 'LIKE', "%{$search}%");
+            })
+            ->latest()
+            ->limit(6)
             ->get();
 
         $view = view('FrontEnd.partials.search-results', compact('products'))->render();
@@ -581,32 +586,48 @@ class FrontendController extends Controller
     public function orderTrack(Request $request)
     {
         $this->validate($request, [
-            'invoice_no' => 'required',
-            'phone' => 'required',
+            'invoice_no' => 'nullable|string|max:100',
+            'phone' => 'required|string|max:20',
         ]);
-        $invoiceNo = trim((string) $request->invoice_no);
+        $invoiceNo = trim((string) $request->input('invoice_no'));
         $phoneInput = trim((string) $request->phone);
         $cleanPhone = preg_replace('/[\s()-]+/', '', $phoneInput);
-        $shortPhone = preg_replace('/^(?:\+88|88)/', '', $cleanPhone);
+        $digitsPhone = preg_replace('/\D/', '', $cleanPhone);
+        $shortPhone = preg_replace('/^(?:\+?88)/', '', $cleanPhone);
+        $phoneCandidates = array_values(array_unique(array_filter([
+            $phoneInput,
+            $cleanPhone,
+            $digitsPhone,
+            $shortPhone,
+            '+88' . $shortPhone,
+            '88' . $shortPhone,
+        ])));
 
-        $order = Order::with(['order_details.product'])
-            ->where('invoice_no', $invoiceNo)
-            ->where(function ($query) use ($phoneInput, $cleanPhone, $shortPhone) {
-                $query->where('phone', $phoneInput)
-                    ->orWhere('phone', $cleanPhone)
-                    ->orWhere('phone', $shortPhone)
-                    ->orWhere('phone', '0' . ltrim($shortPhone, '0'));
-            })
-            ->first();
+        $ordersQuery = Order::with(['order_details.product'])
+            ->whereIn('phone', $phoneCandidates);
 
-        if (!$order) {
-            $notification = array(
-                'message' => 'No order found with the provided Invoice ID and Phone number.',
-                'alert-type' => 'error'
-            );
-            return redirect()->back()->withInput()->with($notification);
+        if ($invoiceNo !== '') {
+            $order = (clone $ordersQuery)->where('invoice_no', $invoiceNo)->first();
+
+            if (!$order) {
+                return redirect()->route('order.tracking')->withInput()->with([
+                    'message' => 'No order found with the provided invoice number and phone number.',
+                    'alert-type' => 'error',
+                ]);
+            }
+
+            return view('FrontEnd.page.track', compact('order'));
         }
-        return view('FrontEnd.page.track', compact('order'));
+
+        $orders = $ordersQuery->latest('created_at')->limit(20)->get();
+        if ($orders->isEmpty()) {
+            return redirect()->route('order.tracking')->withInput()->with([
+                'message' => 'No orders were found for this phone number.',
+                'alert-type' => 'error',
+            ]);
+        }
+
+        return view('FrontEnd.page.order_tracking', compact('orders', 'phoneInput'));
     }
 
     public function becomeaseller(Request $request)

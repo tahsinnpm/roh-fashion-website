@@ -1,47 +1,61 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roh Fashion - এক্সক্লুসিভ থ্রি-পিস ও শাড়ি কালেকশন</title>
-  <meta name="description" content="প্রিমিয়াম কোয়ালিটি জর্জেট, সুতি ও সিল্কের এক্সক্লুসিভ থ্রি-পিস ও শাড়ি কালেকশন। ক্যাশ অন ডেলিভারিতে সারা বাংলাদেশে দ্রুত ডেলিভারি।">
+  <title>Shinduk Fashion - এক্সক্লুসিভ থ্রি-পিস ও শাড়ি কালেকশন</title>
+  <meta name="description"
+    content="প্রিমিয়াম কোয়ালিটি জর্জেট, সুতি ও সিল্কের এক্সক্লুসিভ থ্রি-পিস ও শাড়ি কালেকশন। ক্যাশ অন ডেলিভারিতে সারা বাংলাদেশে দ্রুত ডেলিভারি।">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet">
+
   <style>
     /* ===================================================
        DESIGN TOKENS & SYSTEM (Clean, Minimal, Royal Boutique)
        =================================================== */
     :root {
-      --bg-page: #FAF8F5;          /* Warm elegant ivory */
-      --bg-surface: #FFFFFF;       /* Clean pure card background */
-      --bg-soft: #F4EFEB;          /* Soft tinted sand */
-      --border-color: #E8E2D9;     /* Light subtle border */
-      
-      --primary: #7A1F3D;          /* Deep Regal Wine / Burgundy */
+      --bg-page: #FAF8F5;
+      /* Warm elegant ivory */
+      --bg-surface: #FFFFFF;
+      /* Clean pure card background */
+      --bg-soft: #F4EFEB;
+      /* Soft tinted sand */
+      --border-color: #E8E2D9;
+      /* Light subtle border */
+
+      --primary: #7A1F3D;
+      /* Deep Regal Wine / Burgundy */
       --primary-hover: #631730;
       --primary-light: #FBF0F4;
-      
-      --accent-gold: #C59B27;      /* Subtle Warm Amber Gold */
+
+      --accent-gold: #C59B27;
+      /* Subtle Warm Amber Gold */
       --accent-gold-dark: #9E7917;
-      --border-dashed-gold: #D6A848; /* Dashed golden tone from screenshot */
-      --box-dashed-bg: #FFFDF9;    /* Cream tint inside order box */
-      
-      --text-main: #2D2723;        /* Soft charcoal text */
-      --text-muted: #6B625B;       /* Secondary neutral */
+      --border-dashed-gold: #D6A848;
+      /* Dashed golden tone from screenshot */
+      --box-dashed-bg: #FFFDF9;
+      /* Cream tint inside order box */
+
+      --text-main: #2D2723;
+      /* Soft charcoal text */
+      --text-muted: #6B625B;
+      /* Secondary neutral */
       --text-light: #9B9187;
-      
+
       --success: #15803D;
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 16px;
       --radius-pill: 50px;
-      
+
       --shadow-sm: 0 2px 6px rgba(45, 39, 35, 0.04);
       --shadow-md: 0 6px 18px rgba(45, 39, 35, 0.07);
       --shadow-lg: 0 14px 30px rgba(45, 39, 35, 0.1);
-      
+
       --container-width: 860px;
     }
 
@@ -89,13 +103,24 @@
       font-weight: 500;
       letter-spacing: 0.2px;
     }
+
     .top-bar span {
       display: inline-block;
       animation: pulseText 2.5s infinite ease-in-out;
     }
+
     @keyframes pulseText {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.92; transform: scale(0.99); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.92;
+        transform: scale(0.99);
+      }
     }
 
     /* ===================================================
@@ -110,15 +135,18 @@
       z-index: 100;
       backdrop-filter: blur(10px);
     }
+
     .header-inner {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .logo-box {
       display: flex;
       flex-direction: column;
     }
+
     .brand-name {
       font-family: 'Playfair Display', serif;
       font-size: 1.65rem;
@@ -127,12 +155,14 @@
       color: var(--primary);
       line-height: 1.1;
     }
+
     .brand-tagline {
       font-size: 0.78rem;
       color: var(--accent-gold-dark);
       font-weight: 600;
       letter-spacing: 0.5px;
     }
+
     .header-action a {
       display: inline-flex;
       align-items: center;
@@ -146,6 +176,7 @@
       color: var(--text-main);
       transition: all 0.2s;
     }
+
     .header-action a:hover {
       background: #EFE8DF;
       border-color: #D6CBC0;
@@ -158,6 +189,7 @@
       padding: 24px 0 16px;
       text-align: center;
     }
+
     .badge-pill {
       display: inline-flex;
       align-items: center;
@@ -171,6 +203,7 @@
       font-weight: 600;
       margin-bottom: 14px;
     }
+
     .hero-title {
       font-size: 1.95rem;
       font-weight: 700;
@@ -178,9 +211,11 @@
       color: var(--text-main);
       margin-bottom: 12px;
     }
+
     .hero-title span {
       color: var(--primary);
     }
+
     .hero-subtitle {
       font-size: 1.02rem;
       color: var(--text-muted);
@@ -202,16 +237,19 @@
       flex-wrap: wrap;
       justify-content: center;
     }
+
     .price-regular {
       color: var(--text-light);
       font-size: 1rem;
       text-decoration: line-through;
     }
+
     .price-current {
       color: var(--primary);
       font-size: 1.45rem;
       font-weight: 700;
     }
+
     .discount-tag {
       background: #FEF3C7;
       color: #92400E;
@@ -237,6 +275,7 @@
       transition: transform 0.18s, box-shadow 0.18s;
       margin-bottom: 18px;
     }
+
     .hero-cta:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(195, 146, 38, 0.45);
@@ -252,6 +291,7 @@
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border-color);
     }
+
     .trust-item {
       display: flex;
       align-items: center;
@@ -267,15 +307,18 @@
     .showcase-section {
       padding: 24px 0;
     }
+
     .section-heading {
       text-align: center;
       margin-bottom: 20px;
     }
+
     .section-title {
       font-size: 1.55rem;
       font-weight: 700;
       color: var(--text-main);
     }
+
     .section-desc {
       font-size: 0.95rem;
       color: var(--text-muted);
@@ -287,6 +330,7 @@
       gap: 16px;
       margin-bottom: 24px;
     }
+
     .gallery-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -295,25 +339,30 @@
       box-shadow: var(--shadow-sm);
       transition: transform 0.2s, box-shadow 0.2s;
     }
+
     .gallery-card:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-md);
     }
+
     .gallery-img-wrapper {
       position: relative;
       background: #ECE5DC;
       overflow: hidden;
       aspect-ratio: 3 / 4;
     }
+
     .gallery-img-wrapper img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.4s ease;
     }
+
     .gallery-card:hover .gallery-img-wrapper img {
       transform: scale(1.04);
     }
+
     .badge-corner {
       position: absolute;
       top: 10px;
@@ -326,16 +375,19 @@
       border-radius: 4px;
       backdrop-filter: blur(4px);
     }
+
     .gallery-content {
       padding: 12px 14px;
       text-align: center;
     }
+
     .gallery-name {
       font-size: 0.98rem;
       font-weight: 600;
       margin-bottom: 4px;
       color: var(--text-main);
     }
+
     .gallery-price {
       font-size: 0.92rem;
       color: var(--primary);
@@ -351,6 +403,7 @@
       box-shadow: var(--shadow-sm);
       margin-bottom: 24px;
     }
+
     .specs-title {
       font-size: 1.18rem;
       font-weight: 700;
@@ -360,12 +413,14 @@
       align-items: center;
       gap: 8px;
     }
+
     .specs-list {
       list-style: none;
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px 18px;
     }
+
     .specs-list li {
       font-size: 0.94rem;
       color: var(--text-main);
@@ -373,6 +428,7 @@
       align-items: flex-start;
       gap: 8px;
     }
+
     .specs-list li::before {
       content: "✦";
       color: var(--accent-gold-dark);
@@ -385,6 +441,7 @@
     .order-section {
       padding: 24px 0 40px;
     }
+
     .order-container {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -399,12 +456,14 @@
       text-align: center;
       margin-bottom: 20px;
     }
+
     .form-header h2 {
       font-size: 1.45rem;
       font-weight: 700;
       color: var(--text-main);
       margin-bottom: 4px;
     }
+
     .form-header p {
       font-size: 0.88rem;
       color: var(--text-muted);
@@ -418,6 +477,7 @@
       padding: 16px 18px;
       margin-bottom: 20px;
     }
+
     .order-item-row {
       display: flex;
       justify-content: space-between;
@@ -429,6 +489,7 @@
       border-bottom: 1px solid #EEDFCE;
       margin-bottom: 10px;
     }
+
     .item-desc {
       display: flex;
       align-items: center;
@@ -436,16 +497,19 @@
       max-width: 78%;
       line-height: 1.35;
     }
+
     .item-price-col {
       display: flex;
       align-items: center;
       gap: 8px;
       white-space: nowrap;
     }
+
     .item-amount {
       font-weight: 700;
       color: #2D2723;
     }
+
     .item-remove-btn {
       color: #8B263E;
       font-size: 0.86rem;
@@ -455,6 +519,7 @@
       border: none;
       font-family: inherit;
     }
+
     .item-remove-btn:hover {
       color: #B91C1C;
     }
@@ -468,10 +533,12 @@
       color: #4A4036;
       margin-bottom: 6px;
     }
+
     .summary-calc-row .row-val {
       font-weight: 600;
       color: #2D2723;
     }
+
     .delivery-status-text {
       color: #6B625B;
       font-size: 0.88rem;
@@ -486,21 +553,26 @@
       padding-top: 10px;
       border-top: 1px dashed #EEDFCE;
     }
+
     .total-label {
       font-size: 1.15rem;
       font-weight: 700;
-      color: #801D38; /* Exact maroon from screenshot */
+      color: #801D38;
+      /* Exact maroon from screenshot */
     }
+
     .total-val {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #801D38; /* Exact maroon from screenshot */
+      color: #801D38;
+      /* Exact maroon from screenshot */
     }
 
     /* --- Form Fields & Inputs --- */
     .form-group {
       margin-bottom: 18px;
     }
+
     .field-label {
       display: block;
       font-size: 0.96rem;
@@ -508,6 +580,7 @@
       color: #2D2723;
       margin-bottom: 7px;
     }
+
     .field-label .req {
       color: #DC2626;
       font-weight: bold;
@@ -517,6 +590,7 @@
     .select-wrapper {
       position: relative;
     }
+
     .custom-select {
       width: 100%;
       height: 46px;
@@ -533,10 +607,12 @@
       transition: border-color 0.2s, box-shadow 0.2s;
       cursor: pointer;
     }
+
     .custom-select:focus {
       border-color: var(--accent-gold);
       box-shadow: 0 0 0 2px rgba(197, 155, 39, 0.15);
     }
+
     .select-arrow {
       position: absolute;
       right: 14px;
@@ -561,10 +637,12 @@
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+
     .custom-input:focus {
       border-color: var(--accent-gold);
       box-shadow: 0 0 0 2px rgba(197, 155, 39, 0.15);
     }
+
     .custom-input::placeholder {
       color: #A0988F;
       font-size: 0.92rem;
@@ -584,10 +662,12 @@
       resize: vertical;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+
     .custom-textarea:focus {
       border-color: var(--accent-gold);
       box-shadow: 0 0 0 2px rgba(197, 155, 39, 0.15);
     }
+
     .custom-textarea::placeholder {
       color: #A0988F;
       font-size: 0.92rem;
@@ -599,6 +679,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
+
     .delivery-card {
       border: 1.5px solid #D5CBC0;
       background: #FFFFFF;
@@ -612,15 +693,18 @@
       position: relative;
       user-select: none;
     }
+
     .delivery-card:hover {
       border-color: #B5A89A;
       background: #FCFAF7;
     }
+
     .delivery-card.active {
       border-color: var(--border-dashed-gold);
       background: #FFFDF7;
       box-shadow: 0 2px 8px rgba(197, 155, 39, 0.12);
     }
+
     .delivery-title {
       font-size: 0.96rem;
       font-weight: 700;
@@ -629,12 +713,14 @@
       align-items: center;
       gap: 6px;
     }
+
     .delivery-rate {
       font-size: 0.88rem;
       color: #60574F;
       font-weight: 500;
       padding-left: 2px;
     }
+
     /* Hidden native radio */
     .delivery-card input[type="radio"] {
       position: absolute;
@@ -647,6 +733,7 @@
       margin-top: 24px;
       text-align: center;
     }
+
     .order-submit-btn {
       width: 100%;
       height: 52px;
@@ -665,11 +752,13 @@
       box-shadow: 0 4px 14px rgba(195, 146, 38, 0.35);
       transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
     }
+
     .order-submit-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(195, 146, 38, 0.45);
       filter: brightness(1.03);
     }
+
     .order-submit-btn:active {
       transform: translateY(0);
       box-shadow: 0 2px 8px rgba(195, 146, 38, 0.3);
@@ -692,11 +781,13 @@
     .reviews-section {
       padding: 20px 0 30px;
     }
+
     .reviews-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
+
     .review-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -704,22 +795,26 @@
       padding: 16px;
       box-shadow: var(--shadow-sm);
     }
+
     .review-stars {
       color: #EAB308;
       font-size: 0.95rem;
       margin-bottom: 6px;
     }
+
     .review-text {
       font-size: 0.9rem;
       color: var(--text-main);
       margin-bottom: 10px;
       font-style: italic;
     }
+
     .reviewer-info {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .reviewer-avatar {
       width: 32px;
       height: 32px;
@@ -732,11 +827,13 @@
       font-weight: 700;
       font-size: 0.85rem;
     }
+
     .reviewer-name {
       font-size: 0.88rem;
       font-weight: 600;
       color: var(--text-main);
     }
+
     .reviewer-city {
       font-size: 0.76rem;
       color: var(--text-light);
@@ -753,6 +850,7 @@
       font-size: 0.88rem;
       color: var(--text-muted);
     }
+
     .footer-brand {
       font-family: 'Playfair Display', serif;
       font-size: 1.35rem;
@@ -760,6 +858,7 @@
       color: var(--primary);
       margin-bottom: 6px;
     }
+
     .footer-links {
       display: flex;
       justify-content: center;
@@ -767,6 +866,7 @@
       margin: 12px 0;
       flex-wrap: wrap;
     }
+
     .footer-links a:hover {
       color: var(--primary);
       text-decoration: underline;
@@ -790,20 +890,24 @@
       justify-content: space-between;
       gap: 12px;
     }
+
     .mobile-price-peek {
       display: flex;
       flex-direction: column;
     }
+
     .mobile-price-label {
       font-size: 0.76rem;
       color: var(--text-muted);
     }
+
     .mobile-price-val {
       font-size: 1.15rem;
       font-weight: 700;
       color: var(--primary);
       line-height: 1.1;
     }
+
     .mobile-order-btn {
       flex: 1;
       background: linear-gradient(180deg, #E2B84D 0%, #C39226 100%);
@@ -831,9 +935,11 @@
       justify-content: center;
       padding: 16px;
     }
+
     .order-modal.open {
       display: flex;
     }
+
     .modal-card {
       background: #FFFFFF;
       border-radius: var(--radius-lg);
@@ -844,10 +950,19 @@
       box-shadow: var(--shadow-lg);
       animation: modalFadeIn 0.25s ease-out;
     }
+
     @keyframes modalFadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
+
     .modal-check-icon {
       width: 56px;
       height: 56px;
@@ -860,17 +975,20 @@
       font-size: 1.8rem;
       margin: 0 auto 14px;
     }
+
     .modal-title {
       font-size: 1.35rem;
       font-weight: 700;
       color: var(--text-main);
       margin-bottom: 6px;
     }
+
     .modal-desc {
       font-size: 0.92rem;
       color: var(--text-muted);
       margin-bottom: 16px;
     }
+
     .modal-summary-box {
       background: #FAF8F5;
       border: 1px solid var(--border-color);
@@ -880,11 +998,13 @@
       font-size: 0.88rem;
       margin-bottom: 18px;
     }
+
     .modal-summary-row {
       display: flex;
       justify-content: space-between;
       margin-bottom: 4px;
     }
+
     .modal-summary-row:last-child {
       margin-bottom: 0;
       font-weight: 700;
@@ -893,6 +1013,7 @@
       padding-top: 6px;
       margin-top: 6px;
     }
+
     .modal-close-btn {
       background: var(--primary);
       color: #FFFFFF;
@@ -912,27 +1033,33 @@
       .hero-title {
         font-size: 1.55rem;
       }
+
       .gallery-grid {
         grid-template-columns: 1fr;
         max-width: 380px;
         margin-left: auto;
         margin-right: auto;
       }
+
       .specs-list {
         grid-template-columns: 1fr;
       }
+
       .reviews-grid {
         grid-template-columns: 1fr;
       }
+
       .order-container {
         padding: 20px 16px;
       }
+
       .sticky-mobile-bar {
         display: flex;
       }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Top Announcement Bar -->
@@ -944,7 +1071,7 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo-box">
-        <span class="brand-name">Roh Fashion</span>
+        <span class="brand-name">Shinduk Fashion</span>
         <span class="brand-tagline">এক্সক্লুসিভ থ্রি-পিস ও শাড়ি বুটিক</span>
       </div>
       <div class="header-action">
@@ -966,7 +1093,8 @@
           অভিজাত্যের ছোঁয়ায় প্রিমিয়াম কোয়ালিটি <br><span>থ্রি-পিস ও ডিজাইনার শাড়ি</span>
         </h1>
         <p class="hero-subtitle">
-          ১০০% আসল কালার ও টেকসই ফ্যাব্রিক গ্যারান্টি। কোনো প্রকার অগ্রিম টাকা ছাড়াই সারাদেশে হোম ডেলিভারিতে পণ্য হাতে পেয়ে দেখে মূল্য পরিশোধ করার সুবর্ণ সুযোগ!
+          ১০০% আসল কালার ও টেকসই ফ্যাব্রিক গ্যারান্টি। কোনো প্রকার অগ্রিম টাকা ছাড়াই সারাদেশে হোম ডেলিভারিতে পণ্য হাতে
+          পেয়ে দেখে মূল্য পরিশোধ করার সুবর্ণ সুযোগ!
         </p>
 
         <!-- Pricing Strip -->
@@ -1005,7 +1133,8 @@
           <div class="gallery-card">
             <div class="gallery-img-wrapper">
               <span class="badge-corner">বেস্টসেলার</span>
-              <img src="images/threepiece.jpg" alt="কাশ্মীরি প্রিমিয়াম এমব্রয়ডারি থ্রি-পিস" onerror="this.src='https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80'">
+              <img src="images/threepiece.jpg" alt="কাশ্মীরি প্রিমিয়াম এমব্রয়ডারি থ্রি-পিস"
+                onerror="this.src='https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80'">
             </div>
             <div class="gallery-content">
               <h3 class="gallery-name">কাশ্মীরি এমব্রয়ডারি থ্রি-পিস</h3>
@@ -1017,7 +1146,8 @@
           <div class="gallery-card">
             <div class="gallery-img-wrapper">
               <span class="badge-corner">এক্সক্লুসিভ</span>
-              <img src="images/saree.jpg" alt="ডিজাইনার পিওর সিল্ক শাড়ি" onerror="this.src='https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80'">
+              <img src="images/saree.jpg" alt="ডিজাইনার পিওর সিল্ক শাড়ি"
+                onerror="this.src='https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80'">
             </div>
             <div class="gallery-content">
               <h3 class="gallery-name">ডিজাইনার পিওর সিল্ক শাড়ি</h3>
@@ -1029,7 +1159,8 @@
           <div class="gallery-card">
             <div class="gallery-img-wrapper">
               <span class="badge-corner">প্রিমিয়াম কাজ</span>
-              <img src="images/embroidery.jpg" alt="নিখুঁত সুতোর জরি ও কারুকাজ" onerror="this.src='https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80'">
+              <img src="images/embroidery.jpg" alt="নিখুঁত সুতোর জরি ও কারুকাজ"
+                onerror="this.src='https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80'">
             </div>
             <div class="gallery-content">
               <h3 class="gallery-name">নিখুঁত জরি ও হ্যান্ডওয়ার্ক ফিনিশিং</h3>
@@ -1042,7 +1173,8 @@
         <div class="specs-card">
           <h3 class="specs-title">👗 ড্রেসের স্পেসিফিকেশন ও মেটেরিয়াল বিবরণ:</h3>
           <ul class="specs-list">
-            <li><strong>কামিজ/বডি:</strong> সফট প্রিমিয়াম জর্জেট ও পিওর সুতি, নিখুঁত এমব্রয়ডারি ও সিকোয়েন্স কারুকাজ।</li>
+            <li><strong>কামিজ/বডি:</strong> সফট প্রিমিয়াম জর্জেট ও পিওর সুতি, নিখুঁত এমব্রয়ডারি ও সিকোয়েন্স কারুকাজ।
+            </li>
             <li><strong>ওড়না:</strong> ফুল ৫ হাত নামাজি ওড়না, সাইডে পাইপিং ও আকর্ষণীয় আঁচল ডিজাইন।</li>
             <li><strong>সেলোয়ার:</strong> আরামদায়ক সফ্ট বাটার কটন ফেব্রিক (আড়াই গজ)।</li>
             <li><strong>শাড়ি বিবরণ:</strong> ১২ হাত সম্পূর্ণ পিওর সিল্ক/জর্জেট সাথে ম্যাচিং ব্লাউজ পিস।</li>
@@ -1063,7 +1195,8 @@
         <div class="reviews-grid">
           <div class="review-card">
             <div class="review-stars">★★★★★</div>
-            <p class="review-text">"কাপড়টা হাতে পেয়ে খুবই ভালো লেগেছে। ছবিতে যেমন দেখেছি ঠিক তেমনই পেয়েছি। এমব্রয়ডারি কাজটা সত্যিই অনেক সুন্দর।"</p>
+            <p class="review-text">"কাপড়টা হাতে পেয়ে খুবই ভালো লেগেছে। ছবিতে যেমন দেখেছি ঠিক তেমনই পেয়েছি।
+              এমব্রয়ডারি কাজটা সত্যিই অনেক সুন্দর।"</p>
             <div class="reviewer-info">
               <div class="reviewer-avatar">তা</div>
               <div>
@@ -1075,7 +1208,8 @@
 
           <div class="review-card">
             <div class="review-stars">★★★★★</div>
-            <p class="review-text">"ঢাকার বাইরে মাত্র ২ দিনে ডেলিভারি পেয়েছি। ডেলিভারি ম্যানের সামনে দেখে নিয়েছি, কোয়ালিটি নিয়ে কোনো সন্দেহ নেই।"</p>
+            <p class="review-text">"ঢাকার বাইরে মাত্র ২ দিনে ডেলিভারি পেয়েছি। ডেলিভারি ম্যানের সামনে দেখে নিয়েছি,
+              কোয়ালিটি নিয়ে কোনো সন্দেহ নেই।"</p>
             <div class="reviewer-info">
               <div class="reviewer-avatar">ন</div>
               <div>
@@ -1087,7 +1221,8 @@
 
           <div class="review-card">
             <div class="review-stars">★★★★★</div>
-            <p class="review-text">"শাড়ির জরি বর্ডার এবং ফ্যাব্রিক খুব গর্জিয়াস। আত্মীয়দের সবাই প্রশংসা করেছে। অনেক ধন্যবাদ Roh Fashion কে।"</p>
+            <p class="review-text">"শাড়ির জরি বর্ডার এবং ফ্যাব্রিক খুব গর্জিয়াস। আত্মীয়দের সবাই প্রশংসা করেছে। অনেক
+              ধন্যবাদ Shinduk Fashion কে।"</p>
             <div class="reviewer-info">
               <div class="reviewer-avatar">ফ</div>
               <div>
@@ -1106,17 +1241,17 @@
     <section class="order-section" id="order-section">
       <div class="container">
         <div class="order-container">
-          
+
           <div class="form-header">
             <h2>অর্ডার কনফার্ম করতে ফর্মটি পূরণ করুন</h2>
             <p>আপনার প্রয়োজনীয় তথ্য প্রদান করুন, আমরা শীঘ্রই যোগাযোগ করব</p>
           </div>
 
           <form id="orderForm" onsubmit="handleOrderSubmit(event)">
-            
+
             <!-- Summary Dashed Box (Exactly matching the screenshot) -->
             <div class="summary-dashed-box" id="summaryBox">
-              
+
               <!-- Item Row with 'বাদ' -->
               <div class="order-item-row" id="orderItemRow">
                 <div class="item-desc">
@@ -1173,13 +1308,7 @@
               <label class="field-label" for="customerName">
                 আপনার নাম <span class="req">*</span>
               </label>
-              <input 
-                type="text" 
-                id="customerName" 
-                class="custom-input" 
-                placeholder="যেমন: রুমানা আক্তার" 
-                required
-              >
+              <input type="text" id="customerName" class="custom-input" placeholder="যেমন: রুমানা আক্তার" required>
             </div>
 
             <!-- মোবাইল নম্বর * -->
@@ -1187,15 +1316,8 @@
               <label class="field-label" for="customerPhone">
                 মোবাইল নম্বর <span class="req">*</span>
               </label>
-              <input 
-                type="tel" 
-                id="customerPhone" 
-                class="custom-input" 
-                placeholder="01712345678" 
-                pattern="[0-9]{11}" 
-                title="১১ ডিজিটের সঠিক মোবাইল নম্বর দিন" 
-                required
-              >
+              <input type="tel" id="customerPhone" class="custom-input" placeholder="01712345678" pattern="[0-9]{11}"
+                title="১১ ডিজিটের সঠিক মোবাইল নম্বর দিন" required>
             </div>
 
             <!-- সম্পূর্ণ ঠিকানা * -->
@@ -1203,12 +1325,8 @@
               <label class="field-label" for="customerAddress">
                 সম্পূর্ণ ঠিকানা <span class="req">*</span>
               </label>
-              <textarea 
-                id="customerAddress" 
-                class="custom-textarea" 
-                placeholder="বাসা/হোল্ডিং, রোড, এলাকা, থানা, জেলা" 
-                required
-              ></textarea>
+              <textarea id="customerAddress" class="custom-textarea" placeholder="বাসা/হোল্ডিং, রোড, এলাকা, থানা, জেলা"
+                required></textarea>
             </div>
 
             <!-- ডেলিভারি এলাকা * -->
@@ -1217,7 +1335,7 @@
                 ডেলিভারি এলাকা <span class="req">*</span>
               </label>
               <div class="delivery-cards-grid">
-                
+
                 <!-- ঢাকার ভিতরে -->
                 <div class="delivery-card" id="areaInsideCard" onclick="selectDeliveryArea('inside', 70)">
                   <input type="radio" name="delivery_area" id="insideDhaka" value="inside">
@@ -1262,7 +1380,7 @@
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container">
-      <div class="footer-brand">Roh Fashion</div>
+      <div class="footer-brand">Shinduk Fashion</div>
       <p>আমরা সরবরাহ করি প্রিমিয়াম কোয়ালিটির দেশি ও বিদেশি থ্রি-পিস ও শাড়ি।</p>
       <div class="footer-links">
         <a href="#order-section">অর্ডার করুন</a>
@@ -1270,7 +1388,7 @@
         <a href="https://wa.me/8801700000000" target="_blank">হোয়াটসঅ্যাপ</a>
       </div>
       <p style="font-size: 0.8rem; margin-top: 10px;">
-        © 2026 Roh Fashion. All rights reserved.
+        © 2026 Shinduk Fashion. All rights reserved.
       </p>
     </div>
   </footer>
@@ -1291,8 +1409,9 @@
     <div class="modal-card">
       <div class="modal-check-icon">✓</div>
       <h3 class="modal-title">আপনার অর্ডারটি গৃহীত হয়েছে!</h3>
-      <p class="modal-desc">ধন্যবাদ! আমাদের প্রতিনিধি কিছুক্ষণের মধ্যে আপনার সাথে ফোনে যোগাযোগ করে অর্ডার কনফার্ম করবেন।</p>
-      
+      <p class="modal-desc">ধন্যবাদ! আমাদের প্রতিনিধি কিছুক্ষণের মধ্যে আপনার সাথে ফোনে যোগাযোগ করে অর্ডার কনফার্ম করবেন।
+      </p>
+
       <div class="modal-summary-box">
         <div class="modal-summary-row">
           <span>অর্ডার নম্বর:</span>
@@ -1356,7 +1475,7 @@
       isItemActive = !isItemActive;
       const removeBtn = document.getElementById('removeBtn');
       const itemRow = document.getElementById('orderItemRow');
-      
+
       if (!isItemActive) {
         removeBtn.innerText = "যুক্ত করুন";
         removeBtn.style.color = "#15803D";
@@ -1374,7 +1493,7 @@
       deliveryCharge = charge;
       document.getElementById('selectedDeliveryFee').value = charge;
       document.getElementById('selectedDeliveryAreaName').value = (area === 'inside') ? 'ঢাকার ভিতরে' : 'ঢাকার বাইরে';
-      
+
       const insideCard = document.getElementById('areaInsideCard');
       const outsideCard = document.getElementById('areaOutsideCard');
       const insideRadio = document.getElementById('insideDhaka');
@@ -1396,7 +1515,7 @@
     // Recalculate and update the summary view
     function updateSummaryUI() {
       const currentItemAmount = isItemActive ? basePrice : 0;
-      
+
       // Update item row display
       document.getElementById('itemPriceDisplay').innerText = toBengaliNum(currentItemAmount) + "৳";
       document.getElementById('subtotalDisplay').innerText = toBengaliNum(currentItemAmount) + "৳";
@@ -1468,4 +1587,5 @@
     }
   </script>
 </body>
+
 </html>

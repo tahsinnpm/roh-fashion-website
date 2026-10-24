@@ -1,4 +1,60 @@
 (() => {
+    let notice = document.querySelector('[data-cart-notice]');
+    let noticeTimer;
+    function announce(message) {
+        if (!notice) {
+            notice = document.createElement('div');
+            notice.className = 'rf-cart-notice';
+            notice.dataset.cartNotice = '';
+            notice.setAttribute('role', 'status');
+            notice.setAttribute('aria-live', 'polite');
+            notice.setAttribute('aria-atomic', 'true');
+            document.body.append(notice);
+        }
+        clearTimeout(noticeTimer);
+        notice.textContent = message;
+        notice.hidden = false;
+        // Keep the notice visible even on pages with different or missing storefront styles.
+        Object.assign(notice.style, {
+            display: 'block', position: 'fixed', left: '50%', bottom: '24px',
+            transform: 'translateX(-50%)', zIndex: '2147483000', width: 'max-content',
+            maxWidth: 'calc(100vw - 32px)', padding: '12px 22px', borderRadius: '8px',
+            background: '#18181b', color: '#fff', fontSize: '15px', fontWeight: '700',
+            textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,.2)'
+        });
+        const activeDialog = document.querySelector('dialog[open]');
+        if (activeDialog) {
+            activeDialog.append(notice);
+            notice.style.top = '16px';
+            notice.style.bottom = 'auto';
+        } else {
+            document.body.append(notice);
+            notice.style.top = 'auto';
+            notice.style.bottom = '24px';
+        }
+        noticeTimer = setTimeout(() => { notice.hidden = true; }, 3500);
+    }
+    window.showCartToast = announce;
+    document.addEventListener('close', event => {
+        if (notice && event.target instanceof HTMLDialogElement && notice.parentElement === event.target) {
+            document.body.append(notice);
+            notice.style.top = 'auto';
+            notice.style.bottom = '24px';
+        }
+    }, true);
+
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('.rf-product a[href]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (link.target && link.target !== '_self' || link.hasAttribute('download')) return;
+
+        const card = link.closest('.rf-product');
+        if (!card) return;
+
+        card.classList.add('is-navigating');
+        card.setAttribute('aria-busy', 'true');
+    });
+
     const dialog = document.querySelector('#rf-product-dialog');
     if (!dialog) return;
     const find = (name) => dialog.querySelector(`[data-quick-${name}]`);
@@ -7,8 +63,7 @@
     const base = dialog.dataset.baseUrl.replace(/\/$/, '');
     const asset = (path) => /^https?:\/\//i.test(path || '') ? path : `${base}/${String(path || '').replace(/^\//, '')}`;
     const money = (value) => `৳${Number(value).toLocaleString('en-BD', { maximumFractionDigits: 2 })}`;
-    const notice = document.querySelector('[data-cart-notice]');
-    let model, activeVariant, controller, opener, noticeTimer, submitting = false, buyIntent = false;
+    let model, activeVariant, controller, opener, submitting = false, buyIntent = false;
 
     async function request(path, options = {}) {
         const response = await fetch(`${base}${path}`, {
@@ -20,13 +75,6 @@
         return data;
     }
 
-    function announce(message) {
-        clearTimeout(noticeTimer);
-        notice.textContent = message;
-        notice.hidden = false;
-        noticeTimer = setTimeout(() => { notice.hidden = true; }, 4500);
-    }
-
     async function add(id, quantity, variant = '', options = []) {
         const data = await request(`/cart/data/store/${id}`, {
             method: 'POST',
@@ -34,13 +82,15 @@
             body: JSON.stringify({ quantity, product_varient: variant, options: JSON.stringify(options) })
         });
         document.querySelectorAll('.cartQty').forEach((element) => { element.textContent = data.cartQty; });
-        announce(label('Added to your cart', 'কার্টে যোগ হয়েছে'));
+        announce(label('✓ Added to your cart', '✓ পণ্যটি কার্টে যোগ হয়েছে'));
         document.dispatchEvent(new CustomEvent('cart:updated', { detail: data }));
     }
 
     function updateSelection() {
         if (!model) return;
-        const variantProduct = Number(model.product.is_varient) === 1;
+        const variantProduct = Number(model.product.is_varient) === 1
+            && Array.isArray(model.variants)
+            && model.variants.length > 0;
         const variantSelect = find('attributes').querySelector('#rf-quick-variant-select');
 
         if (variantProduct && variantSelect) {
@@ -93,7 +143,7 @@
         find('status').hidden = false;
         find('title').textContent = label('Product details', 'পণ্যের তথ্য');
         find('error').textContent = '';
-        
+
         // Preserve exact window scroll position to prevent jumping to top
         const savedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
         dialog.showModal();
@@ -121,13 +171,13 @@
                 const lbl = document.createElement('label');
                 lbl.htmlFor = 'rf-quick-variant-select';
                 lbl.className = 'rf-quick-variant-lbl';
-                lbl.innerHTML = `<span>${label('Select Variant:', 'ভ্যারিয়েন্ট পছন্দ করুন:')}</span> <strong id="rf-quick-var-label">${defaultVariant ? defaultVariant.varient : ''}</strong>`;
+                lbl.innerHTML = `<span>${label('ড্রেসের সাইজ সিলেক্ট করুন:', 'ভ্যারিয়েন্ট পছন্দ করুন:')}</span> `;
                 block.append(lbl);
 
                 const select = document.createElement('select');
                 select.id = 'rf-quick-variant-select';
                 select.className = 'rf-quick-variant-select';
-                select.setAttribute('aria-label', label('Select Variant', 'ভ্যারিয়েন্ট পছন্দ করুন'));
+                select.setAttribute('aria-label', label('ড্রেসের সাইজ সিলেক্ট করুন', 'ভ্যারিয়েন্ট পছন্দ করুন'));
 
                 data.variants.forEach((v) => {
                     const isOut = Number(v.qty) <= 0;
@@ -217,7 +267,10 @@
         pendingCards.set(card, pending);
         try {
             await pending;
-            if (buy) document.dispatchEvent(new CustomEvent('checkout:open'));
+            if (buy) {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                document.dispatchEvent(new CustomEvent('checkout:open'));
+            }
         }
         catch (error) { announce(error.message); }
         finally { pendingCards.delete(card); button.disabled = false; button.removeAttribute('aria-busy'); }
@@ -247,7 +300,10 @@
         try {
             await add(model.product.id, Number(find('quantity').value), activeVariant?.varient || '', options);
             dialog.close();
-            if (checkout) document.dispatchEvent(new CustomEvent('checkout:open'));
+            if (checkout) {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                document.dispatchEvent(new CustomEvent('checkout:open'));
+            }
         } catch (error) { find('error').textContent = error.message; }
         finally { submitting = false; find('submit').removeAttribute('aria-busy'); updateSelection(); }
     });

@@ -77,6 +77,7 @@ class ProductController extends Controller
             'purchase_price'        => 'required|numeric',
             'discount_price'        => 'required|numeric',
             'product_thumbnail'     => 'required',
+            'youtube_video_url'     => ['nullable', 'url', 'regex:/^https?:\\/\\/(www\\.)?(youtube\\.com|youtu\\.be)\\//i'],
         ]);
 
         if(!$request->name_bn){
@@ -161,6 +162,7 @@ class ProductController extends Controller
                 'status'                => $request->status ? 1 : 0,
                 'points'                => $request->points,
                 'product_thumbnail'     => $save_url,
+                'youtube_video_url'     => $request->youtube_video_url,
                 'created_by'            => Auth::guard('admin')->user()->id,
             ]);
 
@@ -334,6 +336,9 @@ class ProductController extends Controller
     }
     /*=================== Start ProductUpdate Methoed ===================*/
     public function ProductUpdate(Request $request, $id){
+        $request->validate([
+            'youtube_video_url' => ['nullable', 'url', 'regex:/^https?:\\/\\/(www\\.)?(youtube\\.com|youtu\\.be)\\//i'],
+        ]);
 //        return $request->discount_price;
         $product = Product::find($id);
 
@@ -435,6 +440,7 @@ class ProductController extends Controller
             'status'                => $request->status ? 1 : 0,
             'points'                => $request->points,
             'product_thumbnail'     => $save_url,
+            'youtube_video_url'     => $request->youtube_video_url,
             'created_by'            => Auth::guard('admin')->user()->id,
         ]);
 

@@ -47,11 +47,28 @@
                                     <textarea name="description_bn" id="description_bn" cols="5" placeholder="Write Slider description english" class="form-control " >{{ $slider->description_bn }}</textarea>
                                 </div>
                                 <div class="mb-4">
-                                    <img id="showImage" class="rounded avatar-lg" src="{{ asset($slider->slider_img) }}" alt="Card image cap" width="100px" height="80px;">
+                                    <label for="image" class="form-label fw-bold">Desktop Slider Image:</label>
+                                    <input name="slider_img" class="form-control" type="file" id="image" accept="image/jpeg,image/png,image/webp">
+                                    <small class="form-text text-muted">Current image:</small><br>
+                                    <img class="rounded mt-2" src="{{ asset($slider->slider_img) }}" alt="Current desktop slider" width="180" style="max-height:90px;object-fit:contain">
+                                    <small class="form-text text-muted d-block">Upload a wide image for desktop screens. JPG, PNG, or WebP; maximum 20 MB.</small>
+                                    @error('slider_img')
+                                        <span class="text-danger d-block">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div class="mb-4">
-                                    <label for="image" class="col-form-label col-md-2" style="font-weight: bold;">Cover Photo:</label>
-                                    <input name="slider_img" class="form-control" type="file" id="image">
+                                    <label for="mobile_image" class="form-label fw-bold">Mobile Slider Image (optional):</label>
+                                    <input name="slider_img_mobile" class="form-control" type="file" id="mobile_image" accept="image/jpeg,image/png,image/webp">
+                                    @if($slider->slider_img_mobile)
+                                        <small class="form-text text-muted">Current image:</small><br>
+                                        <img class="rounded mt-2" src="{{ asset($slider->slider_img_mobile) }}" alt="Current mobile slider" width="100" style="max-height:140px;object-fit:contain">
+                                    @else
+                                        <small class="form-text text-muted">No separate mobile image yet; desktop image is currently used on mobile.</small>
+                                    @endif
+                                    <small class="form-text text-muted d-block">Upload a portrait image for mobile screens. Leave empty to keep the current image.</small>
+                                    @error('slider_img_mobile')
+                                        <span class="text-danger d-block">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div class="mb-4">
                                     <div class="custom-control custom-switch">

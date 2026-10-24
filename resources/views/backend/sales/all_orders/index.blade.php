@@ -1,268 +1,195 @@
 @extends('admin.admin_master')
-@section('admin')
 
-<style type="text/css">
-    table, tbody, tfoot, thead, tr, th, td{
-        border: 1px solid #dee2e6 !important;
-    }
-    th{
-        font-weight: bolder !important;
-    }
+@section('admin')
+<style>
+    .orders-page { --orders-ink: #172b4d; --orders-muted: #68778d; --orders-line: #e7edf4; --orders-accent: #2463eb; }
+    .orders-page .content-header { margin-bottom: 1.25rem; }
+    .orders-page .content-title { color: var(--orders-ink); margin-bottom: .25rem; }
+    .orders-page .orders-subtitle { color: var(--orders-muted); margin: 0; }
+    .orders-page .orders-card { border: 1px solid var(--orders-line); border-radius: 12px; box-shadow: 0 4px 18px rgba(23, 43, 77, .05); overflow: hidden; }
+    .orders-page .orders-toolbar { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--orders-line); background: #fff; }
+    .orders-page .orders-toolbar-title { color: var(--orders-ink); font-size: 1rem; font-weight: 700; margin: 0; }
+    .orders-page .orders-count { color: var(--orders-muted); font-size: .85rem; }
+    .orders-page .form-label { color: #46566d; font-size: .8rem; font-weight: 600; margin-bottom: .35rem; }
+    .orders-page .form-select, .orders-page .form-control { min-height: 42px; border-color: #dce4ee; color: var(--orders-ink); border-radius: 8px; }
+    .orders-page .form-select:focus, .orders-page .form-control:focus { border-color: #82a9ff; box-shadow: 0 0 0 .2rem rgba(36, 99, 235, .12); }
+    .orders-page .orders-table { margin: 0; color: var(--orders-ink); }
+    .orders-page .orders-table thead th { background: #f6f8fb; border-bottom: 1px solid var(--orders-line); color: #64748b; font-size: .73rem; font-weight: 700; letter-spacing: .045em; padding: .85rem 1rem; text-transform: uppercase; white-space: nowrap; }
+    .orders-page .orders-table tbody td { border-color: #edf1f6; padding: .9rem 1rem; vertical-align: middle; }
+    .orders-page .orders-table tbody tr:hover { background: #f9fbfe; }
+    .orders-page .order-code { color: var(--orders-accent); font-weight: 700; white-space: nowrap; }
+    .orders-page .customer-name { color: var(--orders-ink); font-weight: 600; }
+    .orders-page .customer-phone { color: var(--orders-muted); font-size: .82rem; margin-top: .2rem; }
+    .orders-page .order-products { min-width: 220px; max-width: 360px; }
+    .orders-page .order-product-line { color: var(--orders-ink); font-size: .84rem; line-height: 1.45; }
+    .orders-page .order-product-line + .order-product-line { border-top: 1px solid #edf1f6; margin-top: .35rem; padding-top: .35rem; }
+    .orders-page .order-product-variant { color: var(--orders-muted); white-space: normal; }
+    .orders-page .order-amount { color: var(--orders-ink); font-weight: 700; white-space: nowrap; }
+    .orders-page .status-pill { display: inline-flex; align-items: center; border-radius: 999px; font-size: .76rem; font-weight: 600; padding: .35rem .65rem; white-space: nowrap; }
+    .orders-page .status-pending { background: #fff5d6; color: #8a5b00; }
+    .orders-page .status-confirmed, .orders-page .status-picked_up { background: #eaf2ff; color: #2456a6; }
+    .orders-page .status-shipped, .orders-page .status-on_the_way { background: #e9f5ff; color: #17618d; }
+    .orders-page .status-delivered { background: #e8f7ee; color: #207344; }
+    .orders-page .status-cancelled { background: #fff0f0; color: #a53232; }
+    .orders-page .payment-paid { background: #e8f7ee; color: #207344; }
+    .orders-page .payment-unpaid { background: #fff5d6; color: #8a5b00; }
+    .orders-page .order-action { align-items: center; border: 1px solid #dce4ee; border-radius: 8px; color: #42546e; display: inline-flex; height: 36px; justify-content: center; margin-left: .25rem; text-decoration: none; width: 36px; }
+    .orders-page .order-action:hover { background: #edf4ff; border-color: #c8d9ff; color: var(--orders-accent); }
+    .orders-page .orders-empty { color: var(--orders-muted); padding: 3rem 1rem !important; text-align: center; }
+    .orders-page .orders-pagination { padding: 1rem 1.25rem; }
+    @media (max-width: 767.98px) { .orders-page .orders-toolbar { padding: 1rem; } .orders-page .orders-table thead th, .orders-page .orders-table tbody td { padding: .75rem; } }
 </style>
 
-<section class="content-main">
+<section class="content-main orders-page">
     <div class="content-header">
         <div>
-            <h2 class="content-title card-title">Order List</h2>
+            <h2 class="content-title">Orders</h2>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card mb-4">
-                <!-- card-header end// -->
-                <div class="card-body">
-                    <form class="" action="" method="GET">
-                    <div class="form-group row mb-3">
-                        <div class="col-md-2">
-                            <label class="col-form-label"><span>All Orders :</span></label>
-                        </div>
-                        <div class="col-md-2 mt-2">
-{{--                            <div class="custom_select">--}}
-{{--                               <select class=" select-active select-nice form-select d-inline-block mb-lg-0 mr-5 mw-200" name="vendor_id" id="vendor_id">--}}
-{{--                                    <option value="" selected="">Vendor</option>--}}
-{{--                                    <option value="0">AA</option>--}}
-{{--                                </select>--}}
-{{--                            </div>--}}
-                        </div>
-                        <div class="col-md-2 mt-2">
-                            <div class="custom_select">
-                                <select class="form-select d-inline-block select-active select-nice mb-lg-0 mr-5 mw-200" name="delivery_status" id="delivery_status">
-                                    <option value="" selected="">Delivery Status</option>
-                                    <option value="pending" @if ($delivery_status == 'pending') selected @endif>Pending</option>
-                                    <option value="confirmed" @if ($delivery_status == 'confirmed') selected @endif>Confirmed</option>
-                                    <option value="shipped" @if ($delivery_status == 'shipped') selected @endif>Shipped</option>
-                                    <option value="picked_up" @if ($delivery_status == 'picked_up') selected @endif>Picked Up</option>
-                                    <option value="on_the_way" @if ($delivery_status =='on_the_way') selected @endif>On The Way</option>
-                                    <option value="delivered" @if ($delivery_status == 'delivered') selected @endif>Delivered</option>
-                                    <option value="cancelled" @if ($delivery_status == 'cancelled') selected @endif>Cancel</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mt-2">
-                            <div class="custom_select">
-                               <select class=" select-active select-nice form-select d-inline-block mb-lg-0 mr-5 mw-200" name="payment_status" id="payment_status">
-                                    <option value="" selected="">Payment Status</option>
-                                    <option value="0" @if ($payment_status == '0') selected @endif>Unpaid</option>
-                                    <option value="1" @if ($payment_status == '1') selected @endif>Paid</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mt-2">
-                            <div class="custom_select">
-                                <input type="text" style="width: 190px"   id="reportrange" class="form-control"  name="date" placeholder="Filter by date" data-format="DD-MM-Y" value="Filter by date" data-separator=" - " autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="col-md-1 mt-2">
-                            <button class="btn btn-primary p-3 mx-3" type="submit"><i class="fa fa-filter"></i></button>
-                        </div>
-                    </div>
-                    <div class="table-responsive-sm">
-                        <table  class="table table-bordered table-hover" width="100%">
-                            <thead>
-                                <tr>
-                                    <th>Order Code</th>
-                                    <!-- <th>Num. Of Products</th> -->
-                                    <th>Customer name</th>
-                                    <th>Amount</th>
-                                    <th>Delivery Status</th>
-                                    <th>Payment Status</th>
-                                    <th class="text-end">Options</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            	@foreach ($orders as $key => $order)
-                                <tr>
-                                    <td>{{ $order->invoice_no }}</td>
-                                    <td>
-                                        <b class="text-dark">{{ $order->name }}</b>
-                                        @if(!empty($order->phone))
-                                            <br><small class="text-primary"><i class="fa fa-phone me-1"></i>{{ $order->phone }}</small>
-                                        @endif
-                                        @if(!empty($order->address))
-                                            <br><small class="text-muted" title="{{ $order->address }}"><i class="fa fa-map-marker-alt text-danger me-1"></i>{{ Str::limit($order->address, 55) }}</small>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        {{$order->grand_total}}
-{{--                                        <?php--}}
-{{--                                            $discount_total = $order->grand_total-$order->discount;--}}
-{{--                                            $total_ammount = $discount_total+$order->shipping_charge;--}}
-{{--                                        ?>--}}
-{{--                                        {{ $total_ammount }}--}}
-                                    </td>
-                                    <td>
-                                    	@php
-			                                $status = $order->delivery_status;
-			                                if($order->delivery_status == 'cancelled') {
-			                                    $status = '<span class="badge rounded-pill alert-success">Received</span>';
-			                                }
 
-			                            @endphp
-			                            {!! $status !!}
-                                    </td>
-                                    <td>
-                                    	@if ($order->payment_status == '1')
-				                            <span class="badge rounded-pill alert-success">Paid</span>
-				                            @else
-				                            <span class="badge rounded-pill alert-danger">Un-Paid</span>
-				                        @endif
-                                    </td>
-                                    <td class="text-end">
-			                            <a  class="btn btn-primary btn-icon btn-circle btn-sm btn-xs"  href="{{route('all_orders.show',$order->id) }}">
-			                                <i class="fa-solid fa-eye"></i>
-			                            </a>
-			                            <a class="btn btn-primary btn-icon btn-circle btn-sm btn-xs" style="background-color: #106390 !important;" href="{{ route('invoice.download', $order->id) }}">
-			                                <i class="fa-solid fa-download"></i>
-			                            </a>
-			                            <a href="{{ route('delete.orders',$order->id) }}" id="delete" style="background-color: red !important;" class="btn btn-primary btn-icon btn-circle btn-sm btn-xs" data-href="#" >
-			                                <i class="fa-solid fa-trash"></i>
-			                            </a>
-			                        </td>
-
-                                   <!--  <td class="text-end">
-                                        <a href="#" class="btn btn-md rounded font-sm">Detail</a>
-                                        <div class="dropdown">
-                                            <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="#">View detail</a>
-                                                <a class="dropdown-item" href="#">Edit info</a>
-                                                <a class="dropdown-item text-danger" href="#">Delete</a>
-                                            </div>
-                                        </div>
-                                    </td> -->
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div class="pagination-area mt-25 mb-50">
-                            <nav aria-label="Page navigation example">
-                                <ul class="pagination justify-content-end">
-                                    {{ $orders->links() }}
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                    </form>
-                    <!-- table-responsive //end -->
-                </div>
-                <!-- card-body end// -->
+    <div class="card orders-card">
+        <div class="orders-toolbar">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <h3 class="orders-toolbar-title">Order list</h3>
+                <span class="orders-count">{{ number_format($orders->total()) }} orders</span>
             </div>
-            <!-- card end// -->
+            <form action="{{ route('all_orders.index') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label class="form-label" for="delivery_status">Delivery status</label>
+                    <select class="form-select" name="delivery_status" id="delivery_status">
+                        <option value="">All delivery statuses</option>
+                        @foreach(['pending' => 'Pending', 'confirmed' => 'Confirmed', 'shipped' => 'Shipped', 'picked_up' => 'Picked up', 'on_the_way' => 'On the way', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled'] as $value => $label)
+                            <option value="{{ $value }}" @if($delivery_status == $value) selected @endif>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label class="form-label" for="payment_status">Payment status</label>
+                    <select class="form-select" name="payment_status" id="payment_status">
+                        <option value="">All payment statuses</option>
+                        <option value="1" @if((string) $payment_status === '1') selected @endif>Paid</option>
+                        <option value="0" @if((string) $payment_status === '0' && $payment_status !== '') selected @endif>Unpaid</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-8 col-lg-3">
+                    <label class="form-label" for="reportrange">Order date</label>
+                    <input type="text" id="reportrange" class="form-control" name="date" placeholder="Choose date range" value="{{ request('date') }}" autocomplete="off">
+                </div>
+                <div class="col-12 col-sm-4 col-lg-3 d-flex gap-2">
+                    <button class="btn btn-primary flex-grow-1" type="submit"><i class="fa fa-filter me-1"></i> Filter</button>
+                    <a class="btn btn-light border" href="{{ route('all_orders.index') }}">Clear</a>
+                </div>
+            </form>
         </div>
-        <!-- <div class="col-md-3">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="mb-3">Filter by</h5>
-                    <form>
-                        <div class="mb-4">
-                            <label for="order_id" class="form-label">Order ID</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_id" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="order_customer" class="form-label">Customer</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_customer" />
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label">Order Status</label>
-                            <select class="form-select">
-                                <option>Published</option>
-                                <option>Draft</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label for="order_total" class="form-label">Total</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_total" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="order_created_date" class="form-label">Date Added</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_created_date" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="order_modified_date" class="form-label">Date Modified</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_modified_date" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="order_customer_1" class="form-label">Customer</label>
-                            <input type="text" placeholder="Type here" class="form-control" id="order_customer_1" />
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div> -->
+
+        <div class="table-responsive">
+            <table class="table orders-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Products</th>
+                        <th>Amount</th>
+                        <th>Delivery</th>
+                        <th>Payment</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($orders as $order)
+                        @php
+                            $deliveryStatus = $order->delivery_status ?: 'pending';
+                            $deliveryLabel = ucwords(str_replace('_', ' ', $deliveryStatus));
+                        @endphp
+                        <tr>
+                            <td><span class="order-code">{{ $order->invoice_no }}</span></td>
+                            <td>
+                                <div class="customer-name">{{ $order->name }}</div>
+                                @if($order->phone)
+                                    <div class="customer-phone"><i class="fa fa-phone me-1"></i>{{ $order->phone }}</div>
+                                @endif
+                            </td>
+                            <td class="order-products">
+                                @forelse($order->order_details as $detail)
+                                    @php
+                                        $rawVariation = $detail->variation;
+                                        $decodedVariation = is_string($rawVariation) ? json_decode($rawVariation, true) : null;
+                                        $variantNames = [];
+                                        if (is_array($decodedVariation)) {
+                                            $variationItems = array_key_exists('attribute_value', $decodedVariation)
+                                                ? [$decodedVariation]
+                                                : $decodedVariation;
+                                            foreach ($variationItems as $variant) {
+                                                $variantName = is_array($variant)
+                                                    ? ($variant['attribute_value'] ?? $variant['varient'] ?? $variant['value'] ?? '')
+                                                    : $variant;
+                                                if (is_scalar($variantName) && trim((string) $variantName) !== '') $variantNames[] = trim((string) $variantName);
+                                            }
+                                        } elseif (is_string($rawVariation) && trim($rawVariation) !== '') {
+                                            $variantNames[] = trim($rawVariation);
+                                        }
+                                        $variantLabel = implode(', ', array_unique($variantNames));
+                                    @endphp
+                                    <div class="order-product-line">
+                                        {{ $detail->product_name ?: optional($detail->product)->name_en ?: 'Product' }}@if($variantLabel) <span class="order-product-variant">({{ $variantLabel }})</span>@endif
+                                    </div>
+                                @empty
+                                    <span class="text-muted">—</span>
+                                @endforelse
+                            </td>
+                            <td class="order-amount">৳ {{ number_format((float) $order->grand_total, 2) }}</td>
+                            <td><span class="status-pill status-{{ $deliveryStatus }}">{{ $deliveryLabel }}</span></td>
+                            <td>
+                                <span class="status-pill {{ (string) $order->payment_status === '1' ? 'payment-paid' : 'payment-unpaid' }}">
+                                    {{ (string) $order->payment_status === '1' ? 'Paid' : 'Unpaid' }}
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="order-action" href="{{ route('all_orders.show', $order->id) }}" title="View order" aria-label="View order">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a class="order-action" href="{{ route('invoice.download', $order->id) }}" title="Download invoice" aria-label="Download invoice">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="orders-empty">No orders found for these filters.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($orders->hasPages())
+            <div class="orders-pagination">{{ $orders->appends(request()->query())->links() }}</div>
+        @endif
     </div>
 </section>
 
 @push('footer-script')
+<script>
+    $(function () {
+        var $date = $('#reportrange');
+        if (!$date.length || !$.fn.daterangepicker) return;
 
+        $date.daterangepicker({
+            autoUpdateInput: false,
+            locale: { format: 'MM/DD/YYYY', cancelLabel: 'Clear' },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
 
-
-<script type="text/javascript">
-$(function() {
-
-    $('input[name="date"]').daterangepicker({
-      autoUpdateInput: false,
-      locale: {
-          cancelLabel: 'Clear'
-      }
-  });
-
-  $('input[name="date"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-  });
-
-  // $('input[name="date"]').on('cancel.daterangepicker', function(ev, picker) {
-  //     $(this).val('');
-  // });
-
-
-    var start = moment().subtract(29, 'days');
-    var end = moment();
-
-    // start = '';
-    // end = '';
-
-
-    $('input[name="date"]').daterangepicker({
-      autoUpdateInput: false,
-      locale: {
-          cancelLabel: 'Clear'
-      }
-  });
-
-    function cb(start, end) {
-        $('#reportrange').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-    }
-
-    $('#reportrange').daterangepicker({
-
-        startDate: start,
-        endDate: end,
-        ranges: {
-           'Today': [moment(), moment()],
-           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-           'This Month': [moment().startOf('month'), moment().endOf('month')],
-           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-        }
-    }, cb);
-
-    cb(start, end);
-
-});
+        $date.on('apply.daterangepicker', function (event, picker) {
+            $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+        });
+        $date.on('cancel.daterangepicker', function () { $(this).val(''); });
+    });
 </script>
-
-
 @endpush
-
 @endsection

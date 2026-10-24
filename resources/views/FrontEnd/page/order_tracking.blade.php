@@ -305,7 +305,7 @@
 
             <h1 class="rf-tracking-title">Track Your Order</h1>
             <p class="rf-tracking-subtitle">
-                Enter your <strong>Invoice ID</strong> and registered <strong>Phone Number</strong> to check live parcel updates.
+                Enter the <strong>phone number</strong> used at checkout to see your recent orders.
             </p>
 
             @if(session()->has('message'))
@@ -321,29 +321,6 @@
             @endif
 
             <form method="GET" action="{{ route('order.track') }}" autocomplete="off" id="trackingForm">
-                <div class="rf-form-group">
-                    <label for="invoice_no" class="rf-form-label">
-                        Invoice ID <span style="color: #71717a;">*</span>
-                    </label>
-                    <div class="rf-input-wrapper">
-                        <i class="fa-solid fa-receipt rf-input-icon"></i>
-                        <input 
-                            type="text" 
-                            name="invoice_no" 
-                            id="invoice_no" 
-                            class="rf-input" 
-                            placeholder="e.g. RF-8B77D3ABFFC76092682861D9" 
-                            value="{{ old('invoice_no', request('invoice_no')) }}" 
-                            required
-                        >
-                    </div>
-                    @if(isset($errors) && $errors->has('invoice_no'))
-                        <div class="rf-field-error">
-                            <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first('invoice_no') }}
-                        </div>
-                    @endif
-                </div>
-
                 <div class="rf-form-group">
                     <label for="phone" class="rf-form-label">
                         Phone Number <span style="color: #71717a;">*</span>
@@ -385,6 +362,32 @@
             </form>
         </div>
 
+        @if(isset($orders) && $orders->isNotEmpty())
+            <section class="rf-order-results" aria-label="Your recent orders">
+                <h2>Your recent orders</h2>
+                @foreach($orders as $trackedOrder)
+                    @php
+                        $statusLabel = ucfirst(str_replace('_', ' ', (string) $trackedOrder->delivery_status));
+                        $itemNames = $trackedOrder->order_details->map(fn($detail) => $detail->product_name ?: optional($detail->product)->name_en)->filter()->take(2);
+                    @endphp
+                    <article class="rf-order-result">
+                        <div class="rf-order-result__top">
+                            <div>
+                                <span class="rf-order-result__label">Order</span>
+                                <strong>#{{ $trackedOrder->invoice_no }}</strong>
+                            </div>
+                            <span class="rf-order-result__status">{{ $statusLabel }}</span>
+                        </div>
+                        <p>{{ $itemNames->join(', ') ?: 'Order items' }}@if($trackedOrder->order_details->count() > 2) and {{ $trackedOrder->order_details->count() - 2 }} more @endif</p>
+                        <div class="rf-order-result__bottom">
+                            <span>{{ optional($trackedOrder->created_at)->format('d M Y') }} <b>·</b> ৳{{ number_format((float) $trackedOrder->grand_total, 0) }}</span>
+                            <a href="{{ route('order.track', ['invoice_no' => $trackedOrder->invoice_no, 'phone' => $phoneInput]) }}">View status <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                @endforeach
+            </section>
+        @endif
+
         <!-- Quick Info Pills -->
         <div class="rf-features-grid">
             <div class="rf-feature-pill">
@@ -408,6 +411,20 @@
         </div>
     </div>
 </main>
+
+<style>
+    .rf-order-results { margin-top: 18px; }
+    .rf-order-results h2 { color:#18181b; font-size:16px; font-weight:800; margin:0 0 10px; }
+    .rf-order-result { background:#fff; border:1px solid #e4e4e7; border-radius:14px; margin-bottom:10px; padding:16px; }
+    .rf-order-result__top,.rf-order-result__bottom { align-items:center; display:flex; gap:12px; justify-content:space-between; }
+    .rf-order-result__top strong { color:#18181b; display:block; font-size:14px; }
+    .rf-order-result__label { color:#71717a; display:block; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .rf-order-result__status { background:#fce7f3; border-radius:999px; color:#9d174d; font-size:11px; font-weight:700; padding:6px 10px; }
+    .rf-order-result p { color:#71717a; font-size:12px; margin:12px 0; }
+    .rf-order-result__bottom { border-top:1px solid #f4f4f5; color:#71717a; font-size:11px; padding-top:11px; }
+    .rf-order-result__bottom a { color:#9d174d; font-weight:700; text-decoration:none; white-space:nowrap; }
+    .rf-order-result__bottom a:hover { text-decoration:underline; }
+</style>
 @endsection
 
 @push('js')

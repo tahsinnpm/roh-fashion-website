@@ -8,6 +8,33 @@
     const submitBtn = find('submit');
     const submitText = submitBtn ? submitBtn.innerHTML : '';
     let quote, opener, submitting = false, loading;
+    let captureTimer, lastCapturePayload = '';
+
+    function scheduleLeadCapture(immediate = false) {
+        const rawPhone = String(form.elements.phone?.value || '').replace(/[\s()-]+/g, '');
+        const phone = rawPhone.replace(/^(?:\+88|88)(01)/, '$1');
+        if (!/^01[3-9][0-9]{8}$/.test(phone) || !quote?.items?.length || (!dialog.open && !immediate)) return;
+        const payload = {
+            source: 'quick_checkout', phone,
+            name: form.elements.name?.value || '',
+            address: form.elements.address?.value || ''
+        };
+        const serialized = JSON.stringify(payload);
+        if (serialized === lastCapturePayload) return;
+        clearTimeout(captureTimer);
+        captureTimer = setTimeout(async () => {
+            try {
+                await request(dialog.dataset.captureUrl, { method: 'POST', body: serialized });
+                lastCapturePayload = serialized;
+            } catch (_) {
+                // Lead capture must never interrupt checkout.
+            }
+        }, immediate ? 0 : 900);
+    }
+
+    form.addEventListener('input', scheduleLeadCapture);
+    form.addEventListener('change', scheduleLeadCapture);
+    form.elements.phone?.addEventListener('blur', () => scheduleLeadCapture(true));
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -28,9 +55,15 @@
         return data;
     }
 
+    function getSelectedShippingId() {
+        const checked = form.querySelector('input[name="shipping_id"]:checked');
+        if (checked) return checked.value;
+        return form.elements.shipping_id ? form.elements.shipping_id.value : '';
+    }
+
     function totals() {
         if (!quote) return;
-        const areaId = form.elements.shipping_id ? form.elements.shipping_id.value : '';
+        const areaId = getSelectedShippingId();
         const area = (quote.areas || []).find(a => String(a.id) === String(areaId));
         if (find('delivery')) {
             find('delivery').textContent = area ? money(area.shipping_charge) : label('Select area', 'এলাকা বাছুন');
@@ -91,22 +124,58 @@
 
         try {
             quote = await request(dialog.dataset.url, { signal: current.signal });
-            const areaValue = form.elements.shipping_id.value;
-            form.elements.shipping_id.replaceChildren(new Option(label('Select delivery area', 'ডেলিভারি এলাকা বাছুন'), ''));
+            const couponStatus = find('coupon-status');
+            const couponInput = form.elements.coupon_code;
+            const removeCouponButton = find('coupon-remove');
+            if (quote.coupon) {
+                if (couponInput) couponInput.value = quote.coupon.code;
+                if (couponStatus) {
+                    couponStatus.textContent = `${label('Coupon', 'কুপন')} ${quote.coupon.code} ${label('applied', 'প্রয়োগ হয়েছে')} · −${money(quote.discount)}`;
+                    couponStatus.classList.add('is-success');
+                }
+                if (removeCouponButton) removeCouponButton.hidden = false;
+            } else {
+                if (couponInput) couponInput.value = '';
+                if (couponStatus) {
+                    couponStatus.textContent = '';
+                    couponStatus.classList.remove('is-success', 'is-error');
+                }
+                if (removeCouponButton) removeCouponButton.hidden = true;
+            }
+            const shippingContainer = dialog.querySelector('[data-checkout-shipping-options]');
+            const currentShippingId = getSelectedShippingId();
 
-            (quote.areas || []).forEach(area => {
-                const name = Number(area.type) === 1 ? label('Inside Dhaka', 'ঢাকার ভিতরে') : label('Outside Dhaka', 'ঢাকার বাইরে');
-                form.elements.shipping_id.add(new Option(`${name} · ${area.name} — ${money(area.shipping_charge)}`, area.id));
-            });
-
-            if (quote.areas && quote.areas.some(area => String(area.id) === areaValue)) {
-                form.elements.shipping_id.value = areaValue;
-            } else if (quote.areas && quote.areas.length === 1) {
-                form.elements.shipping_id.value = quote.areas[0].id;
+            if (shippingContainer && quote.areas && quote.areas.length) {
+                shippingContainer.innerHTML = quote.areas.map((area, idx) => {
+                    const isChecked = currentShippingId ? String(currentShippingId) === String(area.id) : idx === 0;
+                    const title = Number(area.type) === 1
+                        ? label('ঢাকার ভিতরে  ডেলিভারি চার্জ', 'ঢাকার ভিতরে  ডেলিভারি চার্জ')
+                        : (Number(area.type) === 2
+                            ? label('ঢাকার বাহিরে ডেলিভারি চার্জ', 'ঢাকার বাহিরে ডেলিভারি চার্জ')
+                            : (area.name || label('Delivery Charge', 'হোম ডেলিভারি চার্জ')));
+                    return `
+                        <label class="co-option ${isChecked ? 'active' : ''}">
+                            <input type="radio" name="shipping_id" value="${area.id}" data-price="${area.shipping_charge}" ${isChecked ? 'checked' : ''} required>
+                            <span>${title}</span>
+                            <strong>${money(area.shipping_charge)}</strong>
+                        </label>
+                    `;
+                }).join('');
+            } else if (form.elements.shipping_id && form.elements.shipping_id.tagName === 'SELECT') {
+                form.elements.shipping_id.replaceChildren(new Option(label('Select delivery area', 'ডেলিভারি এলাকা বাছুন'), ''));
+                (quote.areas || []).forEach(area => {
+                    const name = Number(area.type) === 1 ? label('Inside Dhaka', 'ঢাকার ভিতরে') : label('Outside Dhaka', 'ঢাকার বাইরে');
+                    form.elements.shipping_id.add(new Option(`${name} · ${area.name} — ${money(area.shipping_charge)}`, area.id));
+                });
+                if (quote.areas && quote.areas.some(area => String(area.id) === currentShippingId)) {
+                    form.elements.shipping_id.value = currentShippingId;
+                } else if (quote.areas && quote.areas.length === 1) {
+                    form.elements.shipping_id.value = quote.areas[0].id;
+                }
             }
 
             if (quote.customer) {
-                ['name', 'phone', 'address', 'email'].forEach(field => {
+                ['name', 'phone', 'address'].forEach(field => {
                     if (form.elements[field] && !form.elements[field].value) {
                         form.elements[field].value = quote.customer[field] || '';
                     }
@@ -225,18 +294,83 @@
     });
 
     dialog.addEventListener('close', () => {
+        scheduleLeadCapture(true);
         loading?.abort();
         opener?.focus();
     });
 
     find('retry').addEventListener('click', load);
-    if (form.elements.shipping_id) {
-        form.elements.shipping_id.addEventListener('change', totals);
+
+    async function changeCoupon(remove = false) {
+        const couponButton = find('coupon-apply');
+        const couponStatus = find('coupon-status');
+        if (!remove && !String(form.elements.coupon_code?.value || '').trim()) {
+            couponStatus.textContent = label('Enter a coupon code.', 'কুপন কোড লিখুন।');
+            couponStatus.classList.add('is-error');
+            return;
+        }
+        if (couponButton) couponButton.disabled = true;
+        try {
+            await request(dialog.dataset.couponUrl, {
+                method: 'POST',
+                body: JSON.stringify(remove ? { remove: true } : { coupon_code: form.elements.coupon_code.value.trim() })
+            });
+            await load();
+            window.showCartToast?.(remove ? label('Coupon removed.', 'কুপন সরানো হয়েছে।') : label('Coupon applied successfully.', 'কুপন সফলভাবে প্রয়োগ হয়েছে।'));
+        } catch (error) {
+            couponStatus.textContent = error.message;
+            couponStatus.classList.remove('is-success');
+            couponStatus.classList.add('is-error');
+            window.showCartToast?.(error.message);
+        } finally {
+            if (couponButton) couponButton.disabled = false;
+        }
     }
+    find('coupon-apply').addEventListener('click', () => changeCoupon());
+    find('coupon-remove').addEventListener('click', () => changeCoupon(true));
+    form.elements.coupon_code?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            changeCoupon();
+        }
+    });
+
+    const addressInput = form.elements.address;
+    function validateAddress() {
+        const addressText = addressInput.value.trim();
+        const addressWords = addressText.split(/\s+/u).filter(Boolean);
+        const addressSpaces = (addressText.match(/\s/g) || []).length;
+        const addressValid = addressWords.length >= 2 && addressSpaces >= 1;
+        addressInput.setCustomValidity(addressValid || !addressText ? '' : label('Please enter at least two parts of your address, separated by a space.', 'Please enter at least two parts of your address, separated by a space.'));
+    }
+    addressInput.addEventListener('input', validateAddress);
+
+    form.addEventListener('change', event => {
+        if (event.target && event.target.name === 'shipping_id') {
+            dialog.querySelectorAll('.co-option').forEach(opt => {
+                const radio = opt.querySelector('input[name="shipping_id"]');
+                opt.classList.toggle('active', !!(radio && radio.checked));
+            });
+            totals();
+        }
+    });
 
     form.addEventListener('submit', async event => {
         event.preventDefault();
-        if (submitting || !quote || !form.reportValidity()) return;
+        validateAddress();
+        if (submitting) return;
+        if (!quote) {
+            find('status').textContent = label('Checkout is still loading. Please try again in a moment.', 'চেকআউট লোড হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।');
+            find('status').focus();
+            return;
+        }
+        if (!form.reportValidity()) {
+            const invalidField = form.querySelector(':invalid');
+            find('status').textContent = label('Please complete the required fields and check the delivery area.', 'অনুগ্রহ করে প্রয়োজনীয় তথ্য পূরণ করুন এবং ডেলিভারি এলাকা নির্বাচন করুন।');
+            invalidField?.focus();
+            return;
+        }
+        clearTimeout(captureTimer);
         if (!quote.items || quote.items.length === 0) {
             find('status').textContent = label('Your bag is empty. Please add items first.', 'আপনার কার্ট খালি। অনুগ্রহ করে পণ্য যোগ করুন।');
             return;

@@ -116,6 +116,19 @@
                         <span class="badge bg-primary fs-6" id="selected-count-badge">{{ count($section->section_products) }} Products Added</span>
                     </div>
                     <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="product_category_picker" class="form-label fw-bold">Choose a Category</label>
+                                <select class="form-select @error('category_id') is-invalid @enderror" id="product_category_picker" name="category_id">
+                                    <option value="">-- Choose a category (optional) --</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" @selected((string) old('category_id', $section->category_id) === (string) $category->id)>{{ $category->name_en }}{{ $category->name_bn ? ' / ' . $category->name_bn : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Selecting a category replaces the current list with all active products in it.</small>
+                                @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
                         <div class="row mb-4">
                             <div class="col-md-10">
                                 <label for="product_picker" class="form-label fw-bold">Add More Products:</label>
@@ -135,6 +148,7 @@
                                         <option value="{{ $prod->id }}" 
                                                 data-name-en="{{ $prod->name_en }}" 
                                                 data-name-bn="{{ $prod->name_bn }}"
+                                                data-category-id="{{ $prod->category_id }}"
                                                 data-thumb="{{ asset($thumb) }}"
                                                 data-price="{{ $prod->regular_price }}">
                                             {{ $prod->name_en }} (Tk {{ number_format($prod->regular_price, 2) }})
@@ -240,6 +254,27 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     $(document).ready(function() {
+        $('#product_category_picker').on('change', function() {
+            var categoryId = $(this).val();
+            if (!categoryId) return;
+
+            $('#sortable-products-tbody').empty();
+            $('#product_picker option').filter(function() {
+                return String($(this).data('category-id')) === String(categoryId);
+            }).each(function() {
+                var option = $(this);
+                appendProductRow({
+                    id: option.val(),
+                    name_en: option.data('name-en'),
+                    name_bn: option.data('name-bn'),
+                    thumb: option.data('thumb'),
+                    price: option.data('price')
+                }, true);
+            });
+            $('#product_picker').val('').trigger('change');
+            refreshProductPositions();
+        });
+
         // Auto-generate slug from English Title if user clears slug
         $('#title').on('input', function() {
             if ($('#slug').data('custom-modified') !== true) {
@@ -285,6 +320,8 @@
             var prodId = select.val();
             if (!prodId) return;
 
+            $('#product_category_picker').val('');
+
             // Check if product is already added
             if ($('#sortable-products-tbody tr[data-product-id="' + prodId + '"]').length > 0) {
                 if (typeof toastr !== 'undefined') {
@@ -311,7 +348,7 @@
             select.val('').trigger('change');
         }
 
-        function appendProductRow(prod) {
+        function appendProductRow(prod, skipRefresh) {
             $('#no-products-placeholder').hide();
 
             var rowCount = $('#sortable-products-tbody tr').length + 1;
@@ -351,11 +388,12 @@
             `;
 
             $('#sortable-products-tbody').append(tr);
-            refreshProductPositions();
+            if (!skipRefresh) refreshProductPositions();
         }
 
         // Remove Product
         $(document).on('click', '.btn-remove-product', function() {
+            $('#product_category_picker').val('');
             $(this).closest('tr').remove();
             refreshProductPositions();
         });

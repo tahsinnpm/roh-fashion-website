@@ -1,7 +1,7 @@
 @once
     <dialog id="rf-cart-sidebar" class="rf-cart" aria-labelledby="rf-cart-title" data-cart-url="{{ route('cart.sidebar') }}" data-bangla="{{ session('language') === 'bangla' ? '1' : '0' }}">
         <div class="rf-cart__header">
-            <div><span class="rf-cart__eyebrow">ROH FASHION</span><h2 id="rf-cart-title">{{ session('language') === 'bangla' ? 'আপনার শপিং ব্যাগ' : 'Your shopping bag' }} <span data-cart-count>0</span></h2></div>
+            <div><span class="rf-cart__eyebrow">Shinduk Fashion</span><h2 id="rf-cart-title">{{ session('language') === 'bangla' ? 'আপনার শপিং ব্যাগ' : 'Your shopping bag' }} <span data-cart-count>0</span></h2></div>
             <button type="button" class="rf-cart__close" data-cart-close aria-label="{{ session('language') === 'bangla' ? 'বন্ধ করুন' : 'Close cart' }}">×</button>
         </div>
         <div class="rf-cart__body">

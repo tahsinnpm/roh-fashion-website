@@ -155,6 +155,14 @@
                                         value="{{ old('video_url', $landingPage->video_url) }}"
                                         placeholder="https://www.youtube.com/watch?v=...">
                                 </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Messenger Link (Optional)</label>
+                                    <input type="url" name="messenger_url" class="form-control @error('messenger_url') is-invalid @enderror"
+                                        value="{{ old('messenger_url', $landingPage->messenger_url) }}"
+                                        placeholder="https://m.me/your-page">
+                                    <small class="text-muted">Used by the Messenger buttons on this landing page.</small>
+                                    @error('messenger_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label fw-bold">Hero Sub-title / Tagline</label>
                                     <textarea name="sub_title" class="form-control"
@@ -262,107 +270,74 @@
                         ];
                         $guaranteeTitle = $aboutCards['guarantee_title'] ?? 'ঝুঁকিটা আমাদের, আপনার না';
                         $guaranteeDesc = $aboutCards['guarantee_desc'] ?? 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।';
+                        $whatYouGetTitle = $aboutCards['what_you_get_title'] ?? 'যা যা পাচ্ছেন';
+                        $whatYouGetCards = $aboutCards['what_you_get_cards'] ?? [
+                            ['icon' => '✦', 'title' => 'সিলভার সিরোস্কি স্টোন', 'subtitle' => 'পুরো শাড়ি জুড়ে ঝলমলে কাজ'],
+                            ['icon' => '吕', 'title' => 'সিল্ক ব্লেন্ড শিফন', 'subtitle' => 'আল্ট্রা সফট ও লাইটওয়েট'],
+                            ['icon' => '💎', 'title' => 'নেকলেস ডিজাইন ব্লাউজ', 'subtitle' => 'ম্যাচিং জর্জেট ব্লাউজ পিস'],
+                        ];
                     @endphp
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <i class="fa fa-list-ol text-primary"></i> 4. ৩টি সহজ অর্ডার ধাপ ও গ্যারান্টি
-                        </div>
-                        <div class="section-card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-4 mb-2">
-                                    <label class="form-label small fw-bold">ধাপ ১ (Step 1 Title)</label>
-                                    <input type="text" name="steps[0][title]" class="form-control form-control-sm"
-                                        value="{{ old('steps.0.title', $steps[0]['title'] ?? 'ফর্ম পূরণ করুন') }}">
-                                    <input type="text" name="steps[0][desc]" class="form-control form-control-sm mt-1"
-                                        value="{{ old('steps.0.desc', $steps[0]['desc'] ?? 'নাম, ফোন, ঠিকানা — ৩০ সেকেন্ড') }}"
-                                        placeholder="সংক্ষিপ্ত বিবরণ">
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <label class="form-label small fw-bold">ধাপ ২ (Step 2 Title)</label>
-                                    <input type="text" name="steps[1][title]" class="form-control form-control-sm"
-                                        value="{{ old('steps.1.title', $steps[1]['title'] ?? 'কনফার্মেশন কল') }}">
-                                    <input type="text" name="steps[1][desc]" class="form-control form-control-sm mt-1"
-                                        value="{{ old('steps.1.desc', $steps[1]['desc'] ?? 'আমরা কল দিয়ে নিশ্চিত করব') }}"
-                                        placeholder="সংক্ষিপ্ত বিবরণ">
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <label class="form-label small fw-bold">ধাপ ৩ (Step 3 Title)</label>
-                                    <input type="text" name="steps[2][title]" class="form-control form-control-sm"
-                                        value="{{ old('steps.2.title', $steps[2]['title'] ?? 'হাতে পেয়ে টাকা') }}">
-                                    <input type="text" name="steps[2][desc]" class="form-control form-control-sm mt-1"
-                                        value="{{ old('steps.2.desc', $steps[2]['desc'] ?? 'খুলে দেখে তারপর পেমেন্ট') }}"
-                                        placeholder="সংক্ষিপ্ত বিবরণ">
-                                </div>
-                            </div>
-                            <hr class="my-3">
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label small fw-bold">গ্যারান্টি সেকশন শিরোনাম</label>
-                                    <input type="text" name="guarantee_title" class="form-control form-control-sm"
-                                        value="{{ old('guarantee_title', $guaranteeTitle) }}">
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label small fw-bold">গ্যারান্টি সেকশন বিবরণ</label>
-                                    <input type="text" name="guarantee_desc" class="form-control form-control-sm"
-                                        value="{{ old('guarantee_desc', $guaranteeDesc) }}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- 5. Customer Reviews -->
+                    <!-- 4. যা যা পাচ্ছেন / ফিচার কার্ডসমূহ (What You Get Cards) -->
                     <div class="section-card">
                         <div class="section-card-header d-flex justify-content-between align-items-center">
-                            <div><i class="fa fa-star text-warning"></i> 5. Customer Reviews (ক্রেতাদের রিভিউ)</div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="addReviewBtn">
-                                <i class="fa fa-plus me-1"></i> Add Review
+                            <div><i class="fa fa-boxes-packing text-primary"></i> 4. যা যা পাচ্ছেন (What You Get Cards)</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addWhatYouGetCardBtn">
+                                <i class="fa fa-plus me-1"></i> কার্ড যোগ করুন
                             </button>
                         </div>
                         <div class="section-card-body">
-                            <div id="reviewsContainer">
-                                @php
-                                    $reviews = is_array($landingPage->reviews) ? $landingPage->reviews : [];
-                                @endphp
-                                @forelse($reviews as $rIndex => $rev)
-                                    <div class="repeater-item">
-                                        <button type="button" class="btn btn-sm btn-danger remove-btn remove-review"><i
-                                                class="fa fa-times"></i></button>
-                                        <div class="row">
-                                            <div class="col-md-5 mb-2">
-                                                <label class="form-label small fw-bold">Customer Name</label>
-                                                <input type="text" name="reviews[{{ $rIndex }}][name]"
-                                                    class="form-control form-control-sm" value="{{ $rev['name'] ?? '' }}">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">সেকশন টাইটেল (Section Heading)</label>
+                                <input type="text" name="what_you_get_title" class="form-control form-control-sm" value="{{ old('what_you_get_title', $whatYouGetTitle) }}" placeholder="যা যা পাচ্ছেন">
+                            </div>
+                            <div id="whatYouGetCardsContainer">
+                                @forelse($whatYouGetCards as $cIdx => $card)
+                                    <div class="repeater-item p-3 mb-3 border rounded bg-light position-relative">
+                                        <button type="button" class="btn btn-sm btn-danger remove-btn remove-card-btn position-absolute top-0 end-0 m-2"><i class="fa fa-times"></i></button>
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-bold">আইকন / চিহ্ন (Icon)</label>
+                                                <input type="text" name="what_you_get_cards[{{ $cIdx }}][icon]" class="form-control form-control-sm" value="{{ $card['icon'] ?? '✦' }}" placeholder="যেমন: ✦, 吕, 💎, ⭐, 👑">
                                             </div>
-                                            <div class="col-md-4 mb-2">
-                                                <label class="form-label small fw-bold">City / Location</label>
-                                                <input type="text" name="reviews[{{ $rIndex }}][location]"
-                                                    class="form-control form-control-sm" value="{{ $rev['location'] ?? '' }}">
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">কার্ড টাইটেল (Title)</label>
+                                                <input type="text" name="what_you_get_cards[{{ $cIdx }}][title]" class="form-control form-control-sm" value="{{ $card['title'] ?? '' }}" placeholder="যেমন: সিলভার সিরোস্কি স্টোন" required>
                                             </div>
-                                            <div class="col-md-3 mb-2">
-                                                <label class="form-label small fw-bold">Rating (Stars)</label>
-                                                <select name="reviews[{{ $rIndex }}][stars]" class="form-select form-select-sm">
-                                                    <option value="5" {{ ($rev['stars'] ?? 5) == 5 ? 'selected' : '' }}>5 Stars
-                                                        (★★★★★)</option>
-                                                    <option value="4" {{ ($rev['stars'] ?? 5) == 4 ? 'selected' : '' }}>4 Stars
-                                                        (★★★★)</option>
-                                                    <option value="3" {{ ($rev['stars'] ?? 5) == 3 ? 'selected' : '' }}>3 Stars
-                                                        (★★★)</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold">Review Comment</label>
-                                                <input type="text" name="reviews[{{ $rIndex }}][comment]"
-                                                    class="form-control form-control-sm" value="{{ $rev['comment'] ?? '' }}">
+                                            <div class="col-md-5">
+                                                <label class="form-label small fw-bold">সাবটাইটেল / বিবরণ (Subtitle)</label>
+                                                <input type="text" name="what_you_get_cards[{{ $cIdx }}][subtitle]" class="form-control form-control-sm" value="{{ $card['subtitle'] ?? '' }}" placeholder="যেমন: পুরো শাড়ি জুড়ে ঝলমলে কাজ">
                                             </div>
                                         </div>
                                     </div>
                                 @empty
-                                    <p class="text-muted small">No reviews added yet. Click "+ Add Review" above.</p>
+                                    <p class="text-muted small">কোনো কার্ড যোগ করা হয়নি। উপরে "+ কার্ড যোগ করুন" বাটনে ক্লিক করুন।</p>
                                 @endforelse
                             </div>
+                            <small class="text-muted d-block mt-2">হিরো সেকশনের ঠিক নিচে এই কার্ডগুলো সুন্দরভাবে প্রদর্শিত হবে। আপনি যতগুলো ইচ্ছা কার্ড যোগ বা বাদ দিতে পারেন।</small>
                         </div>
                     </div>
 
+                    <!-- 5. Customer Review Images -->
+                    <div class="section-card">
+                        <div class="section-card-header"><i class="fa fa-images text-warning"></i> 5. Customer Review Images</div>
+                        <div class="section-card-body">
+                            <label for="review_images" class="form-label fw-bold">Add review images</label>
+                            <input type="file" name="review_images[]" id="review_images" multiple class="form-control @error('review_images.*') is-invalid @enderror" accept="image/jpeg,image/png,image/webp">
+                            <small class="text-muted">Upload multiple review images (JPG, PNG, or WebP; max 5 MB each). Existing images are kept unless removed below.</small>
+                            @error('review_images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            @php $currentReviewImages = $landingPage->review_images ?: array_filter([$landingPage->review_image]); @endphp
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                @foreach($currentReviewImages as $reviewImage)
+                                    <div style="width:180px">
+                                        <img src="{{ asset($reviewImage) }}" alt="Customer review" style="display:block;width:100%;max-height:160px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;padding:4px;">
+                                        <label class="form-check mt-2"><input class="form-check-input" type="checkbox" name="remove_review_images[]" value="{{ $reviewImage }}"> <span class="form-check-label">Remove this image</span></label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div id="reviewImagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                        </div>
+                    </div>
                     <!-- 6. Frequently Asked Questions (FAQs) -->
                     <div class="section-card">
                         <div class="section-card-header d-flex justify-content-between align-items-center">
@@ -402,6 +377,25 @@
 
                 <!-- Right 4 Columns -->
                 <div class="col-lg-4">
+
+                    <!-- Order Form Email Field Settings -->
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <i class="fa fa-envelope text-primary"></i> অর্ডার ফর্মের ইমেইল ফিল্ড (Email Field)
+                        </div>
+                        <div class="section-card-body">
+                            @php
+                                $currentEmailMode = old('email_field', $landingPage->getEmailFieldMode());
+                            @endphp
+                            <label class="form-label fw-bold">ইমেইল ফিল্ডের স্ট্যাটাস</label>
+                            <select name="email_field" class="form-select mb-2">
+                                <option value="hidden" {{ $currentEmailMode === 'hidden' ? 'selected' : '' }}>লুকানো (Hidden / Hide)</option>
+                                <option value="optional" {{ $currentEmailMode === 'optional' ? 'selected' : '' }}>ঐচ্ছিক (Optional / Unrequired)</option>
+                                <option value="required" {{ $currentEmailMode === 'required' ? 'selected' : '' }}>আবশ্যক (Required / বাধ্যতামূলক)</option>
+                            </select>
+                          
+                        </div>
+                    </div>
 
                     <!-- Publish Card -->
                     <div class="section-card">
@@ -464,39 +458,38 @@
             $('#btn_color, #btn_text_color, #bg_color, #theme_color').on('input change', updateColorPreview);
             updateColorPreview();
 
-            var reviewIndex = {{ count($reviews ?? []) + 1 }};
-            $('#addReviewBtn').on('click', function () {
-                var html = `
-            <div class="repeater-item">
-                <button type="button" class="btn btn-sm btn-danger remove-btn remove-review"><i class="fa fa-times"></i></button>
-                <div class="row">
-                    <div class="col-md-5 mb-2">
-                        <label class="form-label small fw-bold">Customer Name</label>
-                        <input type="text" name="reviews[` + reviewIndex + `][name]" class="form-control form-control-sm" placeholder="গ্রাহকের নাম">
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label small fw-bold">City / Location</label>
-                        <input type="text" name="reviews[` + reviewIndex + `][location]" class="form-control form-control-sm" placeholder="শহর / জেলা">
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label small fw-bold">Rating (Stars)</label>
-                        <select name="reviews[` + reviewIndex + `][stars]" class="form-select form-select-sm">
-                            <option value="5" selected>5 Stars (★★★★★)</option>
-                            <option value="4">4 Stars (★★★★)</option>
-                            <option value="3">3 Stars (★★★)</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-bold">Review Comment</label>
-                        <input type="text" name="reviews[` + reviewIndex + `][comment]" class="form-control form-control-sm" placeholder="রিভিউ মন্তব্য">
-                    </div>
-                </div>
-            </div>`;
-                $('#reviewsContainer').append(html);
-                reviewIndex++;
+            $('#review_images').on('change', function () {
+                var preview = $('#reviewImagePreview').empty();
+                Array.from(this.files || []).forEach(function (file) {
+                    $('<img>').attr({ src: URL.createObjectURL(file), alt: 'Review preview' }).css({ maxWidth: '180px', maxHeight: '160px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px' }).appendTo(preview);
+                });
             });
 
-            $(document).on('click', '.remove-review', function () {
+            var cardIndex = {{ count($whatYouGetCards ?? []) + 1 }};
+            $('#addWhatYouGetCardBtn').on('click', function () {
+                var html = `
+                <div class="repeater-item p-3 mb-3 border rounded bg-light position-relative">
+                    <button type="button" class="btn btn-sm btn-danger remove-btn remove-card-btn position-absolute top-0 end-0 m-2"><i class="fa fa-times"></i></button>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">আইকন / চিহ্ন (Icon)</label>
+                            <input type="text" name="what_you_get_cards[` + cardIndex + `][icon]" class="form-control form-control-sm" value="✦" placeholder="যেমন: ✦, 吕, 💎, ⭐, 👑">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">কার্ড টাইটেল (Title)</label>
+                            <input type="text" name="what_you_get_cards[` + cardIndex + `][title]" class="form-control form-control-sm" placeholder="কার্ডের শিরোনাম" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">সাবটাইটেল / বিবরণ (Subtitle)</label>
+                            <input type="text" name="what_you_get_cards[` + cardIndex + `][subtitle]" class="form-control form-control-sm" placeholder="ছোট বিবরণ">
+                        </div>
+                    </div>
+                </div>`;
+                $('#whatYouGetCardsContainer').append(html);
+                cardIndex++;
+            });
+
+            $(document).on('click', '.remove-card-btn', function () {
                 $(this).closest('.repeater-item').remove();
             });
 

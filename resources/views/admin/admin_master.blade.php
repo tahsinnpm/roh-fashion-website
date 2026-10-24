@@ -171,7 +171,30 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
         <script type="text/javascript">
+            document.addEventListener('submit', function(e) {
+                var form = e.target;
+                if (!form.matches('form[data-order-trash-form], form[data-order-force-delete-form]')) return;
+                e.preventDefault();
+
+                var isPermanent = form.hasAttribute('data-order-force-delete-form');
+                var submitForm = function() { HTMLFormElement.prototype.submit.call(form); };
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                      title: isPermanent ? 'Permanently delete this order?' : 'Move this order to trash?',
+                      text: isPermanent ? 'This cannot be undone.' : 'The order will be moved to trash and its stock returned.',
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#3085d6',
+                      cancelButtonColor: '#d33',
+                      confirmButtonText: isPermanent ? 'Yes, delete permanently' : 'Yes, delete'
+                    }).then(function(result) { if (result.isConfirmed) submitForm(); });
+                } else if (window.confirm(isPermanent ? 'Permanently delete this order?' : 'Move this order to trash?')) {
+                    submitForm();
+                }
+            });
+
             $(function(){
+
                 $(document).on('click','#delete',function(e){
                     e.preventDefault();
                     var link = $(this).attr("href");

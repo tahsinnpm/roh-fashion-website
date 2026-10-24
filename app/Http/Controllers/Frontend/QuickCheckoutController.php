@@ -7,6 +7,7 @@ use App\Models\Shipping;
 use App\Models\Order;
 use Illuminate\Support\Facades\URL;
 use App\Services\QuickCheckout;
+use App\Services\AbandonedCheckoutCapture;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class QuickCheckoutController extends Controller
         }
         return response()->json([
             'token' => session('quick_checkout.token'), 'subtotal' => $quote['subtotal'], 'discount' => $quote['discount'],
+            'coupon' => $quote['coupon'] ? ['code' => $quote['coupon']->coupon_code] : null,
             'items' => collect($quote['items'])->map(function ($item) {
                 return [
                     'rowId' => $item['row']->rowId,
@@ -40,23 +42,73 @@ class QuickCheckoutController extends Controller
         ]);
     }
 
-    public function store(Request $request, QuickCheckout $checkout)
+    public function applyCoupon(Request $request, QuickCheckout $checkout)
+    {
+        if ($request->boolean('remove')) {
+            $request->session()->forget(['couponCode', 'couponId', 'discountType', 'amount']);
+            return response()->json(['success' => true, 'message' => 'Coupon removed.']);
+        }
+
+        $data = $request->validate(['coupon_code' => 'required|string|max:50']);
+        $quote = $checkout->quote();
+        $code = strtoupper(trim($data['coupon_code']));
+        $coupon = \App\Models\Coupon::whereRaw('UPPER(coupon_code) = ?', [$code])
+            ->where('status', 1)
+            ->where('total_use_limit', '>', 0)
+            ->where(function ($query) {
+                $query->whereNull('expire_date')->orWhereDate('expire_date', '>=', today());
+            })
+            ->first();
+
+        if (!$coupon || $quote['subtotal'] <= 0) {
+            return response()->json(['message' => 'This coupon is invalid, expired, or unavailable.'], 422);
+        }
+
+        $discount = $coupon->discount_type == 0
+            ? $quote['subtotal'] * ((float) $coupon->discount / 100)
+            : (float) $coupon->discount;
+        $discount = min($quote['subtotal'], max(0, round($discount, 2)));
+
+        $request->session()->put([
+            'couponCode' => $coupon->coupon_code,
+            'couponId' => $coupon->id,
+            'discountType' => $coupon->discount_type,
+            'amount' => $discount,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'code' => $coupon->coupon_code,
+            'discount' => $discount,
+            'message' => 'Coupon applied successfully.',
+        ]);
+    }
+
+    public function store(Request $request, QuickCheckout $checkout, AbandonedCheckoutCapture $abandonedCheckoutCapture)
     {
         $phone = preg_replace('/[\s()-]+/', '', (string) $request->input('phone'));
         $request->merge(['phone' => preg_replace('/^(?:\+88|88)(01)/', '$1', $phone)]);
         $data = $request->validate([
             'name' => 'required|string|max:150',
             'phone' => ['required', 'regex:/^01[3-9][0-9]{8}$/'],
-            'address' => 'required|string|max:255',
+            'address' => ['required', 'string', 'max:255', 'regex:/\\S+(?:\\s+\\S+){1,}/u'],
             'email' => 'nullable|email|max:191',
             'comment' => 'nullable|string|max:1000',
             'shipping_id' => 'required|integer',
             'token' => 'required|uuid',
+        ], [
+            'address.required' => 'Please enter your full address, including your house or road, area, thana, and district.',
+            'address.regex' => 'Please enter at least two parts of your address, separated by a space.',
         ]);
         if (!hash_equals((string) session('quick_checkout.token'), $data['token'])) {
             throw ValidationException::withMessages(['cart' => 'Please reopen checkout and try again.']);
         }
         $result = $checkout->place($data, $data['token'], $request->user());
+        try {
+            $abandonedCheckoutCapture->markConverted($data['phone'], $result['order']->id);
+        } catch (\Throwable $exception) {
+            \Illuminate\Support\Facades\Log::warning('Unable to mark checkout lead as converted.', ['exception' => $exception->getMessage()]);
+        }
         Cart::destroy();
         $request->session()->forget(['couponCode', 'couponId', 'discountType', 'amount', 'affiliate_ref']);
         $request->session()->put('quick_checkout.completed', true);

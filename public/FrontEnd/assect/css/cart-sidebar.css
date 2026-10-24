@@ -57,7 +57,7 @@ body:has(.rf-cart[open]) {
 }
 
 .rf-cart :is(button, a):focus-visible {
-    outline: 2px solid #a92154;
+    outline: 2px solid #18395C;
     outline-offset: 3px;
 }
 
@@ -83,7 +83,7 @@ body:has(.rf-cart[open]) {
 .rf-cart__eyebrow {
     font-size: 9px;
     letter-spacing: 2px;
-    color: #a92154;
+    color: #18395C;
 }
 
 .rf-cart__header h2 {
@@ -122,7 +122,7 @@ body:has(.rf-cart[open]) {
 .rf-cart__status {
     margin: 0;
     padding-block: 14px;
-    color: #a92154;
+    color: #18395C;
     font-size: 12px;
 }
 
@@ -207,7 +207,7 @@ body:has(.rf-cart[open]) {
     border: 0;
     padding: 6px 0;
     background: transparent;
-    color: #a92154;
+    color: #18395C;
     font-size: 11px !important;
     text-decoration: underline;
     text-underline-offset: 3px;
@@ -244,7 +244,7 @@ body:has(.rf-cart[open]) {
     width: 100%;
     padding: 13px 16px;
     background: #000000;
-    color: #302630;
+    color: #fff;
     text-align: center;
     font-size: 13px;
     font-weight: 600;

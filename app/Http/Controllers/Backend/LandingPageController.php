@@ -115,6 +115,9 @@ class LandingPageController extends Controller
             'product_id' => 'required|exists:products,id',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:landing_pages,slug',
+            'messenger_url' => 'nullable|url|max:500',
+            'review_images' => 'nullable|array|max:20',
+            'review_images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -199,29 +202,10 @@ class LandingPageController extends Controller
             ];
         }
 
-        // Process reviews
-        $reviews = [];
-        if ($request->filled('reviews') && is_array($request->reviews)) {
-            foreach ($request->reviews as $rev) {
-                if (!empty($rev['name']) && !empty($rev['comment'])) {
-                    $reviews[] = [
-                        'name' => $rev['name'],
-                        'location' => $rev['location'] ?? 'ঢাকা',
-                        'stars' => (int) ($rev['stars'] ?? 5),
-                        'comment' => $rev['comment'],
-                    ];
-                }
-            }
+        $reviewImagePaths = [];
+        foreach ($request->file('review_images', []) as $reviewImage) {
+            $reviewImagePaths[] = $this->storeReviewImage($reviewImage);
         }
-        if (empty($reviews)) {
-            $reviews = [
-                ['name' => 'সাদিয়া রহমান', 'location' => 'ঢাকা', 'stars' => 5, 'comment' => 'কাপড়ের কোয়ালিটি খুব ভালো। ছবির মতোই সুন্দর পেয়েছি।'],
-                ['name' => 'তানজিনা আক্তার', 'location' => 'চট্টগ্রাম', 'stars' => 5, 'comment' => 'ডেলিভারি দ্রুত ছিল এবং প্যাকেজিংও ভালো ছিল।'],
-                ['name' => 'নুসরাত জাহান', 'location' => 'কুমিল্লা', 'stars' => 5, 'comment' => 'ডিজাইনটা সত্যিই খুব এলিগ্যান্ট ও প্রিমিয়াম।'],
-                ['name' => 'মারিয়া ইসলাম', 'location' => 'নারায়ণগঞ্জ', 'stars' => 5, 'comment' => 'ফ্যাব্রিক আর ফিনিশিং দুইটাই খুব সুন্দর। আবারও অর্ডার করবো।'],
-            ];
-        }
-
         // Process FAQs
         $faqs = [];
         if ($request->filled('faqs') && is_array($request->faqs)) {
@@ -254,6 +238,7 @@ class LandingPageController extends Controller
         }
 
         $shippingDhaka = Shipping::where('type', 1)->value('shipping_charge') ?? 80.00;
+        $shippingOutside = Shipping::where('type', 2)->value('shipping_charge') ?? 150.00;
         // Process steps and guarantee into about_cards
         $steps = [];
         if ($request->filled('steps') && is_array($request->steps)) {
@@ -274,10 +259,29 @@ class LandingPageController extends Controller
             ];
         }
 
+        $emailField = in_array($request->email_field, ['required', 'optional', 'hidden']) ? $request->email_field : 'hidden';
+
+        $whatYouGetCards = [];
+        if ($request->filled('what_you_get_cards') && is_array($request->what_you_get_cards)) {
+            foreach ($request->what_you_get_cards as $card) {
+                if (!empty($card['title'])) {
+                    $whatYouGetCards[] = [
+                        'icon' => trim($card['icon'] ?? '✦'),
+                        'title' => trim($card['title']),
+                        'subtitle' => trim($card['subtitle'] ?? ''),
+                    ];
+                }
+            }
+        }
+        $whatYouGetTitle = $request->filled('what_you_get_title') ? $request->what_you_get_title : 'যা যা পাচ্ছেন';
+
         $aboutCards = [
             'steps' => $steps,
             'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
             'guarantee_desc' => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+            'email_field' => $emailField,
+            'what_you_get_title' => $whatYouGetTitle,
+            'what_you_get_cards' => $whatYouGetCards,
         ];
 
         LandingPage::create([
@@ -289,10 +293,12 @@ class LandingPageController extends Controller
             'btn_color' => $request->btn_color ?: '#E0B04A',
             'btn_text_color' => $request->btn_text_color ?: '#2B1C06',
             'bg_color' => $request->bg_color ?: '#1F0A0F',
+            'email_field' => $emailField,
             'top_notice' => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
             'hero_tag' => $request->hero_tag ?: 'PREMIUM COLLECTION',
             'slider_images' => $sliderImages,
             'video_url' => $request->video_url,
+            'messenger_url' => $request->messenger_url,
             'regular_price' => $regPrice,
             'sale_price' => $salePrice,
             'discount_text' => $discountText,
@@ -304,7 +310,9 @@ class LandingPageController extends Controller
             'overview_text' => $request->overview_text ?: ($product->description_en ?: $product->description_bn),
             'overview_points' => $overviewPoints,
             'about_cards' => $aboutCards,
-            'reviews' => $reviews,
+            'reviews' => [],
+            'review_images' => $reviewImagePaths,
+            'review_image' => $reviewImagePaths[0] ?? null,
             'faqs' => $faqs,
             'delivery_charge_dhaka' => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : $shippingDhaka,
             'delivery_charge_outside' => $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : $shippingOutside,
@@ -340,6 +348,11 @@ class LandingPageController extends Controller
             'product_id' => 'required|exists:products,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:landing_pages,slug,' . $landingPage->id,
+            'review_images' => 'nullable|array|max:20',
+            'review_images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+            'remove_review_images' => 'nullable|array',
+            'remove_review_images.*' => 'string',
+            'messenger_url' => 'nullable|url|max:500',
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -397,24 +410,11 @@ class LandingPageController extends Controller
             $overviewPoints = $landingPage->overview_points ?: [];
         }
 
-        // Process reviews
-        $reviews = [];
-        if ($request->filled('reviews') && is_array($request->reviews)) {
-            foreach ($request->reviews as $rev) {
-                if (!empty($rev['name']) && !empty($rev['comment'])) {
-                    $reviews[] = [
-                        'name' => $rev['name'],
-                        'location' => $rev['location'] ?? 'ঢাকা',
-                        'stars' => (int) ($rev['stars'] ?? 5),
-                        'comment' => $rev['comment'],
-                    ];
-                }
-            }
+        $reviewImagePaths = $landingPage->review_images ?: array_filter([$landingPage->review_image]);
+        $reviewImagePaths = array_values(array_diff($reviewImagePaths, $request->input('remove_review_images', [])));
+        foreach ($request->file('review_images', []) as $reviewImage) {
+            $reviewImagePaths[] = $this->storeReviewImage($reviewImage);
         }
-        if (empty($reviews)) {
-            $reviews = $landingPage->reviews ?: [];
-        }
-
         // Process FAQs
         $faqs = [];
         if ($request->filled('faqs') && is_array($request->faqs)) {
@@ -442,6 +442,8 @@ class LandingPageController extends Controller
         $shippingDhaka = Shipping::where('type', 1)->value('shipping_charge') ?? 80.00;
         $shippingOutside = Shipping::where('type', 2)->value('shipping_charge') ?? 150.00;
 
+        $existingAbout = is_array($landingPage->about_cards) ? $landingPage->about_cards : [];
+
         // Process steps and guarantee into about_cards
         $steps = [];
         if ($request->filled('steps') && is_array($request->steps)) {
@@ -455,7 +457,6 @@ class LandingPageController extends Controller
             }
         }
         if (empty($steps)) {
-            $existingAbout = is_array($landingPage->about_cards) ? $landingPage->about_cards : [];
             $steps = $existingAbout['steps'] ?? [
                 ['title' => 'ফর্ম পূরণ করুন', 'desc' => 'নাম, ফোন, ঠিকানা — ৩০ সেকেন্ড'],
                 ['title' => 'কনফার্মেশন কল', 'desc' => 'আমরা কল দিয়ে নিশ্চিত করব'],
@@ -463,10 +464,33 @@ class LandingPageController extends Controller
             ];
         }
 
+        $emailField = in_array($request->email_field, ['required', 'optional', 'hidden']) 
+            ? $request->email_field 
+            : ($landingPage->email_field ?: ($existingAbout['email_field'] ?? 'hidden'));
+
+        $whatYouGetCards = [];
+        if ($request->has('what_you_get_cards') && is_array($request->what_you_get_cards)) {
+            foreach ($request->what_you_get_cards as $card) {
+                if (!empty($card['title'])) {
+                    $whatYouGetCards[] = [
+                        'icon' => trim($card['icon'] ?? '✦'),
+                        'title' => trim($card['title']),
+                        'subtitle' => trim($card['subtitle'] ?? ''),
+                    ];
+                }
+            }
+        } elseif (!$request->has('what_you_get_title')) {
+            $whatYouGetCards = $existingAbout['what_you_get_cards'] ?? [];
+        }
+        $whatYouGetTitle = $request->filled('what_you_get_title') ? $request->what_you_get_title : ($existingAbout['what_you_get_title'] ?? 'যা যা পাচ্ছেন');
+
         $aboutCards = [
             'steps' => $steps,
             'guarantee_title' => $request->guarantee_title ?: 'ঝুঁকিটা আমাদের, আপনার না',
             'guarantee_desc' => $request->guarantee_desc ?: 'ডেলিভারি ম্যানের সামনেই প্যাকেট খুলে দেখুন। ছবির সাথে না মিললে বা কোনো সমস্যা থাকলে গ্রহণ করবেন না — টাকা দেওয়ার কোনো প্রশ্নই আসে না।',
+            'email_field' => $emailField,
+            'what_you_get_title' => $whatYouGetTitle,
+            'what_you_get_cards' => $whatYouGetCards,
         ];
 
         $landingPage->update([
@@ -478,10 +502,12 @@ class LandingPageController extends Controller
             'btn_color' => $request->btn_color ?: '#E0B04A',
             'btn_text_color' => $request->btn_text_color ?: '#2B1C06',
             'bg_color' => $request->bg_color ?: '#1F0A0F',
+            'email_field' => $emailField,
             'top_notice' => $request->top_notice ?: '✦ ক্যাশ অন ডেলিভারি — সারাদেশে পণ্য হাতে পেয়ে, খুলে দেখে তারপর টাকা দিন',
             'hero_tag' => $request->hero_tag,
             'slider_images' => $sliderImages,
             'video_url' => $request->video_url,
+            'messenger_url' => $request->messenger_url,
             'regular_price' => $regPrice,
             'sale_price' => $salePrice,
             'discount_text' => $discountText,
@@ -493,7 +519,9 @@ class LandingPageController extends Controller
             'overview_text' => $request->overview_text,
             'overview_points' => $overviewPoints,
             'about_cards' => $aboutCards,
-            'reviews' => $reviews,
+            'reviews' => [],
+            'review_images' => $reviewImagePaths,
+            'review_image' => $reviewImagePaths[0] ?? null,
             'faqs' => $faqs,
             'delivery_charge_dhaka' => $request->filled('delivery_charge_dhaka') ? $request->delivery_charge_dhaka : ($landingPage->delivery_charge_dhaka ?: $shippingDhaka),
             'delivery_charge_outside' => $request->filled('delivery_charge_outside') ? $request->delivery_charge_outside : ($landingPage->delivery_charge_outside ?: $shippingOutside),
@@ -527,5 +555,17 @@ class LandingPageController extends Controller
 
         Session::flash('success', 'স্ট্যাটাস সফলভাবে পরিবর্তিত হয়েছে!');
         return redirect()->back();
+    }
+    private function storeReviewImage(\Illuminate\Http\UploadedFile $image): string
+    {
+        $directory = public_path('upload/landing/reviews');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = \Illuminate\Support\Str::uuid()->toString() . '.' . $image->extension();
+        $image->move($directory, $filename);
+
+        return 'upload/landing/reviews/' . $filename;
     }
 }

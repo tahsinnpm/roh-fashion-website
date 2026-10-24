@@ -61,7 +61,7 @@
         padding: 8px 14px;
         border: 1px solid rgba(255, 255, 255, .2);
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+        background: #fff;
     }
 
     .rf-auth__logo img { display: block; width: auto; max-width: 160px; max-height: 56px; object-fit: contain; }

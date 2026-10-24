@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\DynamicSection;
 use App\Models\DynamicSectionProduct;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Session;
 
@@ -26,14 +28,15 @@ class DynamicSectionController extends Controller
      */
     public function create()
     {
+        $categories = Category::where('type', 1)->orderBy('name_en')->get(['id', 'name_en', 'name_bn']);
         $products = Product::where('status', 1)
-            ->select('id', 'name_en', 'name_bn', 'product_thumbnail', 'regular_price')
+            ->select('id', 'category_id', 'name_en', 'name_bn', 'product_thumbnail', 'regular_price')
             ->latest()
             ->get();
 
         $next_position = (DynamicSection::max('position') ?? 0) + 1;
 
-        return view('backend.dynamic_section.create', compact('products', 'next_position'));
+        return view('backend.dynamic_section.create', compact('categories', 'products', 'next_position'));
     }
 
     /**
@@ -46,7 +49,9 @@ class DynamicSectionController extends Controller
             'title_bn' => 'nullable|string|max:255',
             'slug' => 'required|string|max:255|unique:dynamic_sections,slug',
             'position' => 'nullable|integer',
+            'category_id' => 'nullable|integer|exists:categories,id',
             'products' => 'nullable|array',
+            'products.*' => 'integer|exists:products,id',
         ]);
 
         $position = $request->position;
@@ -54,16 +59,22 @@ class DynamicSectionController extends Controller
             $position = (DynamicSection::max('position') ?? 0) + 1;
         }
 
-        $section = DynamicSection::create([
-            'title' => $request->title,
-            'title_bn' => $request->title_bn,
-            'slug' => Str::slug($request->slug),
-            'position' => $position,
-            'status' => $request->has('status') ? 1 : 0,
-        ]);
+        $categoryId = $request->input('category_id');
+        $productIds = $categoryId
+            ? Product::where('category_id', $categoryId)->where('status', 1)->orderBy('id')->pluck('id')
+            : collect($request->input('products', []))->unique()->values();
 
-        if ($request->has('products') && is_array($request->products)) {
-            foreach ($request->products as $index => $productId) {
+        DB::transaction(function () use ($request, $position, $categoryId, $productIds) {
+            $section = DynamicSection::create([
+                'title' => $request->title,
+                'title_bn' => $request->title_bn,
+                'slug' => Str::slug($request->slug),
+                'position' => $position,
+                'category_id' => $categoryId,
+                'status' => $request->has('status') ? 1 : 0,
+            ]);
+
+            foreach ($productIds as $index => $productId) {
                 $pos = isset($request->product_positions[$productId]) ? (int) $request->product_positions[$productId] : ($index + 1);
                 DynamicSectionProduct::create([
                     'dynamic_section_id' => $section->id,
@@ -71,7 +82,7 @@ class DynamicSectionController extends Controller
                     'position' => $pos,
                 ]);
             }
-        }
+        });
 
         Session::flash('success', 'Dynamic section created successfully.');
         return redirect()->route('dynamic-section.index');
@@ -88,12 +99,13 @@ class DynamicSectionController extends Controller
 
         $selectedProductIds = $section->section_products->pluck('product_id')->toArray();
 
+        $categories = Category::where('type', 1)->orderBy('name_en')->get(['id', 'name_en', 'name_bn']);
         $products = Product::where('status', 1)
-            ->select('id', 'name_en', 'name_bn', 'product_thumbnail', 'regular_price')
+            ->select('id', 'category_id', 'name_en', 'name_bn', 'product_thumbnail', 'regular_price')
             ->latest()
             ->get();
 
-        return view('backend.dynamic_section.edit', compact('section', 'products', 'selectedProductIds'));
+        return view('backend.dynamic_section.edit', compact('section', 'categories', 'products', 'selectedProductIds'));
     }
 
     /**
@@ -108,22 +120,29 @@ class DynamicSectionController extends Controller
             'title_bn' => 'nullable|string|max:255',
             'slug' => 'required|string|max:255|unique:dynamic_sections,slug,' . $id,
             'position' => 'nullable|integer',
+            'category_id' => 'nullable|integer|exists:categories,id',
             'products' => 'nullable|array',
+            'products.*' => 'integer|exists:products,id',
         ]);
 
-        $section->update([
-            'title' => $request->title,
-            'title_bn' => $request->title_bn,
-            'slug' => Str::slug($request->slug),
-            'position' => $request->position ?? $section->position,
-            'status' => $request->has('status') ? 1 : 0,
-        ]);
+        $categoryId = $request->input('category_id');
+        $productIds = $categoryId
+            ? Product::where('category_id', $categoryId)->where('status', 1)->orderBy('id')->pluck('id')
+            : collect($request->input('products', []))->unique()->values();
 
-        // Sync products with updated positions
-        DynamicSectionProduct::where('dynamic_section_id', $section->id)->delete();
+        DB::transaction(function () use ($request, $section, $categoryId, $productIds) {
+            $section->update([
+                'title' => $request->title,
+                'title_bn' => $request->title_bn,
+                'slug' => Str::slug($request->slug),
+                'position' => $request->position ?? $section->position,
+                'category_id' => $categoryId,
+                'status' => $request->has('status') ? 1 : 0,
+            ]);
 
-        if ($request->has('products') && is_array($request->products)) {
-            foreach ($request->products as $index => $productId) {
+            DynamicSectionProduct::where('dynamic_section_id', $section->id)->delete();
+
+            foreach ($productIds as $index => $productId) {
                 $pos = isset($request->product_positions[$productId]) ? (int) $request->product_positions[$productId] : ($index + 1);
                 DynamicSectionProduct::create([
                     'dynamic_section_id' => $section->id,
@@ -131,7 +150,7 @@ class DynamicSectionController extends Controller
                     'position' => $pos,
                 ]);
             }
-        }
+        });
 
         Session::flash('success', 'Dynamic section updated successfully.');
         return redirect()->route('dynamic-section.index');

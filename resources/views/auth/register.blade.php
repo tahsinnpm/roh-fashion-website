@@ -12,10 +12,10 @@
 <section class="rf-auth" aria-labelledby="rf-auth-title">
     <div class="rf-auth__card rf-auth__card--register">
         <aside class="rf-auth__intro">
-            <a class="rf-auth__logo" href="{{ route('home') }}" aria-label="Roh Fashion home">
-                <img src="{{ $authLogo }}" alt="Roh Fashion">
+            <a class="rf-auth__logo" href="{{ route('home') }}" aria-label="Shinduk Fashion home">
+                <img src="{{ $authLogo }}" alt="Shinduk Fashion">
             </a>
-            <span class="rf-auth__eyebrow">ROH FASHION</span>
+            <span class="rf-auth__eyebrow">Shinduk Fashion</span>
             <h1>Make it yours</h1>
             <p>Create an account to save your details and enjoy a smoother shopping experience.</p>
             <div class="rf-auth__switch">
@@ -26,7 +26,7 @@
 
         <div class="rf-auth__form-panel">
             <div class="rf-auth__form-heading">
-                <span class="rf-auth__eyebrow">JOIN ROH FASHION</span>
+                <span class="rf-auth__eyebrow">JOIN Shinduk Fashion</span>
                 <h2 id="rf-auth-title">Create your account</h2>
                 <p>Fill in your details to get started.</p>
             </div>

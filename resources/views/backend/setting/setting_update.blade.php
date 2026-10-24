@@ -221,11 +221,46 @@
 					            </div>
 
 					            <div class="col-sm-12 mb-3">
-						            <div class="mb-2">
-						             	<label for="topbar_marquee_text" class="col-form-label" style="font-weight: bold;">Topbar Marquee Text (হেডার নোটিশ / চলমান লেখা)</label>
-						             	<input type="hidden" name="types[]" value="topbar_marquee_text">
-						             	<textarea name="topbar_marquee_text" id="topbar_marquee_text" class="form-control" rows="3" placeholder="উদা: 🔥 Roh Fashion-এ স্বাগতম! সারাদেশে ক্যাশ অন ডেলিভারি সুবিধা | হটলাইন: 01838389494 🔥">{{ get_setting('topbar_marquee_text')->value ?? '' }}</textarea>
-						             	<small class="text-muted d-block mt-1">ওয়েবসাইটের একদম উপরে (Navbar-এর উপর) এই লেখাটি Marquee আকারে স্ক্রলিং হবে।</small>
+			            <div class="mb-2">
+                                @php
+                                    $topbarMessages = old('topbar_marquee_text');
+                                    if (!is_array($topbarMessages)) {
+                                        $topbarMessages = preg_split('/\r\n|\r|\n/', trim(get_setting('topbar_marquee_text')->value ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+                                    }
+                                    $topbarMessages = array_values(array_filter(array_map('trim', $topbarMessages ?? [])));
+                                    if (!$topbarMessages) $topbarMessages = [''];
+                                @endphp
+                                <label class="col-form-label" style="font-weight: bold;">Topbar Messages</label>
+                                <input type="hidden" name="types[]" value="topbar_marquee_text">
+                                <div id="topbar-message-fields">
+                                    @foreach($topbarMessages as $message)
+                                        <div class="input-group mb-2 topbar-message-row">
+                                            <input type="text" name="topbar_marquee_text[]" class="form-control" value="{{ $message }}" placeholder="Enter an announcement">
+                                            <button type="button" class="btn btn-outline-danger" data-remove-topbar-message aria-label="Remove announcement">Remove</button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="add-topbar-message">+ Add message</button>
+                                <template id="topbar-message-template">
+                                    <div class="input-group mb-2 topbar-message-row">
+                                        <input type="text" name="topbar_marquee_text[]" class="form-control" placeholder="Enter an announcement">
+                                        <button type="button" class="btn btn-outline-danger" data-remove-topbar-message aria-label="Remove announcement">Remove</button>
+                                    </div>
+                                </template>
+                                <small class="text-muted d-block mt-1">Add or remove messages here. They rotate automatically on the website.</small>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-6 mb-2">
+                                        <label for="topbar_background_color" class="form-label">Topbar background color</label>
+                                        <input type="hidden" name="types[]" value="topbar_background_color">
+                                        <input type="color" id="topbar_background_color" name="topbar_background_color" class="form-control form-control-color" value="{{ old('topbar_background_color', get_setting('topbar_background_color')->value ?? '#C20000') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label for="topbar_text_color" class="form-label">Topbar text color</label>
+                                        <input type="hidden" name="types[]" value="topbar_text_color">
+                                        <input type="color" id="topbar_text_color" name="topbar_text_color" class="form-control form-control-color" value="{{ old('topbar_text_color', get_setting('topbar_text_color')->value ?? '#FFFFFF') }}">
+                                    </div>
+                                </div>
 						                @error('topbar_marquee_text')
 						                    <p class="text-danger">{{$message}}</p>
 						                @enderror
@@ -309,6 +344,22 @@
 @endsection
 
 @push('footer-script')
+    <script>
+        (() => {
+            const fields = document.getElementById('topbar-message-fields');
+            const template = document.getElementById('topbar-message-template');
+            document.getElementById('add-topbar-message')?.addEventListener('click', () => {
+                fields.append(template.content.cloneNode(true));
+                fields.lastElementChild?.querySelector('input')?.focus();
+            });
+            fields?.addEventListener('click', (event) => {
+                const remove = event.target.closest('[data-remove-topbar-message]');
+                if (!remove) return;
+                remove.closest('.topbar-message-row')?.remove();
+            });
+        })();
+    </script>
+
     <!--Site favicon Show -->
     <script type="text/javascript">
         $(document).ready(function(){

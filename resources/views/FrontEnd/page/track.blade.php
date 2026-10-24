@@ -1050,7 +1050,7 @@
                         <li class="rf-address-info-item">
                             <i class="fa-solid fa-building rf-address-icon"></i>
                             <div class="rf-address-text">
-                                <strong>Store:</strong> {{ get_setting('business_name')->value ?? 'Roh Fashion' }}
+                                <strong>Store:</strong> {{ get_setting('business_name')->value ?? 'Shinduk Fashion' }}
                             </div>
                         </li>
                         <li class="rf-address-info-item">

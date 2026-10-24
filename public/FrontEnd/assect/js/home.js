@@ -1,5 +1,45 @@
 (() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    document.querySelectorAll('[data-hero-track]').forEach(track => {
+        const slider = track.closest('.rf-main-slider');
+        const slides = [...track.querySelectorAll('[data-hero-slide]')];
+        const dots = [...(slider?.querySelectorAll('[data-hero-dot]') || [])];
+        if (slides.length < 2) return;
+
+        let active = 0;
+        let timer;
+        const select = index => {
+            active = (index + slides.length) % slides.length;
+            slides.forEach((slide, i) => {
+                const selected = i === active;
+                slide.classList.toggle('is-active', selected);
+                slide.setAttribute('aria-hidden', String(!selected));
+            });
+            dots.forEach((dot, i) => {
+                const selected = i === active;
+                dot.classList.toggle('is-active', selected);
+                dot.setAttribute('aria-pressed', String(selected));
+            });
+        };
+        const stop = () => window.clearInterval(timer);
+        const start = () => {
+            stop();
+            if (!reducedMotion.matches) timer = window.setInterval(() => select(active + 1), 5000);
+        };
+
+        dots.forEach((dot, i) => dot.addEventListener('click', () => { select(i); start(); }));
+        slider.querySelector('[data-hero-prev]')?.addEventListener('click', () => { select(active - 1); start(); });
+        slider.querySelector('[data-hero-next]')?.addEventListener('click', () => { select(active + 1); start(); });
+        slider.addEventListener('mouseenter', stop);
+        slider.addEventListener('mouseleave', start);
+        slider.addEventListener('focusin', stop);
+        slider.addEventListener('focusout', event => {
+            if (!slider.contains(event.relatedTarget)) start();
+        });
+        start();
+    });
+
     document.querySelectorAll('[data-home-rail]').forEach((rail, index) => {
         rail.id ||= `home-rail-${index}`;
         rail.tabIndex = 0;

@@ -11,7 +11,7 @@
     }
   }
 
-  $siteName = get_setting('site_name')->value ?? 'Roh Fashion';
+  $siteName = get_setting('site_name')->value ?? 'Shinduk Fashion';
   $siteLogo = get_setting('site_logo')->value ?? null;
   $siteFavicon = get_setting('site_favicon')->value ?? null;
   $sitePhone = get_setting('phone')->value ?? '01XXXXXXXXX';
@@ -22,7 +22,7 @@
   $copyright = get_setting('copy_right')->value ?? ('© ' . date('Y') . ' ' . $siteName . ' — সর্বস্বত্ব সংরক্ষিত');
 
   // Messenger link
-  $messengerUrl = 'https://www.facebook.com/messages/t/145176219220180';
+  $messengerUrl = $landingPage->messenger_url ?: 'https://www.facebook.com/messages/t/145176219220180';
 
   // Dynamic Colors & Design
   $themeColor = $landingPage->theme_color ?: '#000000';
@@ -131,72 +131,8 @@
     }
   }
 
-  // Text Reviews Only ("review image hobe na, likhai hobe")
-  $textReviews = [];
-  if (!empty($reviews) && is_array($reviews)) {
-    foreach ($reviews as $rev) {
-      if (is_array($rev)) {
-        $textReviews[] = [
-          'name' => $rev['name'] ?? 'সম্মানিত ক্রেতা',
-          'comment' => $rev['comment'] ?? ($rev['body'] ?? ($rev['text'] ?? '')),
-          'rating' => $rev['rating'] ?? 5,
-          'location' => $rev['location'] ?? 'ক্যাশ অন ডেলিভারি',
-          'date' => $rev['date'] ?? 'সম্প্রতি কেনা',
-        ];
-      } elseif (is_string($rev)) {
-        $textReviews[] = [
-          'name' => 'সম্মানিত ক্রেতা',
-          'comment' => $rev,
-          'rating' => 5,
-          'location' => 'ক্যাশ অন ডেলিভারি',
-          'date' => 'সম্প্রতি কেনা',
-        ];
-      }
-    }
-  } elseif ($product->reviews && $product->reviews->count() > 0) {
-    foreach ($product->reviews as $prRev) {
-      $textReviews[] = [
-        'name' => $prRev->user->name ?? 'সম্মানিত ক্রেতা',
-        'comment' => $prRev->body,
-        'rating' => (int) $prRev->rating ?: 5,
-        'location' => 'ভেরিফাইড অর্ডার',
-        'date' => $prRev->created_at ? $prRev->created_at->diffForHumans() : 'সম্প্রতি কেনা',
-      ];
-    }
-  }
-
-  if (empty($textReviews)) {
-    $textReviews = [
-      [
-        'name' => 'তানজিলা ইসলাম',
-        'comment' => 'মাশাল্লাহ! ছবির চেয়েও বাস্তবে প্রোডাক্টটা অনেক বেশি সুন্দর ও নিখুঁত। কাপড় এবং ফিনিশিং অসাধারণ। ক্যাশ অন ডেলিভারিতে কোনো ঝামেলা ছাড়াই পেয়েছি!',
-        'rating' => 5,
-        'location' => 'ধানমন্ডি, ঢাকা',
-        'date' => '২ দিন আগে',
-      ],
-      [
-        'name' => 'নুসরাত জাহান রিমু',
-        'comment' => 'ডেলিভারি ম্যানের সামনে প্যাকেট খুলে চেক করে নিতে পেরেছি, এটাই সবচেয়ে বড় ভরসা। কোয়ালিটি ১০০/১০০!',
-        'rating' => 5,
-        'location' => 'চট্টগ্রাম সদর',
-        'date' => '৪ দিন আগে',
-      ],
-      [
-        'name' => 'ফারহানা আহমেদ',
-        'comment' => 'অনলাইনে অর্ডার করার পর ভয়ে ছিলাম। কিন্তু হাতে পেয়ে সত্যি দারুণ লেগেছে। কালার ও কোয়ালিটি একদম ছবির মতো। ধন্যবাদ!',
-        'rating' => 5,
-        'location' => 'উত্তরা, ঢাকা',
-        'date' => '১ সপ্তাহ আগে',
-      ],
-      [
-        'name' => 'মেহজাবিন চৌধুরী',
-        'comment' => 'অনেক সুন্দর প্যাকেজিং এবং ফাস্ট ডেলিভারি। পরিবারের সবাই অনেক পছন্দ করেছে। ভবিষ্যতেও নিশ্চিন্তে অর্ডার করব।',
-        'rating' => 5,
-        'location' => 'সিলেট',
-        'date' => '১ সপ্তাহ আগে',
-      ],
-    ];
-  }
+  $reviewImages = collect($landingPage->review_images ?: array_filter([$landingPage->review_image]))
+    ->filter()->map(fn($image) => get_img_url($image))->values();
 @endphp
 <!DOCTYPE html>
 <html lang="bn">
@@ -224,28 +160,7 @@
     href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <script>window.dataLayer = window.dataLayer || [];</script>
-  <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-KGWPJ8QZ');</script>
-  <script>
-    window.dataLayer.push({ ecommerce: null });
-    window.dataLayer.push({
-      event: 'view_item',
-      ecommerce: {
-        currency: 'BDT',
-        value:{{ $initialPrice }},
-        items: [{
-          item_id: '{{ $product->id }}',
-          item_name: @json($productTitle),
-          item_brand: @json($siteName),
-          item_category: @json($product->category->name_en ?? ($product->category->name_bn ?? 'Fashion')),
-          item_variant: @json($selectedVariantName),
-          price:{{ $initialPrice }},
-          quantity: 1,
-          currency: 'BDT'
-        }]
-      }
-    });
-  </script>
+ 
   <script type="application/ld+json">
 {
   "@context":"https://schema.org",
@@ -1148,7 +1063,88 @@
       font-weight: 700
     }
 
-    /* Text Reviews — ("review image hobe na, likhai hobe") */
+    /* Customer review image */
+    .review-slider {
+      margin: 0 auto;
+      max-width: 1100px;
+      position: relative;
+    }
+
+    .review-viewport {
+      overflow: hidden;
+      padding: 4px;
+    }
+
+    .review-track {
+      display: flex;
+      gap: 16px;
+      transition: transform .35s ease;
+      will-change: transform;
+    }
+
+    .review-card {
+      flex: 0 0 calc((100% - (var(--review-visible, 4) - 1) * 16px) / var(--review-visible, 4));
+      min-width: 0;
+    }
+
+    .review-image-trigger {
+      background: transparent;
+      border: 0;
+      cursor: zoom-in;
+      display: block;
+      padding: 0;
+      position: relative;
+      width: 100%;
+    }
+
+    .review-image-trigger img {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: block;
+      height: auto;
+      max-width: 100%;
+      object-fit: contain;
+      width: 100%;
+    }
+
+    .review-image-trigger span {
+      background: rgba(15, 23, 42, .78);
+      border-radius: 999px;
+      bottom: 14px;
+      color: #fff;
+      left: 50%;
+      padding: 8px 14px;
+      position: absolute;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .review-arrow {
+      align-items: center;
+      background: var(--gd-500);
+      border: 0;
+      border-radius: 50%;
+      color: var(--mr-900);
+      cursor: pointer;
+      display: inline-flex;
+      height: 42px;
+      justify-content: center;
+      width: 42px;
+    }
+
+    .review-arrow:disabled {
+      cursor: default;
+      opacity: .4;
+    }
+
+    .review-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+
     .revs {
       padding: 48px 0 8px;
       background: var(--bg)
@@ -2080,18 +2076,458 @@
       .sticky .p s {
         display: none
       }
+    }
 
-      .ap {
-        grid-template-columns: 1fr
+    /* What You Get Section (যা যা পাচ্ছেন) */
+    .wyg-sec {
+      padding: 48px 0 36px;
+      background: #FFFFFF;
+      position: relative;
+    }
+
+    .wyg-heading-wrap {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .wyg-section-title {
+      font-size: 30px;
+      font-weight: 700;
+      color: #2a0812;
+      font-family: 'Cinzel Decorative', 'Hind Siliguri', serif;
+      letter-spacing: 0.5px;
+      margin: 0;
+      text-align: center;
+    }
+
+    .wyg-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 1040px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+
+    .wyg-item-card {
+      background: #FFFFFF;
+      border: 1.5px solid #ece4dc;
+      border-radius: 14px;
+      padding: 30px 22px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 18px rgba(42, 11, 18, 0.04);
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .wyg-item-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(42, 11, 18, 0.08);
+      border-color: #d4b06a;
+    }
+
+    .wyg-circle-badge {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1.5px solid #d4b06a;
+      background: #FFFDF9;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 0 3px #fdf8ef;
+    }
+
+    .wyg-icon {
+      font-size: 22px;
+      color: #8a2435;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wyg-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #22080f;
+      margin-bottom: 6px;
+      font-family: 'Hind Siliguri', sans-serif;
+      line-height: 1.35;
+    }
+
+    .wyg-sub {
+      font-size: 13.5px;
+      color: #78666b;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    @media (max-width: 640px) {
+      .wyg-sec {
+        padding: 34px 0 22px;
+      }
+
+      .wyg-section-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .wyg-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .wyg-item-card {
+        padding: 22px 18px;
       }
     }
+
+    /* Customer Review Slider with Fixed Image Height */
+    .revs-slider-sec {
+      padding: 50px 0 60px;
+      background: var(--cream);
+      position: relative;
+    }
+
+    .rev-slider-container {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 10px;
+    }
+
+    .rev-slider-viewport {
+      overflow: hidden;
+      border-radius: 14px;
+      width: 100%;
+    }
+
+    .rev-slider-track {
+      display: flex;
+      transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
+      gap: 16px;
+    }
+
+    /* Adaptive card widths so slider never shows blank spots */
+    .rev-slider-container[data-count="1"] .rev-slide-card,
+    .rev-slider-container[data-count="2"] .rev-slide-card,
+    .rev-slider-container[data-count="3"] .rev-slide-card {
+      flex: 0 0 calc(50% - 8px);
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .rev-slider-container:not([data-count="1"]):not([data-count="2"]):not([data-count="3"]) .rev-slide-card {
+      flex: 0 0 calc(33.333% - 11px);
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 900px) {
+      .rev-slide-card {
+        flex: 0 0 calc(50% - 8px) !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .rev-slide-card {
+        flex: 0 0 100% !important;
+      }
+    }
+
+    .rev-slide-inner {
+      background: #FFFFFF;
+      border: 1.5px solid #e7dcd3;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(42, 11, 18, 0.05);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .rev-slide-inner:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(42, 11, 18, 0.12);
+      border-color: #d4b06a;
+    }
+
+    /* Fixed image height so they are never uneven or jumping sizes */
+    .rev-fixed-img {
+      width: 100%;
+      height: 380px;
+      max-height: 380px;
+      min-height: 380px;
+      object-fit: contain;
+      background: #FFFFFF;
+      border-radius: 8px;
+      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .rev-fixed-img {
+        height: 320px;
+        max-height: 320px;
+        min-height: 320px;
+      }
+    }
+
+    .rev-zoom-badge {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8a2435;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: #fff8f0;
+      border-radius: 20px;
+      border: 1px solid #f2e2d0;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+
+    .rev-slide-inner:hover .rev-zoom-badge {
+      background: #8a2435;
+      color: #FFFFFF;
+      border-color: #8a2435;
+    }
+
+    /* Navigation buttons positioned directly over the review slider on both sides, in vertical middle */
+    .rev-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 25;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.95);
+      color: #8a2435;
+      border: 1.5px solid #d4b06a;
+      box-shadow: 0 4px 16px rgba(42, 11, 18, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s ease;
+      outline: none;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .rev-nav-prev {
+      left: 14px;
+    }
+
+    .rev-nav-next {
+      right: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .rev-nav-btn {
+        width: 38px;
+        height: 38px;
+      }
+
+      .rev-nav-prev {
+        left: 8px;
+      }
+
+      .rev-nav-next {
+        right: 8px;
+      }
+    }
+
+    .rev-nav-btn:hover {
+      background: #8a2435;
+      color: #FFFFFF;
+      border-color: #8a2435;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 20px rgba(138, 36, 53, 0.4);
+    }
+
+    .rev-nav-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* Full Image Popup Lightbox */
+    .rev-popup-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .rev-popup-modal.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .rev-popup-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(18, 5, 10, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .rev-popup-content {
+      position: relative;
+      z-index: 10;
+      max-width: 90vw;
+      max-height: 88vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: revPopZoom .25s ease-out;
+    }
+
+    @keyframes revPopZoom {
+      from {
+        transform: scale(0.92);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .rev-popup-content img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: #FFFFFF;
+    }
+
+    .rev-popup-close {
+      position: absolute;
+      top: -18px;
+      right: -18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      color: #22080f;
+      border: 2px solid #d4b06a;
+      font-size: 24px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform .2s ease, background .2s ease;
+      z-index: 20;
+    }
+
+    .rev-popup-close:hover {
+      background: #d4b06a;
+      color: #FFFFFF;
+      transform: scale(1.1);
+    }
+
+    /* Simple storefront styling */
+    :root {
+      --bg: #fff;
+      --blush: #f7f7f5;
+      --ink: #222;
+      --soft: #666;
+      --line: #e8e8e5;
+      --r-lg: 12px;
+      --r-md: 10px;
+      --r-sm: 6px;
+      --sh: 0 2px 12px rgba(0, 0, 0, .05);
+      --shl: 0 4px 18px rgba(0, 0, 0, .08);
+      --shc: 0 4px 16px rgba(0, 0, 0, .16);
+    }
+
+    body { background: #fff; color: var(--ink); }
+    h1, h2, h3 { color: var(--ink); }
+    .top { background: #f5f5f2; color: #333; padding: 6px 14px; }
+    .top b { color: var(--ink); }
+    header.hd { background: #fff; backdrop-filter: none; }
+    .ch { border-color: var(--line); color: #333; border-radius: 6px; }
+    .ch.fl { color: var(--cta-ink); border-color: var(--cta-a); }
+    .hero {
+      color: var(--ink);
+      padding: 30px 0 36px;
+      background: #fff;
+    }
+    .hero::after { display: none; }
+    .hero .w { gap: 34px; }
+    .shot { background: #f5f5f2; box-shadow: none; outline: none; border-radius: 10px; }
+    .shot .tag { background: var(--alert); box-shadow: none; }
+    .shot .nav { background: rgba(0, 0, 0, .45); color: #fff; }
+    .hc h1 { color: var(--ink); }
+    .kk { color: #777; letter-spacing: .08em; }
+    .pc, .sb, .stp, .wyg-item-card, .gb, .faq details, .os, .of {
+      box-shadow: none;
+    }
+    .pc { background: #f7f7f5; border: 1px solid var(--line); border-radius: 8px; }
+    .cta { border-radius: 7px; box-shadow: none; }
+    .wyg-sec, .steps, .video-sec, .gal, .revs-slider-sec, .guar, .faq, .order {
+      background: #fff;
+    }
+    .steps, .wyg-sec, .gal, .revs-slider-sec, .guar, .faq, .order { padding-top: 38px; padding-bottom: 38px; }
+    .orn { display: none; }
+    .sh { margin-bottom: 20px; }
+    .sh h2 { font-family: var(--fb); font-weight: 600; }
+    .g { gap: 12px; }
+    .stp, .wyg-item-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .gb { background: #f7f7f5; border: 1px solid var(--line); border-radius: 8px; }
+    .faq details { border: 1px solid var(--line); border-radius: 7px; margin-bottom: 8px; }
+    .rev-slide-inner, .gg button { border-radius: 8px; box-shadow: none; }
+    .og { gap: 16px; }
+    .os, .of { border: 1px solid var(--line); border-radius: 8px; }
+    .sticky { box-shadow: 0 -2px 10px rgba(0, 0, 0, .08); }
+
+    @media (max-width: 700px) {
+      .hero { padding: 18px 0 26px; }
+      .hero .w { gap: 20px; }
+      .shot { border-radius: 8px; }
+      .steps, .wyg-sec, .gal, .revs-slider-sec, .guar, .faq, .order { padding-top: 28px; padding-bottom: 28px; }
+      .ha { gap: 6px; }
+      .ch { padding: 7px 10px; }
+    }
   </style>
+
+
+
+
 </head>
 
 <body>
   <script>document.documentElement.classList.add('js');</script>
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KGWPJ8QZ" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- Google Tag Manager (noscript) -->
+ 
 
   <div class="top">{!! $topNotice !!}</div>
 
@@ -2144,10 +2580,12 @@
           <p class="ld">{{ strip_tags($productSubtitle) }}</p>
         @endif
 
-        <a class="hp2" href="#reviews" data-ev="jump_reviews">
-          <span class="av"><i></i><i></i><i></i></span>
-          <span><b>৫০০+ জন</b> সন্তুষ্ট কাস্টমার — রিভিউ দেখুন</span>
-        </a>
+        @if($reviewImages->isNotEmpty())
+          <a class="hp2" href="#reviews" data-ev="jump_reviews">
+            <span class="av"><i></i><i></i><i></i></span>
+            <span><b>৫০০+ জন</b> সন্তুষ্ট কাস্টমার — রিভিউ দেখুন</span>
+          </a>
+        @endif
 
         <!-- Dynamic Pricing Section -->
         <div class="pc">
@@ -2159,17 +2597,19 @@
               style="{{ $discountPercent > 0 ? '' : 'display:none;' }}">{{ $discountPercent }}% ছাড়</span>
           </div>
           <p class="sl" id="heroSaveTxt" style="{{ $savingsAmount > 0 ? '' : 'display:none;' }}">সাশ্রয় হচ্ছে
-            <b>৳{{ number_format($savingsAmount) }}</b></p>
+            <b>৳{{ number_format($savingsAmount) }}</b>
+          </p>
           <p class="shl">🚚 ডেলিভারি চার্জ — ঢাকার ভিতরে <b>৳{{ (int) $delivery_inside }}</b> · ঢাকার বাইরে
-            <b>৳{{ (int) $delivery_outside }}</b></p>
+            <b>৳{{ (int) $delivery_outside }}</b>
+          </p>
         </div>
 
         <!-- Variant Selector in Hero (if variants exist) -->
         @if($hasVariants)
           <div class="variant-block" id="heroVariantBlock">
             <label class="variant-lbl" for="heroVariantSelect">
-              <span>ভ্যারিয়েন্ট পছন্দ করুন:</span>
-              <b id="curVarLabel">{{ $selectedVariantName }}</b>
+              <span>ড্রেসের সাইজ সিলেক্ট করুন:</span>
+
             </label>
             <select id="heroVariantSelect" class="variant-select-hero" aria-label="ভ্যারিয়েন্ট পছন্দ করুন">
               @foreach($productStocks as $stk)
@@ -2211,6 +2651,30 @@
       </div>
     </div>
   </section>
+
+  <!-- ==================== যা যা পাচ্ছেন (What You Get Cards) ==================== -->
+  @if(!empty($whatYouGetCards) && count($whatYouGetCards) > 0)
+    <section class="wyg-sec" id="whatYouGet">
+      <div class="w">
+        <div class="wyg-heading-wrap rv">
+          <h2 class="wyg-section-title">{{ $whatYouGetTitle ?? 'যা যা পাচ্ছেন' }}</h2>
+        </div>
+        <div class="wyg-cards-grid rv">
+          @foreach($whatYouGetCards as $wCard)
+            <div class="wyg-item-card">
+              <div class="wyg-circle-badge">
+                <span class="wyg-icon">{{ $wCard['icon'] ?? '✦' }}</span>
+              </div>
+              <h3 class="wyg-title">{{ $wCard['title'] ?? '' }}</h3>
+              @if(!empty($wCard['subtitle']))
+                <p class="wyg-sub">{{ $wCard['subtitle'] }}</p>
+              @endif
+            </div>
+          @endforeach
+        </div>
+      </div>
+    </section>
+  @endif
 
   <!-- ==================== ৩ STEPS ==================== -->
   <section class="steps">
@@ -2276,65 +2740,67 @@
               class="heroCtaPrice">৳{{ number_format($initialPrice) }}</span></a></div>
       </div>
     </section>
-    <div class="lb" id="lb"><button class="x" id="lbX" aria-label="বন্ধ করুন">✕</button><img id="lbImg" src=""
-        alt="বড় করে দেখা ছবি"></div>
+
   @endif
 
-  <!-- ==================== TEXT REVIEWS ("review image hobe na, likhai hobe") ==================== -->
-  <section class="revs" id="reviews">
-    <div class="w">
-      <div class="sh rv">
-        <div class="orn"><span></span><i></i><i></i><i></i><span></span></div>
-        <h2>ক্রেতাদের মতামত</h2>
-        <p>সরাসরি আমাদের সম্মানিত গ্রাহকদের পাঠানো প্রতিক্রিয়া</p>
-        <div class="rc">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-          <span>শতভাগ খাঁটি কাস্টমার রিভিউ</span>
+  @if($reviewImages->isNotEmpty())
+    <section class="revs-slider-sec" id="reviews">
+      <div class="w">
+        <div class="sh rv">
+          <div class="orn"><span></span><i></i><i></i><i></i><span></span></div>
+          <h2>প্রোডাক্ট হাতে পেয়ে কাস্টমাররা যা বলেছেন</h2>
+          <p>ছবিতে ক্লিক করে বড় আকারে আসল রিভিউ দেখতে পারবেন</p>
         </div>
-      </div>
-      <div class="rw rv">
-        <div class="rt-text" id="revTrack">
-          @foreach($textReviews as $tRev)
-            <div class="rcard">
-              <div>
-                <div class="rcard-head">
-                  <div class="rcard-av">{{ mb_substr($tRev['name'] ?? 'ক', 0, 1) }}</div>
-                  <div class="rcard-meta">
-                    <div class="rcard-nm">{{ $tRev['name'] }}</div>
-                    <div class="rcard-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg> ভেরিফাইড ক্রেতা</div>
+
+        <div class="rev-slider-container rv" id="revSliderContainer" data-count="{{ $reviewImages->count() }}">
+          <div class="rev-slider-viewport" id="revSliderViewport">
+            <div class="rev-slider-track" id="revSliderTrack">
+              @foreach($reviewImages as $rIndex => $rUrl)
+                <div class="rev-slide-card" data-index="{{ $rIndex }}">
+                  <div class="rev-slide-inner" onclick="openReviewPopup('{{ $rUrl }}')">
+                    <img src="{{ $rUrl }}" alt="Customer Review {{ $rIndex + 1 }}" class="rev-fixed-img" loading="lazy">
+                    <div class="rev-zoom-badge">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        <line x1="11" y1="8" x2="11" y2="14" />
+                        <line x1="8" y1="11" x2="14" y2="11" />
+                      </svg>
+                      বড় করে দেখুন
+                    </div>
                   </div>
                 </div>
-                <div class="rcard-stars">
-                  @for($s = 0; $s < ($tRev['rating'] ?? 5); $s++)★@endfor
-                </div>
-                <p class="rcard-text">“{{ $tRev['comment'] }}”</p>
-              </div>
-              <div class="rcard-foot">
-                <span>📍 {{ $tRev['location'] ?? 'বাংলাদেশ' }}</span>
-                <span>{{ $tRev['date'] ?? 'সম্প্রতি' }}</span>
-              </div>
+              @endforeach
             </div>
-          @endforeach
-        </div>
-        <div class="rctrl" aria-label="রিভিউ স্লাইডার">
-          <button class="ra" id="revPrev" type="button" aria-label="আগের রিভিউ">‹</button>
-          <div class="rdots" id="revDots">
-            @foreach($textReviews as $idx => $tRev)
-              <button class="rdot {{ $idx === 0 ? 'on' : '' }}" type="button" data-i="{{ $idx }}"></button>
-            @endforeach
           </div>
-          <button class="ra" id="revNext" type="button" aria-label="পরের রিভিউ">›</button>
+
+          <!-- Navigation buttons on top of review slider, on left and right in the vertical middle -->
+          <button type="button" class="rev-nav-btn rev-nav-prev" id="revBtnPrev" aria-label="Previous review">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button type="button" class="rev-nav-btn rev-nav-next" id="revBtnNext" aria-label="Next review">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
         </div>
       </div>
-      <div class="rcta"><a href="#order" class="cta" style="max-width:340px" data-ev="cta_reviews">আমারটাও অর্ডার করি —
-          <span class="heroCtaPrice">৳{{ number_format($initialPrice) }}</span></a></div>
-    </div>
-  </section>
+    </section>
 
+    <!-- Full Image Popup Modal -->
+    <div class="rev-popup-modal" id="revPopupModal" aria-hidden="true" role="dialog">
+      <div class="rev-popup-backdrop" onclick="closeReviewPopup()"></div>
+      <div class="rev-popup-content">
+        <button type="button" class="rev-popup-close" onclick="closeReviewPopup()"
+          aria-label="Close popup">&times;</button>
+        <img src="" id="revPopupImg" alt="Full review image">
+      </div>
+    </div>
+  @endif
   <!-- ==================== GUARANTEE ==================== -->
   <section class="guar">
     <div class="w">
@@ -2436,6 +2902,8 @@
             <form id="orderForm" action="{{ route('landing.order.store') }}" method="POST" novalidate>
               <input type="hidden" name="_token" id="csrfInput" value="{{ csrf_token() }}" autocomplete="off">
               <input type="hidden" name="product_id" value="{{ $product->id }}">
+              <input type="hidden" name="landing_id" value="{{ $landingPage->id }}">
+              <input type="hidden" name="landing_slug" value="{{ $landingPage->slug }}">
               <input type="hidden" name="quantity" id="qtyInput" value="1">
               <input type="hidden" name="varient" id="selectedVariantInput" value="{{ $selectedVariantName }}">
               <input type="hidden" name="color" id="selectedColorInput" value="{{ $selectedVariantName }}">
@@ -2448,7 +2916,7 @@
               <!-- In-Form Variant Dropdown (if variants exist) -->
               @if($hasVariants)
                 <div class="fd" id="fVariant" style="margin-bottom:14px">
-                  <label for="variantSelect">পছন্দের ভ্যারিয়েন্ট নির্বাচন করুন *</label>
+                  <label for="variantSelect">ড্রেসের সাইজ সিলেক্ট করুন *</label>
                   <select id="variantSelect" name="variant_dropdown" class="variant-select" required>
                     @foreach($productStocks as $stk)
                       @php
@@ -2466,7 +2934,7 @@
 
               <div class="fd" id="fName">
                 <label for="name">আপনার নাম *</label>
-                <input type="text" id="name" name="name" autocomplete="name" placeholder="যেমনঃ ফারহানা আক্তার"
+                <input type="text" id="name" name="name" autocomplete="name" placeholder="আপনার পুরো নাম লিখুন"
                   required>
                 <span class="msg">আপনার নাম লিখুন</span>
               </div>
@@ -2478,12 +2946,33 @@
                 <span class="msg">১১ ডিজিটের সঠিক মোবাইল নাম্বার দিন (যেমনঃ 017XXXXXXXX)</span>
               </div>
 
+              @php
+                $emailFieldMode = $landingPage->getEmailFieldMode();
+              @endphp
+
+              @if($emailFieldMode !== 'hidden')
+                <div class="fd" id="fEmail">
+                  <label for="email">
+                    @if($emailFieldMode === 'required')
+                      ইমেইল অ্যাড্রেস *
+                    @else
+                      ইমেইল <span class="opt">(ঐচ্ছিক)</span>
+                    @endif
+                  </label>
+                  <input type="email" id="email" name="email" autocomplete="email" inputmode="email"
+                    placeholder="youremail@gmail.com" {{ $emailFieldMode === 'required' ? 'required' : '' }}>
+                  <span class="msg">
+                    {{ $emailFieldMode === 'required' ? 'আপনার সঠিক ইমেইলটি লিখুন (যেমন: name@gmail.com)' : 'সঠিক
+                    ফরম্যাটের ইমেইল লিখুন (যেমন: name@gmail.com)' }}
+                  </span>
+                </div>
+              @endif
+
               <div class="fd" id="fAddress">
-                <label for="address">ডেলিভারি ঠিকানা *</label>
-                <textarea id="address" name="address" autocomplete="street-address" rows="3"
-                  placeholder="আপনার সম্পূর্ণ ডেলিভারি ঠিকানা লিখুন (যেমন: বাসা/রোড, এলাকা, থানা, জেলা)"
-                  required></textarea>
-                <span class="msg">থানা ও জেলাসহ পূর্ণ ডেলিভারি ঠিকানা লিখুন</span>
+                <label for="address">সম্পূর্ণ ঠিকানা *</label>
+                <textarea id="address" name="address" autocomplete="street-address" rows="3" maxlength="1000"
+                  placeholder="আপনার সম্পূর্ণ ঠিকানা লিখুন " required></textarea>
+                <span class="msg">থানা ও জেলাসহ পূর্ণ ঠিকানা লিখুন</span>
               </div>
 
               <!-- Dynamic Shipping Options From Website Shipping Charges -->
@@ -2494,7 +2983,7 @@
                     <label class="{{ $idx === 0 ? 'sel' : '' }}" for="ship_{{ $ship->id }}">
                       <input type="radio" id="ship_{{ $ship->id }}" name="shipping_id" value="{{ $ship->id }}"
                         data-charge="{{ (float) $ship->shipping_charge }}" data-type="{{ $ship->type }}" {{ $idx === 0 ? 'checked' : '' }}>
-                      {{ $ship->name }}
+                      {{ $ship->name ?? 'Inside Dhaka' }}
                       <small>চার্জ ৳{{ (int) $ship->shipping_charge }}</small>
                     </label>
                   @endforeach
@@ -2502,13 +2991,13 @@
                   <label class="sel" for="areaIn">
                     <input type="radio" id="areaIn" name="shipping_id" value="{{ $shipping_inside->id ?? 1 }}"
                       data-charge="{{ (float) $delivery_inside }}" data-type="1" checked>
-                    {{ $shipping_inside->name ?? 'ঢাকার ভিতরে' }}
+                    {{ "$shipping_inside->name" ?? 'ঢাকার ভিতরে' }}
                     <small>চার্জ ৳{{ (int) $delivery_inside }}</small>
                   </label>
                   <label for="areaOut">
                     <input type="radio" id="areaOut" name="shipping_id" value="{{ $shipping_outside->id ?? 2 }}"
                       data-charge="{{ (float) $delivery_outside }}" data-type="2">
-                    {{ $shipping_outside->name ?? 'ঢাকার বাইরে' }}
+                    {{'ঢাকার বাইরে' }}
                     <small>চার্জ ৳{{ (int) $delivery_outside }}</small>
                   </label>
                 @endif
@@ -2613,7 +3102,10 @@
           item_variant: @json($selectedVariantName)
         },
         orderStoreRoute: '{{ route("landing.order.store") }}',
-        csrfToken: '{{ csrf_token() }}'
+        abandonedCaptureRoute: '{{ route("abandoned-checkout.capture") }}',
+        csrfToken: '{{ csrf_token() }}',
+        emailFieldMode: '{{ $landingPage->getEmailFieldMode() }}',
+        emailRequired: {{ $landingPage->getEmailFieldMode() === 'required' ? 'true' : 'false' }}
       };
 
       var $ = function (id) { return document.getElementById(id); };
@@ -2700,6 +3192,37 @@
       if ($('lbX')) $('lbX').addEventListener('click', function () { lb.classList.remove('open'); });
       if (lb) lb.addEventListener('click', function (e) { if (e.target === lb) lb.classList.remove('open'); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lb) lb.classList.remove('open'); });
+      document.querySelectorAll('.review-image-trigger').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var image = button.querySelector('img');
+          openLb(button.getAttribute('data-src'), image ? image.alt : 'Customer review');
+        });
+      });
+      (function () {
+        var track = $('reviewTrack'), slider = $('reviewSlider'), index = 0;
+        if (!track || !slider) return;
+        function visibleCards() {
+          if (window.matchMedia('(max-width: 380px)').matches) return 1;
+          if (window.matchMedia('(max-width: 600px)').matches) return 2;
+          if (window.matchMedia('(max-width: 900px)').matches) return 3;
+          return 4;
+        }
+        function updateReviews() {
+          var cards = track.querySelectorAll('.review-card'), maxIndex = Math.max(0, cards.length - visibleCards());
+          var visible = Math.min(visibleCards(), cards.length);
+          slider.style.setProperty('--review-visible', visible || 1);
+          index = Math.min(index, maxIndex);
+          var cardWidth = cards[0] ? cards[0].getBoundingClientRect().width : 0;
+          var gap = parseFloat(window.getComputedStyle(track).gap) || 0;
+          track.style.transform = 'translateX(-' + (index * (cardWidth + gap)) + 'px)';
+          if ($('reviewPrev')) $('reviewPrev').disabled = index === 0;
+          if ($('reviewNext')) $('reviewNext').disabled = index >= maxIndex;
+        }
+        if ($('reviewPrev')) $('reviewPrev').addEventListener('click', function () { index = Math.max(0, index - 1); updateReviews(); });
+        if ($('reviewNext')) $('reviewNext').addEventListener('click', function () { index++; updateReviews(); });
+        window.addEventListener('resize', updateReviews);
+        updateReviews();
+      })();
       if ($('ggrid')) {
         $('ggrid').addEventListener('click', function (e) {
           var b = e.target.closest('button[data-src]');
@@ -2845,49 +3368,6 @@
 
       paint();
 
-      // Text Reviews Slider (Mobile swipe & desktop sync)
-      (function () {
-        var track = $('revTrack');
-        if (!track) return;
-        var cards = Array.prototype.slice.call(track.querySelectorAll('.rcard'));
-        var dots = Array.prototype.slice.call(document.querySelectorAll('.rdot'));
-        var prevB = $('revPrev');
-        var nextB = $('revNext');
-        var ri = 0;
-
-        dots.forEach(function (d, k) { if (k >= cards.length) d.style.display = 'none'; });
-        dots = dots.filter(function (d, k) { return k < cards.length; });
-
-        function sync(n, scroll) {
-          if (cards.length === 0) return;
-          ri = Math.max(0, Math.min(n, cards.length - 1));
-          dots.forEach(function (d, k) { d.classList.toggle('on', k === ri); });
-          if (prevB) prevB.disabled = (ri === 0);
-          if (nextB) nextB.disabled = (ri === cards.length - 1);
-          if (scroll && window.matchMedia('(max-width:700px)').matches) {
-            track.scrollTo({ left: cards[ri].offsetLeft - track.offsetLeft, behavior: 'smooth' });
-          }
-        }
-
-        if (prevB) prevB.addEventListener('click', function () { sync(ri - 1, true); });
-        if (nextB) nextB.addEventListener('click', function () { sync(ri + 1, true); });
-        dots.forEach(function (d) { d.addEventListener('click', function () { sync(Number(d.dataset.i), true); }); });
-
-        var raf;
-        track.addEventListener('scroll', function () {
-          cancelAnimationFrame(raf);
-          raf = requestAnimationFrame(function () {
-            var near = 0, dist = Infinity;
-            cards.forEach(function (c, k) {
-              var d = Math.abs((c.offsetLeft - track.offsetLeft) - track.scrollLeft);
-              if (d < dist) { dist = d; near = k; }
-            });
-            sync(near, false);
-          });
-        }, { passive: true });
-        sync(0, false);
-      })();
-
       // Funnel tracking
       document.querySelectorAll('[data-ev]').forEach(function (el) {
         el.addEventListener('click', function () {
@@ -2909,6 +3389,44 @@
         });
       }
 
+      var leadCaptureTimer = null, lastLeadCapture = '';
+      function scheduleLeadCapture(immediate) {
+        if (!form) return;
+        var phoneInput = $('phone');
+        var phone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+        if (!/^01[3-9]\d{8}$/.test(phone)) return;
+        var payload = {
+          source: 'dynamic_landing', phone: phone,
+          name: $('name') ? $('name').value : '',
+          email: $('email') ? $('email').value : '',
+          address: $('address') ? $('address').value : '',
+          product_id: CFG.productId,
+          landing_slug: form.elements.landing_slug ? form.elements.landing_slug.value : '',
+          quantity: qty,
+          variant: selectedVar || ''
+        };
+        var serialized = JSON.stringify(payload);
+        if (serialized === lastLeadCapture) return;
+        clearTimeout(leadCaptureTimer);
+        leadCaptureTimer = setTimeout(function () {
+          fetch(CFG.abandonedCaptureRoute, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CFG.csrfToken },
+            body: serialized
+          }).then(function (response) {
+            if (response.ok) lastLeadCapture = serialized;
+          }).catch(function () { });
+        }, immediate ? 0 : 900);
+      }
+      if (form) {
+        form.addEventListener('input', scheduleLeadCapture);
+        form.addEventListener('change', scheduleLeadCapture);
+        if ($('phone')) $('phone').addEventListener('blur', function () { scheduleLeadCapture(true); });
+      }
+      if ($('qPlus')) $('qPlus').addEventListener('click', scheduleLeadCapture);
+      if ($('qMinus')) $('qMinus').addEventListener('click', scheduleLeadCapture);
+
       // Form Validation
       function bad(id, on) { var el = $(id); if (el) el.classList.toggle('bad', !!on); }
       function validate() {
@@ -2924,8 +3442,29 @@
         bad('fPhone', !pOk);
         if (!pOk) { ok = false; first = first || 'fPhone'; }
 
-        bad('fAddress', ad.length < 6);
-        if (ad.length < 6) { ok = false; first = first || 'fAddress'; }
+        var emEl = $('email');
+        if (emEl) {
+          var em = emEl.value.trim();
+          var emRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          var emBad = false;
+          if (CFG.emailRequired && !em) {
+            emBad = true;
+          } else if (em && !emRegex.test(em)) {
+            emBad = true;
+          }
+          bad('fEmail', emBad);
+          if (emBad) { ok = false; first = first || 'fEmail'; }
+        }
+
+        var addressWords = ad.split(/\s+/u).filter(Boolean);
+        var addressSpaces = (ad.match(/\s/g) || []).length;
+        var addressBad = addressWords.length < 2 || addressSpaces < 1;
+        bad('fAddress', addressBad);
+        if (addressBad) {
+          var addressHint = $('fAddress').querySelector('.msg');
+          if (addressHint) addressHint.textContent = 'Please enter at least two parts of your address, separated by a space.';
+          ok = false; first = first || 'fAddress';
+        }
 
         if (!ok) {
           dl('form_error', { error_type: 'validation', error_field: first });
@@ -2938,7 +3477,7 @@
         return ok;
       }
 
-      ['name', 'phone', 'address'].forEach(function (id) {
+      ['name', 'phone', 'address', 'email'].forEach(function (id) {
         var el = $(id);
         if (el) {
           el.addEventListener('input', function () {
@@ -2959,6 +3498,7 @@
           if (errBox) { errBox.textContent = ''; errBox.classList.remove('show'); }
           if ($('website').value) return; // honeypot
           if (!validate()) return;
+          clearTimeout(leadCaptureTimer);
 
           btn.disabled = true;
           btn.innerHTML = '<span class="spin">⏳</span> অর্ডারটি পাঠানো হচ্ছে...';
@@ -2984,12 +3524,6 @@
             }
 
             var inv = data.invoice_no || data.order_reference || ('#' + (data.order_id || ''));
-            if ($('orderRef')) $('orderRef').textContent = inv;
-            if ($('formView')) $('formView').style.display = 'none';
-            if ($('doneBox')) {
-              $('doneBox').classList.add('show');
-              $('doneBox').scrollIntoView({ block: 'center', behavior: 'smooth' });
-            }
 
             var ecom = data.purchase || {
               transaction_id: inv,
@@ -3006,6 +3540,18 @@
               ecommerce: ecom
             });
 
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+              return;
+            }
+
+            if ($('orderRef')) $('orderRef').textContent = inv;
+            if ($('formView')) $('formView').style.display = 'none';
+            if ($('doneBox')) {
+              $('doneBox').classList.add('show');
+              $('doneBox').scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+
           } catch (err) {
             dl('form_error', { error_type: 'server', error_message: String(err.message).slice(0, 120) });
             if (errBox) {
@@ -3020,6 +3566,149 @@
           }
         });
       }
+
+      // ==================== Customer Review Image Carousel ====================
+      (function initReviewSlider() {
+        var track = document.getElementById('revSliderTrack');
+        var prevBtn = document.getElementById('revBtnPrev');
+        var nextBtn = document.getElementById('revBtnNext');
+        var container = document.getElementById('revSliderContainer');
+        if (!track) return;
+
+        var slides = track.querySelectorAll('.rev-slide-card');
+        if (!slides.length) return;
+
+        if (slides.length <= 1) {
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
+          return;
+        }
+
+        var currentIndex = 0;
+        var autoSlideTimer = null;
+
+        function getVisibleCount() {
+          if (window.innerWidth <= 640) return 1;
+          if (window.innerWidth <= 900) return 2;
+          return slides.length >= 4 ? 3 : 2;
+        }
+
+        function getMaxIndex() {
+          var visible = getVisibleCount();
+          return Math.max(0, slides.length - visible);
+        }
+
+        function updateSlide() {
+          var maxIdx = getMaxIndex();
+          if (currentIndex > maxIdx) currentIndex = 0;
+          if (currentIndex < 0) currentIndex = maxIdx;
+
+          var gap = 16;
+          var card = slides[0];
+          if (!card) return;
+          var cardWidth = card.offsetWidth;
+          var distance = (cardWidth + gap) * currentIndex;
+          track.style.transform = 'translateX(-' + distance + 'px)';
+        }
+
+        function nextSlide() {
+          var maxIdx = getMaxIndex();
+          if (currentIndex >= maxIdx) {
+            currentIndex = 0;
+          } else {
+            currentIndex++;
+          }
+          updateSlide();
+        }
+
+        function prevSlide() {
+          var maxIdx = getMaxIndex();
+          if (currentIndex <= 0) {
+            currentIndex = maxIdx;
+          } else {
+            currentIndex--;
+          }
+          updateSlide();
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            nextSlide();
+            resetTimer();
+          });
+        }
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            prevSlide();
+            resetTimer();
+          });
+        }
+
+        function startTimer() {
+          stopTimer();
+          if (slides.length > getVisibleCount()) {
+            autoSlideTimer = setInterval(nextSlide, 3500);
+          }
+        }
+
+        function stopTimer() {
+          if (autoSlideTimer) {
+            clearInterval(autoSlideTimer);
+            autoSlideTimer = null;
+          }
+        }
+
+        function resetTimer() {
+          stopTimer();
+          startTimer();
+        }
+
+        if (container) {
+          container.addEventListener('mouseenter', stopTimer);
+          container.addEventListener('mouseleave', startTimer);
+          container.addEventListener('touchstart', stopTimer, { passive: true });
+          container.addEventListener('touchend', startTimer, { passive: true });
+        }
+
+        window.addEventListener('resize', function () {
+          updateSlide();
+          resetTimer();
+        });
+
+        startTimer();
+      })();
+
+      // Global Review Popup Modal functions
+      window.openReviewPopup = function (src) {
+        var modal = document.getElementById('revPopupModal');
+        var img = document.getElementById('revPopupImg');
+        if (modal && img) {
+          img.src = src;
+          modal.classList.add('show');
+          modal.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        }
+      };
+
+      window.closeReviewPopup = function () {
+        var modal = document.getElementById('revPopupModal');
+        if (modal) {
+          modal.classList.remove('show');
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+      };
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          window.closeReviewPopup();
+        }
+      });
 
       // Intersection Observers (Reveal animations & Sticky CTA)
       if ('IntersectionObserver' in window) {

@@ -19,11 +19,24 @@ class LandingPage extends Model
         'overview_points' => 'array',
         'about_cards'     => 'array',
         'reviews'         => 'array',
+        'review_images'   => 'array',
         'faqs'            => 'array',
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function getEmailFieldMode(): string
+    {
+        $mode = strtolower(trim((string) ($this->email_field ?? ($this->about_cards['email_field'] ?? 'hidden'))));
+        if (in_array($mode, ['required', 'req'])) {
+            return 'required';
+        }
+        if (in_array($mode, ['optional', 'unrequired', 'opt'])) {
+            return 'optional';
+        }
+        return 'hidden';
     }
 }

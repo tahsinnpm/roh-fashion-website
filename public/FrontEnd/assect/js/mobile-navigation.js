@@ -133,11 +133,24 @@
         }
     });
 
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            if (searchForm && searchForm.classList.contains('is-open')) {
-                closeSearch();
-            }
-        }
-    });
+    // 3. Center Active Category Pill in Mobile Nav Strip
+    const centerActiveCategory = () => {
+        const activePill = document.querySelector('.roh-category-nav a.is-active');
+        if (!activePill) return;
+        const navInner = activePill.closest('.roh-category-nav__inner');
+        if (!navInner) return;
+        requestAnimationFrame(() => {
+            const pillLeft = activePill.offsetLeft;
+            const pillWidth = activePill.offsetWidth;
+            const containerWidth = navInner.clientWidth;
+            navInner.scrollLeft = Math.max(0, pillLeft - (containerWidth / 2) + (pillWidth / 2));
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', centerActiveCategory);
+    } else {
+        centerActiveCategory();
+    }
 })();
+

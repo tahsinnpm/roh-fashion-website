@@ -402,6 +402,11 @@
 							@enderror
 						</div>
 						<div class="mb-4">
+							<label for="youtube_video_url" class="col-form-label" style="font-weight: bold;">YouTube product video (optional):</label>
+							<input type="url" name="youtube_video_url" id="youtube_video_url" class="form-control" value="{{ old('youtube_video_url') }}" placeholder="https://www.youtube.com/watch?v=...">
+							@error('youtube_video_url')<p class="text-danger">{{ $message }}</p>@enderror
+						</div>
+						<div class="mb-4">
 							<label for="multiImg" class="col-form-label" style="font-weight: bold;">Product Gallery Image:</label>
 							<input type="file" name="multi_img[]" class="form-control" multiple="" id="multiImg" >
 							<div class="row  p-2" id="preview_img">

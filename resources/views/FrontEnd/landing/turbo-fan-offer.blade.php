@@ -1622,6 +1622,11 @@ function submitOrder() {
       // Trigger Purchase DataLayer & Pixel Event
       triggerPurchaseEvent(res, orderPayload);
 
+      if (res.redirect_url) {
+        window.location.href = res.redirect_url;
+        return;
+      }
+
       // Update success box details
       var successCustName = document.getElementById('successCustName');
       if (successCustName) successCustName.textContent = custName;

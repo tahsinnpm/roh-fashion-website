@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\AccountLedger;
 use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\Vendor;
 use App\Models\VendorComission;
 use App\Models\VendorTransaction;
@@ -19,6 +18,8 @@ use App\Models\Affiliate;
 use App\Models\District;
 use App\Models\Upazilla;
 use App\Models\Shipping;
+use App\Services\OrderInventory;
+use Illuminate\Support\Facades\DB;
 use Session;
 use PDF;
 use function Symfony\Component\VarDumper\Dumper\esc;
@@ -102,7 +103,7 @@ class OrderController extends Controller
 
         //dd($request);
 
-        $orders = $orders->paginate(15);
+        $orders = $orders->with('order_details.product')->paginate(15);
         return view('backend.sales.all_orders.index', compact('orders', 'delivery_status', 'date','payment_status'));
     }
 
@@ -197,17 +198,67 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(OrderInventory $inventory, $id)
     {
-        $order = Order::findOrFail($id);
-
-        $order->delete();
+        try {
+            DB::transaction(function () use ($id, $inventory) {
+                $order = Order::lockForUpdate()->findOrFail($id);
+                if (!$order->stock_restored_at) {
+                    $inventory->restore($order);
+                    $order->stock_restored_at = now();
+                    $order->save();
+                }
+                $order->delete();
+            });
+        } catch (\RuntimeException $error) {
+            return back()->with('error', $error->getMessage());
+        }
 
         $notification = array(
-            'message' => 'Order Deleted Successfully.',
+            'message' => 'Order moved to trash. Stock quantities have been returned.',
             'alert-type' => 'success'
         );
-        return redirect()->back()->with($notification);
+        return redirect()->route('all_orders.index')->with($notification);
+    }
+
+    public function trash()
+    {
+        $orders = Order::onlyTrashed()->with('order_details')->latest('deleted_at')->paginate(20);
+        return view('backend.sales.all_orders.trash', compact('orders'));
+    }
+
+    public function restore(OrderInventory $inventory, $id)
+    {
+        try {
+            DB::transaction(function () use ($id, $inventory) {
+                $order = Order::withTrashed()->lockForUpdate()->findOrFail($id);
+                if (!$order->trashed()) return;
+
+                if ($order->stock_restored_at && $order->delivery_status !== 'cancelled') {
+                    $inventory->deduct($order);
+                    $order->stock_restored_at = null;
+                }
+
+                $order->restore();
+                $order->save();
+            });
+        } catch (\RuntimeException $error) {
+            return back()->with('error', $error->getMessage());
+        }
+
+        return redirect()->route('orders.trash')->with('success', 'Order restored.');
+    }
+
+    public function forceDelete($id)
+    {
+        DB::transaction(function () use ($id) {
+            $order = Order::onlyTrashed()->lockForUpdate()->findOrFail($id);
+            OrderDetail::where('order_id', $order->id)->delete();
+            \App\Models\ReturnRequest::where('order_id', $order->id)->delete();
+            $order->forceDelete();
+        });
+
+        return redirect()->route('orders.trash')->with('success', 'Order permanently deleted.');
     }
 
 
@@ -267,17 +318,39 @@ class OrderController extends Controller
     }
 
     /*================= Start update_delivery_status Methoed ================*/
-    public function update_delivery_status(Request $request)
+    public function update_delivery_status(Request $request, OrderInventory $inventory)
     {
-        $order = Order::findOrFail($request->order_id);
-        $order->delivery_status = $request->status;
-        $order->save();
+        $request->validate([
+            'order_id' => 'required|integer',
+            'status' => 'required|in:pending,confirmed,shipped,picked_up,on_the_way,delivered,cancelled',
+        ]);
+
+        try {
+            [$order, $wasCancelled] = DB::transaction(function () use ($request, $inventory) {
+                $order = Order::lockForUpdate()->findOrFail($request->order_id);
+                $wasCancelled = $order->delivery_status === 'cancelled';
+
+                if ($request->status === 'cancelled' && !$order->stock_restored_at) {
+                    $inventory->restore($order);
+                    $order->stock_restored_at = now();
+                } elseif ($request->status !== 'cancelled' && $order->stock_restored_at) {
+                    $inventory->deduct($order);
+                    $order->stock_restored_at = null;
+                }
+
+                $order->delivery_status = $request->status;
+                $order->save();
+                return [$order, $wasCancelled];
+            });
+        } catch (\RuntimeException $error) {
+            return response()->json(['error' => $error->getMessage()], 422);
+        }
+
         if($order->user_id != 1){
             $this->addOrRemoveCommission($request->order_id);
         }
-        if ($order->delivery_status == 'cancelled'){
+        if ($order->delivery_status == 'cancelled' && !$wasCancelled){
             $this->deductAdminBalance($order->id, $order->grand_total);
-            $this->addStock($order->id);
         }
 
         return response()->json(['success'=> 'Delivery status has been updated']);
@@ -372,39 +445,6 @@ class OrderController extends Controller
         $account_ledger->save();
     }
 
-    public function addStock($id)
-    {
-        $orders = OrderDetail::where('order_id', $id)->get();
-
-        foreach ($orders as $product){
-
-            $item = Product::find($product->product_id);
-            if($item->is_varient){
-                $data = json_decode($product->variation);
-                $text = '';
-                for ($i=0; $i<count($data); $i++){
-                    if ($i== 0){
-                        $text = $data[$i]->attribute_value;
-                    }
-                    else{
-                        $text = $text.'-'. $data[$i]->attribute_value;
-                    }
-                }
-                $stock = ProductStock::where('product_id', $product->product_id)->where('varient', $text)->first();
-                if($stock){
-                    $stock->qty = ($stock->qty + $product->qty);
-                    $stock->save();
-                }
-            }
-            else{
-                $item->stock_qty += $product->qty;
-                $item->save();
-            }
-        }
-    }
-
-
-
     /*================= Start admin_user_update Methoed ================*/
     public function admin_user_update(Request $request, $id)
     {
@@ -450,9 +490,30 @@ class OrderController extends Controller
     /* ============= Start invoice_download Method ============== */
     public function invoice_download($id){
         $order = Order::findOrFail($id);
-        //dd(app('url')->asset('upload/abc.png'));
-        $pdf = PDF::loadView('backend.invoices.invoice',compact('order'))->setPaper('a4');
-        return $pdf->download('invoice.pdf');
+        $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+        $tempDirectory = storage_path('app/mpdf');
+        if (!is_dir($tempDirectory)) {
+            mkdir($tempDirectory, 0755, true);
+        }
+
+        $pdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'margin_top' => 12,
+            'margin_bottom' => 14,
+            'tempDir' => $tempDirectory,
+            'fontdata' => $defaultFontConfig['fontdata'],
+            'default_font' => 'freeserif',
+        ]);
+        $pdf->SetTitle('Invoice ' . $order->invoice_no);
+        $pdf->WriteHTML(view('backend.invoices.invoice', compact('order'))->render());
+
+        return response($pdf->Output('', 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="invoice-' . $order->invoice_no . '.pdf"',
+        ]);
     } // end method
     /* ============= End invoice_download Method ============== */
 

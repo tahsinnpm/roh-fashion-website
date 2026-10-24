@@ -321,10 +321,6 @@
                                               href="{{ route('invoice.download', $order->id) }}">
                                                <i class="fa-solid fa-download"></i>
                                            </a>
-                                           <a href="{{ route('delete.orders',$order->id) }}" id="delete"
-                                              class="btn btn-primary btn-icon btn-circle btn-sm btn-xs" style="background-color: red!important" data-href="#">
-                                               <i class="fa-solid fa-trash"></i>
-                                           </a>
                                        </td>
 
                                        <!--  <td class="text-end">

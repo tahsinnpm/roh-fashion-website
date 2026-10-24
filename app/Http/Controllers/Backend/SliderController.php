@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Slider;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\File;
 use Image;
 use Session;
 
@@ -40,23 +41,17 @@ class SliderController extends Controller
      */
     public function store(Request $request)
     {   
-        $this->validate($request,[
-            'title_en' => 'required',
-            'description_en' => 'required',
-            'slider_img' => 'required',
+        $request->validate([
+            'title_en' => ['required', 'string', 'max:255'],
+            'description_en' => ['required', 'string'],
+            'slider_img' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'slider_img_mobile' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
         ]);
 
-        if($request->hasfile('slider_img')){
-            $image = $request->slider_img;
-            $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-            Image::make($image)->resize(2300, null, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            })->save('upload/slider/'.$name_gen);
-            $save_url = 'upload/slider/'.$name_gen;
-        }else{
-            $save_url = '';
-        }
+        $save_url = $this->storeSliderImage($request->file('slider_img'));
+        $mobileImageUrl = $request->hasFile('slider_img_mobile')
+            ? $this->storeSliderImage($request->file('slider_img_mobile'))
+            : null;
 
         $slider = new slider();
         $slider->title_en = $request->title_en;
@@ -80,6 +75,7 @@ class SliderController extends Controller
         }
         $slider->status = $request->status;
         $slider->slider_img = $save_url;
+        $slider->slider_img_mobile = $mobileImageUrl;
         $slider->slider_url = $request->slider_url;
         $slider->created_at = Carbon::now();
 
@@ -121,28 +117,22 @@ class SliderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request,[
-            'title_en' => 'required',
-            'description_en' => 'required',
+        $request->validate([
+            'title_en' => ['required', 'string', 'max:255'],
+            'description_en' => ['required', 'string'],
+            'slider_img' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'slider_img_mobile' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
         ]);
 
-        $slider = Slider::find($id);
+        $slider = Slider::findOrFail($id);
 
         //Slider Photo Update
-        if ($request->file('slider_img')) {
-            try {
-                if(file_exists($slider->slider_img)){
-                    unlink($slider->slider_img);
-                }
-            } catch (Exception $e) {
-                
+        foreach (['slider_img', 'slider_img_mobile'] as $imageField) {
+            if ($request->hasFile($imageField)) {
+                $newImageUrl = $this->storeSliderImage($request->file($imageField));
+                $this->removeSliderImage($slider->{$imageField});
+                $slider->{$imageField} = $newImageUrl;
             }
-            $slider_img = $request->slider_img;
-            $slider_save = time().$slider_img->getClientOriginalName();
-            $slider_img->move('upload/slider/',$slider_save);
-            $slider->slider_img = 'upload/slider/'.$slider_save;
-        }else{
-            $slider_save = '';
         }
 
         // slider update
@@ -224,5 +214,31 @@ class SliderController extends Controller
             'alert-type' => 'error'
         );
         return redirect()->back()->with($notification);
+    }
+
+    private function storeSliderImage(\Illuminate\Http\UploadedFile $image): string
+    {
+        $uploadDirectory = public_path('upload/slider');
+        File::ensureDirectoryExists($uploadDirectory, 0755, true);
+
+        $imageName = bin2hex(random_bytes(16)) . '.' . $image->extension();
+        Image::make($image)->resize(2300, null, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        })->save($uploadDirectory . DIRECTORY_SEPARATOR . $imageName);
+
+        return 'upload/slider/' . $imageName;
+    }
+
+    private function removeSliderImage(?string $imagePath): void
+    {
+        if (!$imagePath) {
+            return;
+        }
+
+        $storedPath = public_path('upload/slider/' . basename($imagePath));
+        if (is_file($storedPath)) {
+            File::delete($storedPath);
+        }
     }
 }

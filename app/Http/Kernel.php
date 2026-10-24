@@ -60,7 +60,6 @@ class Kernel extends HttpKernel
         'affiliate.auth' => \App\Http\Middleware\AffiliateAuth::class,
         'vendor' => \App\Http\Middleware\VendorMiddleware::class,
         'adminAccess' => \App\Http\Middleware\AdminAccessMiddleware::class,
-        'web' => \App\Http\Middleware\UserMiddleware::class,
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,

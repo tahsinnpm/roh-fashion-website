@@ -11,6 +11,11 @@ class DynamicSection extends Model
 
     protected $guarded = ['id'];
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function products()
     {
         return $this->belongsToMany(Product::class, 'dynamic_section_products', 'dynamic_section_id', 'product_id')

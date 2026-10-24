@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use App\Services\AbandonedCheckoutCapture;
 
 class LandingController extends Controller
 {
@@ -129,6 +130,14 @@ class LandingController extends Controller
         $reviews = $landingPage->reviews ?: [];
         $faqs = $landingPage->faqs ?: [];
 
+        $aboutCards = is_array($landingPage->about_cards) ? $landingPage->about_cards : [];
+        $whatYouGetTitle = $aboutCards['what_you_get_title'] ?? 'যা যা পাচ্ছেন';
+        $whatYouGetCards = $aboutCards['what_you_get_cards'] ?? [
+            ['icon' => '✦', 'title' => 'সিলভার সিরোস্কি স্টোন', 'subtitle' => 'পুরো শাড়ি জুড়ে ঝলমলে কাজ'],
+            ['icon' => '吕', 'title' => 'সিল্ক ব্লেন্ড শিফন', 'subtitle' => 'আল্ট্রা সফট ও লাইটওয়েট'],
+            ['icon' => '💎', 'title' => 'নেকলেস ডিজাইন ব্লাউজ', 'subtitle' => 'ম্যাচিং জর্জেট ব্লাউজ পিস'],
+        ];
+
         return view('FrontEnd.landing.dynamic', compact(
             'landingPage',
             'product',
@@ -144,7 +153,9 @@ class LandingController extends Controller
             'features',
             'overviewPoints',
             'reviews',
-            'faqs'
+            'faqs',
+            'whatYouGetTitle',
+            'whatYouGetCards'
         ));
     }
 
@@ -153,14 +164,14 @@ class LandingController extends Controller
      * Can handle single products, variant selections, dynamic shipping calculation,
      * inventory deduction, and ledger updates.
      */
-    public function orderStore(Request $request)
+    public function orderStore(Request $request, AbandonedCheckoutCapture $abandonedCheckoutCapture)
     {
         // 1. Validation
-        $request->validate([
+        $rules = [
             'product_id' => 'required|exists:products,id',
             'name'       => 'required|string|max:191',
             'phone'      => ['required', 'regex:/^(\+?88)?01[3-9]\d{8}$/'],
-            'address'    => 'required|string|max:1000',
+            'address'    => ['required', 'string', 'max:1000', 'regex:/\\S+(?:\\s+\\S+){1,}/u'],
             'district'   => 'nullable|string|max:191',
             'area'       => 'nullable|string|max:191',
             'quantity'   => 'nullable|integer|min:1|max:100',
@@ -168,6 +179,27 @@ class LandingController extends Controller
             'color'      => 'nullable|string|max:100',
             'varient'    => 'nullable|string|max:100',
             'comment'    => 'nullable|string|max:2000',
+        ];
+
+        // Resolve landing page email requirements
+        $landingPage = null;
+        if ($request->filled('landing_id')) {
+            $landingPage = LandingPage::find($request->landing_id);
+        } elseif ($request->filled('landing_slug')) {
+            $landingPage = LandingPage::where('slug', $request->landing_slug)->first();
+        }
+
+        if ($landingPage && $landingPage->getEmailFieldMode() === 'required') {
+            $rules['email'] = 'required|email|max:191';
+        } else {
+            $rules['email'] = 'nullable|email|max:191';
+        }
+
+        $request->validate($rules, [
+            'address.required' => 'Please enter your full address, including your house or road, area, thana, and district.',
+            'address.regex' => 'Please enter at least two parts of your address, separated by a space.',
+            'email.required' => 'আপনার ইমেইল অ্যাড্রেসটি প্রদান করুন।',
+            'email.email'    => 'সঠিক ফরম্যাটের ইমেইল অ্যাড্রেস লিখুন (যেমন: name@gmail.com)।',
         ]);
 
         $quantity = $request->filled('quantity') ? (int)$request->quantity : ((int)$request->qty ?: 1);
@@ -447,7 +479,13 @@ class LandingController extends Controller
 
             DB::commit();
 
-            $redirectUrl = route('checkout.success', $order->invoice_no);
+            try {
+                $abandonedCheckoutCapture->markConverted($request->phone, $order->id);
+            } catch (\Throwable $captureException) {
+                Log::warning('Unable to mark landing checkout lead as converted.', ['exception' => $captureException->getMessage()]);
+            }
+
+            $redirectUrl = \Illuminate\Support\Facades\URL::signedRoute('checkout.invoice', ['order' => $order->id]);
 
             if ($request->ajax() || $request->wantsJson() || $request->isJson()) {
                 return response()->json([
@@ -726,7 +764,7 @@ class LandingController extends Controller
 
             DB::commit();
 
-            $redirectUrl = route('checkout.success', $order->invoice_no);
+            $redirectUrl = \Illuminate\Support\Facades\URL::signedRoute('checkout.invoice', ['order' => $order->id]);
 
             if ($request->ajax() || $request->wantsJson() || $request->isJson()) {
                 return response()->json([

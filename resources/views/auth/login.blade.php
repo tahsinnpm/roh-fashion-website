@@ -12,14 +12,14 @@
 <section class="rf-auth" aria-labelledby="rf-auth-title">
     <div class="rf-auth__card rf-auth__card--login">
         <aside class="rf-auth__intro">
-            <a class="rf-auth__logo" href="{{ route('home') }}" aria-label="Roh Fashion home">
-                <img src="{{ $authLogo }}" alt="Roh Fashion">
+            <a class="rf-auth__logo" href="{{ route('home') }}" aria-label="Shinduk Fashion home">
+                <img src="{{ $authLogo }}" alt="Shinduk Fashion">
             </a>
-            <span class="rf-auth__eyebrow">ROH FASHION</span>
+            <span class="rf-auth__eyebrow">Shinduk Fashion</span>
             <h1>Welcome back</h1>
             <p>Sign in to continue to your account and pick up where you left off.</p>
             <div class="rf-auth__switch">
-                <span>New to Roh Fashion?</span>
+                <span>New to Shinduk Fashion?</span>
                 <a href="{{ route('register') }}">Create an account <span aria-hidden="true">→</span></a>
             </div>
         </aside>

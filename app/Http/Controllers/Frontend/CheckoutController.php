@@ -356,6 +356,9 @@ class CheckoutController extends Controller
     public function show($id)
     {
         $order = Order::where('invoice_no', $id)->first();
+        if ($order) {
+            return redirect()->to(\Illuminate\Support\Facades\URL::signedRoute('checkout.invoice', ['order' => $order->id]));
+        }
 
         $notification = array(
             'message' => 'Your Order Successfully.',

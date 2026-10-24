@@ -6,8 +6,8 @@
 
 <dialog id="roh-category-drawer" class="roh-category-drawer" aria-labelledby="roh-category-drawer-title">
     <header class="roh-drawer-header">
-        <a href="{{ route('home') }}" class="roh-drawer-logo" aria-label="Roh Fashion">
-            <img src="{{ $logoUrl }}" alt="Roh Fashion" width="104" height="52">
+        <a href="{{ route('home') }}" class="roh-drawer-logo" aria-label="Shinduk Fashion">
+            <img src="{{ $logoUrl }}" alt="Shinduk Fashion" width="104" height="52">
         </a>
         <button type="button" class="roh-drawer-close" data-category-close aria-label="{{ $mobileLabel('Close menu', 'মেনু বন্ধ করুন') }}">&#215;</button>
     </header>

@@ -318,8 +318,8 @@
 		        	<div class="card-body">
 		        		<div class="row">
 		        			<div class="col-md-6 mb-4">
-	                          	<label for="bying_price" class="col-form-label" style="font-weight: bold;">Product Buying Price:</label><span class="text-danger">*</span>
-	                            <input class="form-control" id="{{$product->product_type == 2 ? 'totalBuyingPriceInput':''}}" type="number" name="purchase_price" placeholder="Write product buying price" value="{{ $product->purchase_price }}" required>
+	                          	<label for="bying_price" class="col-form-label" style="font-weight: bold;">Product Cost Price:</label><span class="text-danger">*</span>
+	                            <input class="form-control" id="{{$product->product_type == 2 ? 'totalBuyingPriceInput':''}}" type="number" name="purchase_price" placeholder="Write product Cost price" value="{{ $product->purchase_price }}" required>
 		                        @error('purchase_price')
                                     <p class="text-danger">{{$message}}</p>
                                 @enderror
@@ -514,6 +514,11 @@
                             <input type="file" name="product_thumbnail" class="form-control" id="product_thumbnail" onChange="mainThamUrl(this)">
 							<img src="{{ asset($product->product_thumbnail) }}" width="100" height="100" class="p-2" id="mainThmb">
 						</div><br><br>
+						<div class="mb-4">
+							<label for="youtube_video_url" class="col-form-label" style="font-weight: bold;">YouTube product video (optional):</label>
+							<input type="url" name="youtube_video_url" id="youtube_video_url" class="form-control" value="{{ old('youtube_video_url', $product->youtube_video_url) }}" placeholder="https://www.youtube.com/watch?v=...">
+							@error('youtube_video_url')<p class="text-danger">{{ $message }}</p>@enderror
+						</div>
 						<div class="col-md-12 mb-3">
 		                	<div class="box-header mb-3 d-flex">
 						        <h4 class="box-title">Product Multiple Image <strong>Update:</strong></h4>

@@ -85,7 +85,11 @@ class SettingController extends Controller
             if($request->types !=null && count($request->types) > 0){
                 foreach ($request->types as $key => $type) {
                      $setting = Setting::firstOrNew(['name' => $type]);
-                    $setting->value = $request[$type];
+                    $value = $request[$type];
+                    if ($type === 'topbar_marquee_text' && is_array($value)) {
+                        $value = implode("\n", array_filter(array_map('trim', $value), static fn ($message) => $message !== ''));
+                    }
+                    $setting->value = $value;
                     // if ($request[$type] == ) {
                     //     # code...
                     // }

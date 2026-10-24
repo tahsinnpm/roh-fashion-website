@@ -31,6 +31,12 @@
         object-fit: contain;
     }
 
+    .navbar-aside .aside-top .brand-wrap {
+        background: #fff !important;
+        border-radius: 6px;
+        padding: 6px 8px !important;
+    }
+
     /* Minimize Button */
     .btn-aside-minimize {
         width: 32px;
@@ -305,6 +311,13 @@
                 </a>
             </li>
 
+            <li class="menu-item {{ ($route == 'pos.index')? 'active':'' }}">
+                <a class="menu-link" href="{{ route('pos.index') }}">
+                    <i class="fa-solid fa-calculator fontawesome_icon_custom"></i>
+                    <span class="text">POS System</span>
+                </a>
+            </li>
+
             <li class="menu-item has-submenu
                 {{ ($route == 'slider.index')? 'active':'' }}
                 {{ ($route == 'slider.edit')? 'active':'' }}
@@ -327,7 +340,7 @@
             </li>
 
             <li class="menu-item has-submenu
-                {{ ($prefix == 'admin/product') || ($prefix == 'admin/category')|| ($prefix == 'admin/unit') || ($route == 'attribute.index') || ($prefix == 'admin/brand') ? 'active' : '' }}
+                {{ ($prefix == 'admin/product') || ($prefix == 'admin/unit') || ($route == 'attribute.index') || ($prefix == 'admin/brand') ? 'active' : '' }}
             ">
                 @if(Auth::guard('admin')->user()->role == '1' || in_array('1', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
                     <a class="menu-link" href="#">
@@ -347,9 +360,6 @@
                         <a class="{{ ($route == 'product.affiliate') ? 'active':'' }}" href="{{ route('product.affiliate') }}">Affiliate Products</a>
                     @endif -->
 
-                    @if(Auth::guard('admin')->user()->role == '1' || in_array('5', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
-                        <a class="{{ ($prefix == 'admin/category') ? 'active':'' }}" href="{{ route('category.index') }}">Categories</a>
-                    @endif
                     @if(Auth::guard('admin')->user()->role == '1' || in_array('13', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
                         <a class="{{ ($route == 'attribute.index') ? 'active':'' }}" href="{{ route('attribute.index') }}">Attributes</a>
                     @endif
@@ -361,6 +371,19 @@
                     @endif -->
                 </div>
             </li>
+
+            @if(Auth::guard('admin')->user()->role == '1' || in_array('5', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
+                <li class="menu-item has-submenu {{ ($prefix == 'admin/category') ? 'active' : '' }}">
+                    <a class="menu-link" href="#">
+                        <i class="fa-solid fa-list fontawesome_icon_custom"></i>
+                        <span class="text">Categories</span>
+                    </a>
+                    <div class="submenu">
+                        <a class="{{ ($route == 'category.index') ? 'active' : '' }}" href="{{ route('category.index') }}">Category List</a>
+                        <a class="{{ ($route == 'category.create') ? 'active' : '' }}" href="{{ route('category.create') }}">Add Category</a>
+                    </div>
+                </li>
+            @endif
 
             <li class="menu-item has-submenu {{ ($prefix == 'admin/landing-page') ? 'active' : '' }}">
                 <a class="menu-link" href="#">
@@ -489,7 +512,7 @@
                 </div>
             </li> -->
 
-            <li class="menu-item has-submenu {{ ($route == 'all_orders.index')?'active':'' }}">
+            <li class="menu-item has-submenu {{ in_array($route, ['all_orders.index', 'orders.trash', 'abandoned-checkouts.index']) ? 'active' : '' }}">
                 @if(Auth::guard('admin')->user()->role == '1' || in_array('17', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
                     <a class="menu-link" href="#">
                         <i class="fa-solid fa-bag-shopping fontawesome_icon_custom"></i>
@@ -499,6 +522,8 @@
                 <div class="submenu">
                     @if(Auth::guard('admin')->user()->role == '1' || in_array('17', json_decode(Auth::guard('admin')->user()->staff->role->permissions)))
                         <a class="{{ ($route == 'all_orders.index') ? 'active':'' }}" href="{{ route('all_orders.index') }}">All Orders</a>
+                        <a class="{{ ($route == 'orders.trash') ? 'active':'' }}" href="{{ route('orders.trash') }}">Order Trash</a>
+                        <a class="{{ ($route == 'abandoned-checkouts.index') ? 'active':'' }}" href="{{ route('abandoned-checkouts.index') }}">Abandoned Checkouts</a>
                     @endif
                 </div>
             </li>

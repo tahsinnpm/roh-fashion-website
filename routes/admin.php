@@ -12,6 +12,7 @@ use App\Http\Controllers\Backend\CouponController;
 use App\Http\Controllers\Backend\LandingPageController;
 use App\Http\Controllers\Backend\DynamicSectionController;
 use App\Http\Controllers\Backend\OrderController;
+use App\Http\Controllers\Backend\AbandonedCheckoutController;
 use App\Http\Controllers\Backend\PageController;
 use App\Http\Controllers\Backend\PaymentMethodController;
 use App\Http\Controllers\Backend\PosController;
@@ -336,11 +337,16 @@ Route::middleware('adminAccess')->group(function(){
 		// Orders All Route
 		Route::get('/all_orders', [OrderController::class, 'index'])->name('all_orders.index');
 		Route::get('/all_orders/{id}/show', [OrderController::class, 'show'])->name('all_orders.show');
+		Route::get('/trash', [OrderController::class, 'trash'])->name('orders.trash');
+		Route::post('/{id}/restore', [OrderController::class, 'restore'])->name('orders.restore');
+		Route::delete('/{id}/force-delete', [OrderController::class, 'forceDelete'])->name('orders.force-delete');
 
-		Route::get('/orders_delete/{id}', [OrderController::class, 'destroy'])->name('delete.orders');
+		Route::delete('/{id}', [OrderController::class, 'destroy'])->name('delete.orders');
 		Route::post('/orders_update/{id}', [OrderController::class, 'update'])->name('admin.orders.update');
 		Route::get('/invoice/{id}', [OrderController::class, 'invoice_download'])->name('invoice.download');
 	});
+	Route::get('/abandoned-checkouts', [AbandonedCheckoutController::class, 'index'])->name('abandoned-checkouts.index');
+	Route::post('/abandoned-checkouts/{abandonedCheckout}/status', [AbandonedCheckoutController::class, 'updateStatus'])->name('abandoned-checkouts.status');
 
 	// payment status
 	Route::post('/orders/update_payment_status', [OrderController::class, 'update_payment_status'])->name('orders.update_payment_status');
@@ -413,14 +419,14 @@ Route::middleware('adminAccess')->group(function(){
     Route::post('/pos/customer/insert',[PosController::class,'customerInsert'])->name('customer.ajax.store.pos');
 
 
-     //Admin POS All Routes
+    //Admin POS All Routes
 	Route::prefix('pos')->group(function(){
 		Route::get('/', [PosController::class, 'index'])->name('pos.index');
-		Route::get('/product', [PosController::class, 'getProduct'])->name('pos.getProduct');
-		Route::get('/product/variants', [PosController::class, 'getProductVariations'])->name('pos.getProductVariations');
-		Route::get('/variant-product', [PosController::class, 'getVariantProduct'])->name('pos.getVariantProduct');
-		Route::get('/get-products', [PosController::class, 'filter'])->name('pos.filter');
-		Route::POST('/store', [PosController::class, 'store'])->name('pos.store');
+		Route::get('/search-products', [PosController::class, 'searchProducts'])->name('pos.searchProducts');
+		Route::get('/search-customer', [PosController::class, 'searchCustomer'])->name('pos.searchCustomer');
+		Route::post('/store', [PosController::class, 'store'])->name('pos.store');
+		Route::get('/invoice/{id}', [PosController::class, 'invoice'])->name('pos.invoice');
+		Route::get('/invoice-print/{id}', [PosController::class, 'invoicePrint'])->name('pos.invoicePrint');
 	});
 
     //user-message routes

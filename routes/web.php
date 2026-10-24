@@ -58,7 +58,7 @@ Route::middleware([UserMiddleware::class])->group(function () {
 // });
 
 // /* ==================== Start User dashboard Route ================== */
-Route::get('/dashboard',[UserController::class, 'index'])->name('dashboard')->middleware('web');
+Route::get('/dashboard',[UserController::class, 'index'])->name('dashboard')->middleware(UserMiddleware::class);
 
 // /* ====================  User Order Route ================== */
 Route::get('/user/orders/{invoice_no}',[UserController::class, 'orderView'])->name('order.view');
@@ -166,6 +166,8 @@ Route::get('/cart/all-delete',[CartController::class,'destroy'])->name('cart.rem
 // /* ============  Cart Checkout   ============= */
 Route::get('/checkout',[CheckoutController::class,'index'])->name('checkout');
 Route::get('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'show'])->name('checkout.quick');
+Route::post('/quick-checkout/coupon', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'applyCoupon'])->middleware('throttle:15,1')->name('checkout.quick.coupon');
+Route::post('/abandoned-checkout/capture', [\App\Http\Controllers\Frontend\AbandonedCheckoutCaptureController::class, 'store'])->middleware('throttle:30,1')->name('abandoned-checkout.capture');
 Route::get('/quick-checkout/invoice/{order}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'invoice'])->middleware('signed')->name('checkout.invoice');
 Route::post('/quick-checkout', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'store'])->middleware('throttle:15,1');
 Route::post('/quick-checkout/item/{rowId}', [\App\Http\Controllers\Frontend\QuickCheckoutController::class, 'updateItem'])->name('checkout.quick.update');

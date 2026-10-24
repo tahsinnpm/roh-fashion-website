@@ -4,6 +4,20 @@
 @php
     $isBangla = session('language') === 'bangla';
     $productName = $isBangla ? ($product->name_bn ?: $product->name_en) : $product->name_en;
+    $youtubeUrl = $product->youtube_video_url;
+    $youtubeVideoId = null;
+    if ($youtubeUrl) {
+        $youtubeParts = parse_url($youtubeUrl);
+        $youtubeHost = strtolower($youtubeParts['host'] ?? '');
+        if (str_contains($youtubeHost, 'youtu.be')) {
+            $youtubeVideoId = trim($youtubeParts['path'] ?? '', '/');
+        } elseif (str_contains($youtubeHost, 'youtube.com')) {
+            parse_str($youtubeParts['query'] ?? '', $youtubeQuery);
+            $youtubePath = trim($youtubeParts['path'] ?? '', '/');
+            $youtubeVideoId = $youtubeQuery['v'] ?? (preg_match('~^(?:embed|shorts)/([^/]+)~', $youtubePath, $videoMatch) ? $videoMatch[1] : null);
+        }
+        $youtubeVideoId = is_string($youtubeVideoId) && preg_match('/^[A-Za-z0-9_-]{6,20}$/', $youtubeVideoId) ? $youtubeVideoId : null;
+    }
     $regularPrice = (float) $product->regular_price;
     $discountType = (int) $product->discount_type;
     $discountValue = (float) $product->discount_price;
@@ -97,20 +111,70 @@
             min-width: 0;
         }
 
-        .pdp-image-frame {
+        .pdp-image-frame { position: relative; }
+
+        .pdp-slide-arrow {
+            position: absolute;
+            z-index: 2;
+            top: 50%;
             display: grid;
             place-items: center;
-            min-height: 420px;
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,.92);
+            color: #111;
+            font-size: 20px;
+            cursor: pointer;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+        }
+
+        .pdp-slide-arrow[hidden] { display: none; }
+        .pdp-slide-arrow--prev { left: 12px; }
+        .pdp-slide-arrow--next { right: 12px; }
+
+        .pdp-video-poster {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            border: 0;
+            background: #161616;
+            color: white;
+            font-size: 58px;
+            cursor: pointer;
+        }
+        .pdp-video-poster i { filter: drop-shadow(0 2px 8px #000); }
+        .pdp-video-thumb { display:grid; place-items:center; height:100%; background:#181818; color:#fff; font-size:25px; }
+
+        .pdp-video-modal {
+            width: min(900px, calc(100vw - 28px));
+            max-width: none;
+            padding: 0;
+            border: 0;
+            background: #000;
+        }
+        .pdp-video-modal::backdrop { background: rgba(0,0,0,.82); }
+        .pdp-video-modal__close { position:absolute; z-index:2; top:8px; right:8px; width:40px; height:40px; border:0; border-radius:50%; background:#fff; font-size:24px; cursor:pointer; }
+        .pdp-video-modal__frame { display:block; width:100%; aspect-ratio:16/9; border:0; }
+
+        .pdp-image-frame {
+            position: relative;
+            width: 100%;
+            background: #f7f7f7;
+        }
+
+        .pdp-image-frame.is-video-slide {
             aspect-ratio: 4 / 5;
             overflow: hidden;
-            background: #f7f7f7;
         }
 
         .pdp-image-frame img {
             display: block;
             width: 100%;
-            height: 100%;
-            object-fit: contain;
+            height: auto;
         }
 
         .pdp-thumbnails {
@@ -214,7 +278,7 @@
             width: 100%;
             min-height: 48px;
             padding: 10px 40px 10px 14px;
-            border: 1.5px solid #ccc;
+            border: 1px solid #888888ff;
             border-radius: 6px;
             background: #fff;
             color: #171717;
@@ -306,10 +370,10 @@
         .rf-pdp-btn-cart {
             width: 100%;
             min-height: 48px;
-            border: 2px solid #09090b;
+            border: 1px solid #888888ff;
             background: #ffffff;
             color: #09090b;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
@@ -325,7 +389,7 @@
             color: #ffffff;
         }
 
-        /* Buy Now - Solid Black with 2-second periodic shake */
+        /* Buy Now - Solid Black with continuous, non-pausing periodic shake */
         .rf-pdp-btn-buy {
             width: 100%;
             min-height: 50px;
@@ -339,52 +403,70 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s ease, transform 0.2s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             text-transform: none;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-            animation: rf-buy-shake-2s 2s infinite ease-in-out;
+            will-change: transform;
+            animation: rf-buy-shake-2s 2.2s infinite ease-in-out;
+            -webkit-animation: rf-buy-shake-2s 2.2s infinite ease-in-out;
         }
 
         .rf-pdp-btn-buy:hover {
             background: #27272a;
             border-color: #27272a;
-            animation-play-state: paused;
         }
 
         @keyframes rf-buy-shake-2s {
-
-            0%,
-            70%,
-            100% {
-                transform: translateX(0);
+            0%, 52%, 100% {
+                transform: translate3d(0, 0, 0);
             }
-
-            73% {
-                transform: translateX(-6px) rotate(-1deg);
+            8% {
+                transform: translate3d(-5px, 0, 0) rotate(-1.5deg);
             }
-
-            77% {
-                transform: translateX(6px) rotate(1deg);
+            16% {
+                transform: translate3d(5px, 0, 0) rotate(1.5deg);
             }
-
-            81% {
-                transform: translateX(-4px) rotate(-0.5deg);
+            24% {
+                transform: translate3d(-4px, 0, 0) rotate(-1deg);
             }
-
-            85% {
-                transform: translateX(4px) rotate(0.5deg);
+            32% {
+                transform: translate3d(4px, 0, 0) rotate(1deg);
             }
-
-            89% {
-                transform: translateX(-2px);
+            38% {
+                transform: translate3d(-2px, 0, 0) rotate(-0.5deg);
             }
-
-            93% {
-                transform: translateX(2px);
+            44% {
+                transform: translate3d(2px, 0, 0);
             }
+            48% {
+                transform: translate3d(0, 0, 0);
+            }
+        }
 
-            97% {
-                transform: translateX(0);
+        @-webkit-keyframes rf-buy-shake-2s {
+            0%, 52%, 100% {
+                -webkit-transform: translate3d(0, 0, 0);
+            }
+            8% {
+                -webkit-transform: translate3d(-5px, 0, 0) rotate(-1.5deg);
+            }
+            16% {
+                -webkit-transform: translate3d(5px, 0, 0) rotate(1.5deg);
+            }
+            24% {
+                -webkit-transform: translate3d(-4px, 0, 0) rotate(-1deg);
+            }
+            32% {
+                -webkit-transform: translate3d(4px, 0, 0) rotate(1deg);
+            }
+            38% {
+                -webkit-transform: translate3d(-2px, 0, 0) rotate(-0.5deg);
+            }
+            44% {
+                -webkit-transform: translate3d(2px, 0, 0);
+            }
+            48% {
+                -webkit-transform: translate3d(0, 0, 0);
             }
         }
 
@@ -515,6 +597,10 @@
                 padding: 14px 14px 36px;
             }
 
+            .rf-pdp-social-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+
             .pdp-layout {
                 grid-template-columns: minmax(0, 1fr);
                 gap: 22px;
@@ -562,6 +648,171 @@
             margin: 0;
             letter-spacing: -0.01em;
         }
+
+        /* Product page visual refresh */
+        .pdp-page {
+            max-width: 1440px;
+            padding: 22px 28px 64px;
+            color: #302727;
+        }
+
+        .pdp-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: #8c817d;
+            font-size: 12px;
+        }
+
+        .pdp-breadcrumb a:hover { color: #292524; }
+
+        .pdp-layout {
+            grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+            gap: clamp(28px, 5vw, 68px);
+        }
+
+        .pdp-gallery { position: sticky; top: 112px; }
+
+        .pdp-image-frame {
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #f7f3f0;
+        }
+
+        .pdp-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .pdp-thumbnail {
+            flex-basis: 72px;
+            width: 72px;
+            height: 86px;
+            border-color: #e9dfda;
+            border-radius: 5px;
+        }
+
+        .pdp-thumbnail[aria-current="true"] { border: 2px solid #292524; }
+
+        .pdp-info {
+            padding: clamp(22px, 3vw, 38px);
+            border: 1px solid #eee6e1;
+            border-radius: 10px;
+            background: #fffdfb;
+            box-shadow: 0 12px 36px rgba(53, 31, 28, .045);
+        }
+
+        .pdp-title {
+            margin-bottom: 14px;
+            color: #261f1e;
+            font-size: clamp(27px, 3vw, 38px);
+            font-weight: 600;
+            letter-spacing: -.025em;
+        }
+
+        .pdp-price {
+            gap: 8px 12px;
+            margin-bottom: 12px;
+            color: #292524;
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+
+        .pdp-price strong { font-size: 26px; font-weight: 700; }
+        .pdp-price del { color: #9b918d; }
+        .pdp-price__save { color: #292524; font-weight: 600; }
+
+        .pdp-meta {
+            gap: 8px;
+            margin: 0 0 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #eee6e1;
+            color: #796e6a;
+        }
+
+        .pdp-meta strong { color: #514441; }
+        .pdp-meta .in-stock { color: #27734a; }
+        .pdp-meta .out-of-stock { color: #b42337; }
+
+        .pdp-variant-block { margin-bottom: 18px; }
+        .pdp-variant-lbl { color: #514441; }
+        .pdp-variant-lbl strong { color: #292524; }
+        .pdp-variant-select {
+            border-color: #e6dcd7;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .pdp-variant-select:focus {
+            border-color: #292524;
+            box-shadow: 0 0 0 3px rgba(41, 37, 36, .1);
+        }
+
+        .rf-pdp-qty-wrapper { margin: 0 0 16px; }
+        .rf-pdp-qty-box { border-color: #e6dcd7; border-radius: 6px; }
+        .rf-pdp-qty-btn { color: #514441; }
+        .rf-pdp-qty-btn:hover { background: #f8f2ef; color: #292524; }
+        .rf-pdp-qty-input { color: #302727; }
+
+        .rf-pdp-actions-stack { gap: 9px; margin-bottom: 18px; }
+        .rf-pdp-btn-cart,
+        .rf-pdp-btn-buy {
+            min-height: 50px;
+            border-radius: 5px;
+            font-size: 15px;
+            animation: none;
+            -webkit-animation: none;
+            box-shadow: none;
+        }
+        .rf-pdp-btn-cart {
+            border-color: #292524;
+            color: #292524;
+        }
+        .rf-pdp-btn-cart:hover { background: #f4f1ef; color: #111111; }
+        .rf-pdp-btn-buy { border-color: #292524; background: #292524; }
+        .rf-pdp-btn-buy:hover { border-color: #111111; background: #111111; }
+
+        .rf-pdp-social-grid { gap: 8px; margin-bottom: 16px; }
+        .rf-pdp-social-btn { height: 42px; border-radius: 5px; font-size: 12px; }
+        .rf-pdp-categories-box {
+            border-color: #eee6e1;
+            border-radius: 6px;
+            background: #fff;
+            color: #796e6a;
+        }
+        .rf-pdp-cat-link { color: #292524; }
+        .rf-pdp-cat-link:hover { color: #111111; }
+
+        .pdp-description {
+            margin-top: 26px;
+            padding-top: 22px;
+            border-color: #eee6e1;
+        }
+        .pdp-description h2 { color: #302727; font-weight: 600; }
+        .pdp-description__body { color: #655a56; }
+
+        .rf-related-section { border-color: #eee6e1; }
+        .rf-related-header { text-align: left; }
+        .rf-related-subtitle { color: #292524; letter-spacing: .16em; }
+        .rf-related-title { color: #302727; }
+
+        @media (max-width: 767px) {
+            .pdp-page { padding: 12px 14px 38px; }
+            .pdp-layout {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 20px;
+            }
+            .pdp-gallery { position: static; }
+            .pdp-info { padding: 20px 16px; }
+            .pdp-title { font-size: 27px; }
+            .rf-pdp-social-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .rf-pdp-social-btn { gap: 4px; height: 40px; font-size: 11px; }
+            .rf-pdp-social-btn i { font-size: 14px; }
+            .pdp-description { margin-top: 22px; }
+            .rf-related-section { margin-top: 38px; padding-top: 28px; }
+        }
     </style>
 @endpush
 
@@ -573,22 +824,31 @@
 
         <section class="pdp-layout" aria-label="Product details">
             <div class="pdp-gallery">
-                <div class="pdp-image-frame">
+                @php
+                    $gallerySlides = [['type' => 'image', 'src' => asset($product->product_thumbnail ?: 'upload/product-default.jpg')]];
+                    foreach ($multiImg as $galleryImage) $gallerySlides[] = ['type' => 'image', 'src' => asset($galleryImage->photo_name)];
+                    if ($youtubeVideoId) $gallerySlides[] = ['type' => 'video'];
+                @endphp
+                <div class="pdp-image-frame" data-product-gallery>
                     <img id="product_zoom_img"
                         src="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}"
                         alt="{{ $productName }}" fetchpriority="high">
+                    @if($youtubeVideoId)
+                        <button type="button" class="pdp-video-poster" data-gallery-video aria-label="Play product video" hidden><i class="fa-brands fa-youtube" aria-hidden="true"></i></button>
+                    @endif
+                    <button type="button" class="pdp-slide-arrow pdp-slide-arrow--prev" data-gallery-prev aria-label="Previous slide" hidden><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                    <button type="button" class="pdp-slide-arrow pdp-slide-arrow--next" data-gallery-next aria-label="Next slide" hidden><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
                 </div>
-                @if($multiImg->isNotEmpty())
+                @if(count($gallerySlides) > 1)
                     <div class="pdp-thumbnails" aria-label="Product images">
-                        <button type="button" class="pdp-thumbnail" aria-current="true"
-                            data-image="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}">
-                            <img src="{{ asset($product->product_thumbnail ?: 'upload/product-default.jpg') }}"
-                                alt="{{ $productName }}">
-                        </button>
-                        @foreach($multiImg as $image)
+                        @foreach($gallerySlides as $slide)
                             <button type="button" class="pdp-thumbnail" aria-current="false"
-                                data-image="{{ asset($image->photo_name) }}">
-                                <img src="{{ asset($image->photo_name) }}" alt="{{ $productName }} image {{ $loop->iteration }}">
+                                data-slide-index="{{ $loop->index }}" aria-current="{{ $loop->first ? 'true' : 'false' }}" @if($slide['type'] === 'image') data-image="{{ $slide['src'] }}" @else data-video-slide="true" @endif>
+                                @if($slide['type'] === 'image')
+                                    <img src="{{ $slide['src'] }}" alt="{{ $productName }} image {{ $loop->iteration }}">
+                                @else
+                                    <span class="pdp-video-thumb"><i class="fa-brands fa-youtube" aria-hidden="true"></i></span>
+                                @endif
                             </button>
                         @endforeach
                     </div>
@@ -634,11 +894,11 @@
                 @if($hasVariants)
                     <div class="pdp-variant-block">
                         <label for="variantSelect" class="pdp-variant-lbl">
-                            <span>{{ $isBangla ? 'ভ্যারিয়েন্ট পছন্দ করুন:' : 'Select Variant:' }}</span>
-                            <strong id="curVarLabel">{{ $selectedVariantName }}</strong>
+                            <span>{{ $isBangla ? 'সাইজ নির্বাচন করুন:' : 'সাইজ নির্বাচন করুন' }}</span>
+                            <!-- <strong id="curVarLabel">{{ $selectedVariantName }}</strong> -->
                         </label>
                         <select id="variantSelect" class="pdp-variant-select"
-                            aria-label="{{ $isBangla ? 'ভ্যারিয়েন্ট পছন্দ করুন' : 'Select Variant' }}">
+                            aria-label="{{ $isBangla ? 'ড্রেসের সাইজ সিলেক্ট করুন' : 'Select Variant' }}">
                             @foreach($productStocks->sortBy('price') as $stk)
                                 @php
                                     $stkPrice = $stk->price > 0 ? (float) $stk->price : (float) $product->storefrontPrice();
@@ -755,7 +1015,9 @@
             <section class="rf-related-section" aria-labelledby="related-products-heading">
                 <div class="rf-related-header">
                     <span class="rf-related-subtitle">{{ $isBangla ? 'আপনার পছন্দের আরও পণ্য' : 'SIMILAR PRODUCTS' }}</span>
-                    <h2 id="related-products-heading" class="rf-related-title">{{ $isBangla ? 'সম্পর্কিত পণ্যসমূহ' : 'Related Products' }}</h2>
+                    <h2 id="related-products-heading" class="rf-related-title">
+                        {{ $isBangla ? 'সম্পর্কিত পণ্যসমূহ' : 'Related Products' }}
+                    </h2>
                 </div>
                 <div class="product-grid rf-related-grid">
                     @foreach($relatedProducts as $relatedProduct)
@@ -766,19 +1028,55 @@
         @endif
 
     </main>
+    @if($youtubeVideoId)
+        <dialog class="pdp-video-modal" data-video-modal aria-label="Product video">
+            <button type="button" class="pdp-video-modal__close" data-video-close aria-label="Close video">&times;</button>
+            <iframe class="pdp-video-modal__frame" data-video-frame title="{{ $productName }} video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </dialog>
+    @endif
 @endsection
 
 @push('js')
     <script>
         (() => {
             const mainImage = document.querySelector('#product_zoom_img');
-            document.querySelectorAll('.pdp-thumbnail').forEach((thumbnail) => {
-                thumbnail.addEventListener('click', () => {
-                    mainImage.src = thumbnail.dataset.image;
-                    document.querySelectorAll('.pdp-thumbnail').forEach((item) => item.setAttribute('aria-current', 'false'));
-                    thumbnail.setAttribute('aria-current', 'true');
-                });
+            const slides = @json($gallerySlides);
+            const videoId = @json($youtubeVideoId);
+            const gallery = document.querySelector('[data-product-gallery]');
+            const videoPoster = gallery?.querySelector('[data-gallery-video]');
+            const prevSlide = gallery?.querySelector('[data-gallery-prev]');
+            const nextSlide = gallery?.querySelector('[data-gallery-next]');
+            const thumbnails = [...document.querySelectorAll('.pdp-thumbnail')];
+            const videoModal = document.querySelector('[data-video-modal]');
+            const videoFrame = videoModal?.querySelector('[data-video-frame]');
+            let activeSlide = 0;
+
+            function showSlide(index) {
+                if (!slides.length) return;
+                activeSlide = (index + slides.length) % slides.length;
+                const slide = slides[activeSlide];
+                const isVideo = slide.type === 'video';
+                gallery.classList.toggle('is-video-slide', isVideo);
+                mainImage.hidden = isVideo;
+                if (!isVideo) mainImage.src = slide.src;
+                if (videoPoster) videoPoster.hidden = !isVideo;
+                if (prevSlide) prevSlide.hidden = slides.length < 2;
+                if (nextSlide) nextSlide.hidden = slides.length < 2;
+                thumbnails.forEach((thumbnail, itemIndex) => thumbnail.setAttribute('aria-current', itemIndex === activeSlide ? 'true' : 'false'));
+            }
+
+            thumbnails.forEach((thumbnail) => thumbnail.addEventListener('click', () => showSlide(Number(thumbnail.dataset.slideIndex))));
+            prevSlide?.addEventListener('click', () => showSlide(activeSlide - 1));
+            nextSlide?.addEventListener('click', () => showSlide(activeSlide + 1));
+            videoPoster?.addEventListener('click', () => {
+                videoFrame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                videoModal.showModal();
             });
+            const closeVideo = () => { if (videoModal?.open) videoModal.close(); };
+            videoModal?.querySelector('[data-video-close]')?.addEventListener('click', closeVideo);
+            videoModal?.addEventListener('click', (event) => { if (event.target === videoModal) closeVideo(); });
+            videoModal?.addEventListener('close', () => { videoFrame.src = ''; });
+            showSlide(0);
 
             const quantity = document.querySelector('#qty');
             if (quantity) {

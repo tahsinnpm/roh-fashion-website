@@ -31,7 +31,7 @@
 @section('content')
     <style>
         /* ==========================================================================
-       ROH FASHION — SHOP PAGE (LUXURY BLACK & WHITE THEME)
+       Shinduk Fashion — SHOP PAGE (LUXURY BLACK & WHITE THEME)
        ========================================================================== */
         .rf-shop-page {
             background-color: #fafafa;

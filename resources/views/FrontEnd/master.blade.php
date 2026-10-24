@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{get_setting('business_name')->value}} | @yield('title')</title>
+
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="shortcut icon" href="{{asset(get_setting('site_favicon')->value ?? '')}}" type="image/x-icon">
@@ -20,10 +21,12 @@
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/mobile-navigation.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/mobile-navigation.css')) }}">
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/quick-checkout.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/quick-checkout.css')) }}">
     <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/cart-sidebar.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/cart-sidebar.css')) }}">
+    <link rel="stylesheet" href="{{ asset('FrontEnd/assect/css/footer.css') }}?v={{ filemtime(public_path('FrontEnd/assect/css/footer.css')) }}">
 
 </head>
 
 <body class="{{ request()->routeIs('home') ? 'rf-home-page' : '' }}">
+ 
     
     @include('FrontEnd.include.header')
 
@@ -31,6 +34,7 @@
         @yield('content')
     </main>
 
+@include('FrontEnd.include.track-order-strip')
 @include('FrontEnd.include.footer')
 
 @unless(request()->routeIs('home'))
